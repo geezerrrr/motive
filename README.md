@@ -153,7 +153,7 @@ Powered by [OpenCode](https://github.com/opencode-ai/opencode) — the open-sour
 
 <!-- SEO Keywords -->
 <!-- 
-AI Agent | AI Assistant | macOS AI | Background AI | Autonomous AI Agent | AI Coding Assistant |
+Cowork | Openwork | AI Agent | AI Assistant | macOS AI | Background AI | Autonomous AI Agent | AI Coding Assistant |
 Claude Desktop Alternative | ChatGPT Alternative | Cursor Alternative | Copilot Alternative |
 OpenCode GUI | Local LLM | Ollama GUI | Private AI | On-device AI |
 Spotlight AI | Raycast Alternative | Alfred Alternative | macOS Menu Bar App |
