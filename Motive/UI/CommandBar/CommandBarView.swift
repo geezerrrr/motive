@@ -41,41 +41,31 @@ struct CommandBarView: View {
             // Main input area
             inputArea
             
-            // Subtle divider
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color.white.opacity(0.0), Color.white.opacity(0.08), Color.white.opacity(0.0)]
-                            : [Color.black.opacity(0.0), Color.black.opacity(0.08), Color.black.opacity(0.0)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(height: 1)
-                .padding(.horizontal, 24)
-            
-            // Footer
+            // Footer with subtle background difference
             footerArea
         }
         .frame(width: 640)
         .background(commandBarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // Metallic border effect
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(
                     LinearGradient(
-                        colors: isDark
-                            ? [Color.white.opacity(0.2), Color.white.opacity(0.05), Color.white.opacity(0.1)]
-                            : [Color.black.opacity(0.1), Color.black.opacity(0.03), Color.black.opacity(0.06)],
+                        stops: [
+                            .init(color: isDark ? Color.white.opacity(0.35) : Color.white.opacity(0.9), location: 0),
+                            .init(color: isDark ? Color.white.opacity(0.08) : Color.white.opacity(0.3), location: 0.5),
+                            .init(color: isDark ? Color.white.opacity(0.15) : Color.white.opacity(0.5), location: 1)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
         )
-        .shadow(color: .black.opacity(isDark ? 0.4 : 0.15), radius: 60, y: 30)
-        .shadow(color: .black.opacity(isDark ? 0.3 : 0.1), radius: 20, y: 10)
+        // Outer shadow for depth
+        .shadow(color: .black.opacity(isDark ? 0.5 : 0.12), radius: 40, y: 20)
+        .shadow(color: .black.opacity(isDark ? 0.3 : 0.08), radius: 16, y: 8)
         .onExitCommand {
             appState.hideCommandBar()
         }
@@ -85,31 +75,23 @@ struct CommandBarView: View {
     
     private var inputArea: some View {
         HStack(spacing: 14) {
-            // Logo icon with subtle glow
+            // Logo icon
             ZStack {
-                // Subtle glow
                 Image(systemName: "sparkle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color.Velvet.primary)
-                    .blur(radius: 6)
-                    .opacity(0.5)
-                
-                // Icon
-                Image(systemName: "sparkle")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [Color.Velvet.primary, Color.Velvet.primaryDark],
-                            startPoint: .top,
-                            endPoint: .bottom
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     )
             }
-            .frame(width: 24)
+            .frame(width: 28)
             
             // Input field
             TextField("", text: $inputText, prompt: Text("What should I do?")
-                .foregroundColor(isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.35)))
+                .foregroundColor(isDark ? Color.white.opacity(0.3) : Color.black.opacity(0.35)))
                 .textFieldStyle(.plain)
                 .font(.system(size: 18, weight: .regular))
                 .foregroundColor(Color.Velvet.textPrimary)
@@ -119,7 +101,7 @@ struct CommandBarView: View {
             // Action button
             actionButton
         }
-        .frame(height: 64)
+        .frame(height: 60)
         .padding(.horizontal, 20)
     }
     
@@ -131,7 +113,8 @@ struct CommandBarView: View {
             ActionPill(
                 icon: "gear",
                 label: "Setup",
-                style: .warning
+                style: .warning,
+                isDark: isDark
             ) {
                 openSettings()
             }
@@ -139,7 +122,8 @@ struct CommandBarView: View {
             ActionPill(
                 icon: "exclamationmark.triangle.fill",
                 label: "Error",
-                style: .error
+                style: .error,
+                isDark: isDark
             ) {
                 openSettings()
             }
@@ -148,12 +132,12 @@ struct CommandBarView: View {
             ActionPill(
                 icon: "arrow.right",
                 label: "Run",
-                style: .primary
+                style: .primary,
+                isDark: isDark
             ) {
                 submit()
             }
         } else {
-            // Empty placeholder for consistent layout
             Color.clear
                 .frame(width: 70, height: 32)
         }
@@ -170,7 +154,7 @@ struct CommandBarView: View {
                     
                     Text(appState.menuBarState.displayText)
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .foregroundColor(isDark ? Color.white.opacity(0.5) : Color.black.opacity(0.5))
                 }
                 .padding(.leading, 4)
             }
@@ -184,8 +168,14 @@ struct CommandBarView: View {
                 ShortcutBadge(keys: ["⌘", ","], label: "Settings", isDark: isDark)
             }
         }
-        .frame(height: 38)
+        .frame(height: 40)
         .padding(.horizontal, 20)
+        .background(
+            // Subtle darker background for footer
+            isDark
+                ? Color.black.opacity(0.25)
+                : Color.black.opacity(0.03)
+        )
     }
     
     // MARK: - Background
@@ -195,34 +185,11 @@ struct CommandBarView: View {
             // Blur effect
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, state: .active)
             
-            // Base overlay
+            // Clean base color
             if isDark {
-                Color(hex: "0D0D0F").opacity(0.85)
+                Color(hex: "1A1A1C").opacity(0.95)
             } else {
-                Color.white.opacity(0.92)
-            }
-            
-            // Subtle gradient overlay
-            LinearGradient(
-                colors: isDark
-                    ? [Color.white.opacity(0.04), Color.clear, Color.black.opacity(0.1)]
-                    : [Color.white.opacity(0.6), Color.clear, Color.black.opacity(0.02)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            
-            // Inner glow at top
-            VStack {
-                LinearGradient(
-                    colors: isDark
-                        ? [Color.white.opacity(0.06), Color.clear]
-                        : [Color.white.opacity(0.8), Color.clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 80)
-                
-                Spacer()
+                Color.white.opacity(0.95)
             }
         }
     }
@@ -241,9 +208,8 @@ private struct ActionPill: View {
     let icon: String
     let label: String
     let style: Style
+    var isDark: Bool = true
     let action: () -> Void
-    
-    @State private var isPressed = false
     
     enum Style {
         case primary, warning, error
@@ -254,10 +220,6 @@ private struct ActionPill: View {
             case .warning: return Color.orange
             case .error: return Color.red
             }
-        }
-        
-        var foregroundColor: Color {
-            return .white
         }
     }
     
@@ -270,27 +232,23 @@ private struct ActionPill: View {
                 Image(systemName: icon)
                     .font(.system(size: 10, weight: .bold))
             }
-            .foregroundColor(style.foregroundColor)
+            .foregroundColor(.white)
             .padding(.horizontal, 14)
-            .frame(height: 32)
+            .frame(height: 30)
             .background(
                 ZStack {
-                    // Base color
                     style.backgroundColor
                     
-                    // Top highlight
+                    // Subtle top highlight
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.2),
-                            Color.clear
-                        ],
+                        colors: [Color.white.opacity(0.15), Color.clear],
                         startPoint: .top,
                         endPoint: .center
                     )
                 }
             )
             .clipShape(Capsule())
-            .shadow(color: style.backgroundColor.opacity(0.4), radius: 8, y: 4)
+            .shadow(color: style.backgroundColor.opacity(0.35), radius: 6, y: 3)
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -318,21 +276,26 @@ private struct ShortcutBadge: View {
             ForEach(keys, id: \.self) { key in
                 Text(key)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(isDark ? Color.white.opacity(0.5) : Color.black.opacity(0.5))
+                    .foregroundColor(isDark ? Color.white.opacity(0.45) : Color.black.opacity(0.45))
                     .frame(minWidth: 16)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 3)
-                    .background(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .background(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.06))
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .stroke(isDark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 0.5)
+                            .strokeBorder(
+                                isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.1),
+                                lineWidth: 0.5
+                            )
                     )
             }
             
             Text(label)
                 .font(.system(size: 10, weight: .regular))
-                .foregroundColor(isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.4))
+                .foregroundColor(isDark ? Color.white.opacity(0.3) : Color.black.opacity(0.35))
         }
     }
 }
@@ -345,14 +308,12 @@ private struct PulsingDot: View {
     
     var body: some View {
         ZStack {
-            // Outer glow
             Circle()
                 .fill(color.opacity(0.3))
                 .frame(width: 10, height: 10)
                 .scaleEffect(isPulsing ? 1.5 : 1)
                 .opacity(isPulsing ? 0 : 0.5)
             
-            // Inner dot
             Circle()
                 .fill(color)
                 .frame(width: 6, height: 6)

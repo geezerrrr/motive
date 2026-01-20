@@ -15,6 +15,7 @@ final class ConfigManager: ObservableObject {
     enum Provider: String, CaseIterable, Identifiable {
         case claude
         case openai
+        case gemini
         case ollama
 
         var id: String { rawValue }
@@ -23,6 +24,7 @@ final class ConfigManager: ObservableObject {
             switch self {
             case .claude: return "Claude"
             case .openai: return "OpenAI"
+            case .gemini: return "Gemini"
             case .ollama: return "Ollama"
             }
         }
@@ -59,6 +61,8 @@ final class ConfigManager: ObservableObject {
     @AppStorage("claude.modelName") private var claudeModelName: String = ""
     @AppStorage("openai.baseURL") private var openaiBaseURL: String = ""
     @AppStorage("openai.modelName") private var openaiModelName: String = ""
+    @AppStorage("gemini.baseURL") private var geminiBaseURL: String = ""
+    @AppStorage("gemini.modelName") private var geminiModelName: String = ""
     @AppStorage("ollama.baseURL") private var ollamaBaseURL: String = "http://localhost:11434"
     @AppStorage("ollama.modelName") private var ollamaModelName: String = ""
     
@@ -144,6 +148,7 @@ final class ConfigManager: ObservableObject {
             switch provider {
             case .claude: return claudeBaseURL
             case .openai: return openaiBaseURL
+            case .gemini: return geminiBaseURL
             case .ollama: return ollamaBaseURL
             }
         }
@@ -151,6 +156,7 @@ final class ConfigManager: ObservableObject {
             switch provider {
             case .claude: claudeBaseURL = newValue
             case .openai: openaiBaseURL = newValue
+            case .gemini: geminiBaseURL = newValue
             case .ollama: ollamaBaseURL = newValue
             }
         }
@@ -162,6 +168,7 @@ final class ConfigManager: ObservableObject {
             switch provider {
             case .claude: return claudeModelName
             case .openai: return openaiModelName
+            case .gemini: return geminiModelName
             case .ollama: return ollamaModelName
             }
         }
@@ -169,6 +176,7 @@ final class ConfigManager: ObservableObject {
             switch provider {
             case .claude: claudeModelName = newValue
             case .openai: openaiModelName = newValue
+            case .gemini: geminiModelName = newValue
             case .ollama: ollamaModelName = newValue
             }
         }
@@ -207,6 +215,8 @@ final class ConfigManager: ObservableObject {
         switch provider {
         case .claude, .openai:
             return hasAPIKey
+        case .gemini:
+            return hasAPIKey
         case .ollama:
             return !baseURL.isEmpty
         }
@@ -219,6 +229,8 @@ final class ConfigManager: ObservableObject {
             if apiKey.isEmpty { return "Claude API Key not configured" }
         case .openai:
             if apiKey.isEmpty { return "OpenAI API Key not configured" }
+        case .gemini:
+            if apiKey.isEmpty { return "Gemini API Key not configured" }
         case .ollama:
             if baseURL.isEmpty { return "Ollama Base URL not configured" }
         }
@@ -236,6 +248,8 @@ final class ConfigManager: ObservableObject {
             providerPrefix = "anthropic"
         case .openai:
             providerPrefix = "openai"
+        case .gemini:
+            providerPrefix = "google"
         case .ollama:
             providerPrefix = "ollama"
         }
@@ -255,7 +269,9 @@ final class ConfigManager: ObservableObject {
         case .claude:
             return "anthropic/claude-sonnet-4-5-20250929"
         case .openai:
-            return "openai/gpt-4o"
+            return "openai/gpt-5.1-codex"
+        case .gemini:
+            return "google/gemini-3-pro-preview"
         case .ollama:
             return "ollama/llama3"
         }
@@ -550,6 +566,9 @@ final class ConfigManager: ObservableObject {
             case .openai:
                 environment["OPENAI_API_KEY"] = apiKeyValue
                 Log.config(" Using OpenAI API key: \(apiKeyValue.prefix(10))...")
+            case .gemini:
+                environment["GOOGLE_API_KEY"] = apiKeyValue
+                Log.config(" Using Google API key: \(apiKeyValue.prefix(10))...")
             case .ollama:
                 Log.config(" Using Ollama (no API key needed)")
             }
@@ -567,6 +586,9 @@ final class ConfigManager: ObservableObject {
                 environment["OPENAI_BASE_URL"] = baseURLValue
                 environment["OPENAI_API_BASE"] = baseURLValue
                 Log.config(" Using OpenAI base URL: \(baseURLValue)")
+            case .gemini:
+                environment["GOOGLE_BASE_URL"] = baseURLValue
+                Log.config(" Using Google base URL: \(baseURLValue)")
             case .ollama:
                 environment["OLLAMA_HOST"] = baseURLValue
                 Log.config(" Using Ollama host: \(baseURLValue)")
@@ -766,6 +788,8 @@ final class ConfigManager: ObservableObject {
             providerName = "anthropic"
         case .openai:
             providerName = "openai"
+        case .gemini:
+            providerName = "google"
         case .ollama:
             providerName = "ollama"
         }

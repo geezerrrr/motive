@@ -10,56 +10,44 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @EnvironmentObject private var configManager: ConfigManager
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.xl) {
-                // Header
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("General")
-                        .font(.Velvet.displayMedium)
-                        .foregroundColor(Color.Velvet.textPrimary)
-                    
-                    Text("Configure startup behavior and keyboard shortcuts")
-                        .font(.Velvet.body)
-                        .foregroundColor(Color.Velvet.textSecondary)
+        VStack(alignment: .leading, spacing: 24) {
+            // Startup
+            SettingsCard(title: "Startup", icon: "power") {
+                SettingsRow(label: "Launch at Login", description: "Start Motive when you log in", showDivider: false) {
+                    Toggle("", isOn: $configManager.launchAtLogin)
+                        .toggleStyle(.switch)
+                        .tint(Color.Velvet.primary)
                 }
-                
-                // Startup Section
-                SettingsSection(title: "Startup", icon: "power") {
-                    SettingsRow(label: "Launch at Login", description: "Automatically start Motive when you log in") {
-                        Toggle("", isOn: $configManager.launchAtLogin)
-                            .toggleStyle(.switch)
-                            .tint(Color.Velvet.primary)
-                    }
-                }
-                
-                // Keyboard Section
-                SettingsSection(title: "Keyboard", icon: "keyboard") {
-                    SettingsRow(label: "Global Hotkey", description: "Shortcut to open Command Bar") {
-                        HotkeyRecorderView(hotkey: $configManager.hotkey)
-                            .frame(width: 140, height: 28)
-                    }
-                }
-
-                // Appearance Section
-                SettingsSection(title: "Appearance", icon: "circle.lefthalf.filled") {
-                    SettingsRow(label: "Theme", description: "Follow system or force Light/Dark") {
-                        Picker("", selection: Binding(
-                            get: { configManager.appearanceMode },
-                            set: { configManager.appearanceMode = $0 }
-                        )) {
-                            ForEach(ConfigManager.AppearanceMode.allCases) { mode in
-                                Text(mode.displayName).tag(mode)
-                            }
-                        }
-                        .frame(width: 140)
-                    }
-                }
-                
-                Spacer()
             }
-            .padding(Spacing.xl)
+            
+            // Keyboard
+            SettingsCard(title: "Keyboard", icon: "keyboard") {
+                SettingsRow(label: "Global Hotkey", description: "Summon the Command Bar", showDivider: false) {
+                    HotkeyRecorderView(hotkey: $configManager.hotkey)
+                        .frame(width: 120, height: 28)
+                }
+            }
+
+            // Appearance
+            SettingsCard(title: "Appearance", icon: "circle.lefthalf.filled") {
+                SettingsRow(label: "Theme", description: "Choose light, dark, or follow system", showDivider: false) {
+                    Picker("", selection: Binding(
+                        get: { configManager.appearanceMode },
+                        set: { configManager.appearanceMode = $0 }
+                    )) {
+                        ForEach(ConfigManager.AppearanceMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 120)
+                }
+            }
         }
     }
 }
@@ -69,20 +57,27 @@ struct GeneralSettingsView: View {
 struct HotkeyRecorderView: NSViewRepresentable {
     @Binding var hotkey: String
 
-    func makeNSView(context: Context) -> HotkeyRecorderField {
-        let field = HotkeyRecorderField()
-        field.onHotkeyChange = { hotkey = $0 }
-        field.stringValue = hotkey
-        return field
+    func makeNSView(context: Context) -> HotkeyRecorderButton {
+        let button = HotkeyRecorderButton()
+        button.onHotkeyChange = { hotkey = $0 }
+        button.currentHotkey = hotkey
+        return button
     }
 
-    func updateNSView(_ nsView: HotkeyRecorderField, context: Context) {
-        nsView.stringValue = hotkey
+    func updateNSView(_ nsView: HotkeyRecorderButton, context: Context) {
+        nsView.currentHotkey = hotkey
     }
 }
 
-final class HotkeyRecorderField: NSTextField {
+final class HotkeyRecorderButton: NSButton {
     var onHotkeyChange: ((String) -> Void)?
+    var currentHotkey: String = "" {
+        didSet {
+            updateTitle()
+        }
+    }
+    private var isRecording = false
+    private var localMonitor: Any?
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -95,29 +90,77 @@ final class HotkeyRecorderField: NSTextField {
     }
     
     private func setupAppearance() {
-        isBordered = false
-        isEditable = false  // Only respond to key events, not text input
-        isSelectable = false
-        backgroundColor = NSColor.black.withAlphaComponent(0.05)
-        font = NSFont.monospacedSystemFont(ofSize: 12, weight: .medium)
-        alignment = .center
+        bezelStyle = .rounded
+        isBordered = true
+        font = NSFont.monospacedSystemFont(ofSize: 11, weight: .medium)
         wantsLayer = true
-        layer?.cornerRadius = 6
-        focusRingType = .none
-        placeholderString = "Click to record"
+        target = self
+        action = #selector(buttonClicked)
+        updateTitle()
     }
-
-    override func keyDown(with event: NSEvent) {
-        let symbols = modifierSymbols(for: event.modifierFlags)
-        let key = keyName(for: event)
-        let value = symbols + key
-        stringValue = value
-        onHotkeyChange?(value)
+    
+    private func updateTitle() {
+        if isRecording {
+            title = "Press keys..."
+        } else if currentHotkey.isEmpty {
+            title = "Click to record"
+        } else {
+            title = currentHotkey
+        }
     }
-
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        keyDown(with: event)
-        return true
+    
+    @objc private func buttonClicked() {
+        if isRecording {
+            stopRecording()
+        } else {
+            startRecording()
+        }
+    }
+    
+    private func startRecording() {
+        isRecording = true
+        updateTitle()
+        
+        // Listen for key events
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
+            guard let self = self, self.isRecording else { return event }
+            
+            if event.type == .keyDown {
+                let symbols = self.modifierSymbols(for: event.modifierFlags)
+                let key = self.keyName(for: event)
+                
+                // Only record if there's a modifier or it's a special key
+                if !symbols.isEmpty || self.isSpecialKey(event.keyCode) {
+                    let value = symbols + key
+                    self.currentHotkey = value
+                    self.onHotkeyChange?(value)
+                    self.stopRecording()
+                    return nil // Consume the event
+                }
+            }
+            return event
+        }
+        
+        // Stop recording when clicking elsewhere
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.stopRecording()
+        }
+    }
+    
+    private func stopRecording() {
+        isRecording = false
+        updateTitle()
+        
+        if let monitor = localMonitor {
+            NSEvent.removeMonitor(monitor)
+            localMonitor = nil
+        }
+    }
+    
+    private func isSpecialKey(_ keyCode: UInt16) -> Bool {
+        // Function keys, arrows, etc.
+        return [49, 36, 48, 51, 53, 123, 124, 125, 126].contains(keyCode) ||
+               (keyCode >= 122 && keyCode <= 126) // F keys start around here
     }
 
     private func modifierSymbols(for flags: NSEvent.ModifierFlags) -> String {
@@ -130,19 +173,24 @@ final class HotkeyRecorderField: NSTextField {
     }
     
     private func keyName(for event: NSEvent) -> String {
-        // Handle special keys
         switch event.keyCode {
-        case 49: return "Space"      // Space bar
-        case 36: return "Return"     // Return/Enter
-        case 48: return "Tab"        // Tab
-        case 51: return "Delete"     // Delete/Backspace
-        case 53: return "Escape"     // Escape
-        case 123: return "←"         // Left arrow
-        case 124: return "→"         // Right arrow
-        case 125: return "↓"         // Down arrow
-        case 126: return "↑"         // Up arrow
+        case 49: return "Space"
+        case 36: return "Return"
+        case 48: return "Tab"
+        case 51: return "Delete"
+        case 53: return "Escape"
+        case 123: return "←"
+        case 124: return "→"
+        case 125: return "↓"
+        case 126: return "↑"
         default:
             return event.charactersIgnoringModifiers?.uppercased() ?? ""
+        }
+    }
+    
+    deinit {
+        if let monitor = localMonitor {
+            NSEvent.removeMonitor(monitor)
         }
     }
 }

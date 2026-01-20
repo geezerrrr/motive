@@ -38,7 +38,7 @@ Think of it as a competent colleague who handles tasks autonomously and only tap
 - **Ambient status** — A subtle menu bar indicator shows progress without demanding attention
 - **Local-first** — All data stays on your machine. Nothing is sent to the cloud except AI model requests.
 - **Native experience** — Built with SwiftUI and AppKit for seamless macOS integration
-- **Multi-provider** — Works with Claude, OpenAI, or local Ollama
+- **Multi-provider** — Works with Claude, OpenAI, Gemini, or local Ollama
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ Download the latest release for your architecture:
 ### Configure
 
 1. Click the menu bar icon → **Settings**
-2. Select your AI provider (Claude / OpenAI / Ollama)
+2. Select your AI provider (Claude / OpenAI / Gemini / Ollama)
 3. Enter your API key
 
 ### Use
@@ -79,7 +79,7 @@ The OpenCode binary is bundled automatically during release builds. For developm
 ## Requirements
 
 - macOS 15.0 (Sequoia) or later
-- API key for Claude, OpenAI, or local Ollama setup
+- API key for Claude, OpenAI, Gemini, or local Ollama setup
 
 ## Acknowledgments
 
