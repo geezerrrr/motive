@@ -64,15 +64,17 @@ struct OpenCodeEvent: Sendable, Identifiable {
     let text: String
     let toolName: String?
     let toolInput: String?
+    let toolInputDict: [String: Any]?  // Full tool input for AskUserQuestion parsing
     let sessionId: String?
 
-    init(id: UUID = UUID(), kind: Kind, rawJson: String, text: String, toolName: String? = nil, toolInput: String? = nil, sessionId: String? = nil) {
+    init(id: UUID = UUID(), kind: Kind, rawJson: String, text: String, toolName: String? = nil, toolInput: String? = nil, toolInputDict: [String: Any]? = nil, sessionId: String? = nil) {
         self.id = id
         self.kind = kind
         self.rawJson = rawJson
         self.text = text
         self.toolName = toolName
         self.toolInput = toolInput
+        self.toolInputDict = toolInputDict
         self.sessionId = sessionId
     }
 
@@ -104,39 +106,38 @@ struct OpenCodeEvent: Sendable, Identifiable {
             // Tool call: { type: "tool_call", part: { tool: "Read", input: {...} } }
             let toolName = part?["tool"] as? String ?? "Tool"
             var inputStr: String? = nil
-            if let input = part?["input"] {
-                if let inputDict = input as? [String: Any] {
-                    // Extract meaningful info from tool input
-                    if let path = inputDict["path"] as? String {
-                        inputStr = path
-                    } else if let command = inputDict["command"] as? String {
-                        inputStr = command
-                    } else if let description = inputDict["description"] as? String {
-                        inputStr = description
-                    }
+            let inputDict = part?["input"] as? [String: Any]
+            if let inputDict = inputDict {
+                // Extract meaningful info from tool input
+                if let path = inputDict["path"] as? String {
+                    inputStr = path
+                } else if let command = inputDict["command"] as? String {
+                    inputStr = command
+                } else if let description = inputDict["description"] as? String {
+                    inputStr = description
                 }
             }
-            self.init(kind: .tool, rawJson: rawJson, text: inputStr ?? "", toolName: toolName, toolInput: inputStr, sessionId: sessionId)
+            self.init(kind: .tool, rawJson: rawJson, text: inputStr ?? "", toolName: toolName, toolInput: inputStr, toolInputDict: inputDict, sessionId: sessionId)
             
         case "tool_use":
             // Tool use (combined): { type: "tool_use", part: { tool: "Read", state: { status, input, output } } }
             let toolName = part?["tool"] as? String ?? "Tool"
             var inputStr: String? = nil
-            if let state = part?["state"] as? [String: Any] {
+            let state = part?["state"] as? [String: Any]
+            let inputDict = state?["input"] as? [String: Any]
+            if let state = state {
                 if let output = state["output"] as? String, !output.isEmpty {
                     // Tool completed with output
                     inputStr = String(output.prefix(100))
-                } else if let input = state["input"] {
-                    if let inputDict = input as? [String: Any] {
-                        if let path = inputDict["path"] as? String {
-                            inputStr = path
-                        } else if let command = inputDict["command"] as? String {
-                            inputStr = command
-                        }
+                } else if let inputDict = inputDict {
+                    if let path = inputDict["path"] as? String {
+                        inputStr = path
+                    } else if let command = inputDict["command"] as? String {
+                        inputStr = command
                     }
                 }
             }
-            self.init(kind: .tool, rawJson: rawJson, text: inputStr ?? "", toolName: toolName, toolInput: inputStr, sessionId: sessionId)
+            self.init(kind: .tool, rawJson: rawJson, text: inputStr ?? "", toolName: toolName, toolInput: inputStr, toolInputDict: inputDict, sessionId: sessionId)
             
         case "tool_result":
             // Tool result: { type: "tool_result", part: { output: "..." } }

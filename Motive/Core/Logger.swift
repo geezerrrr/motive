@@ -2,13 +2,13 @@
 //  Logger.swift
 //  Motive
 //
-//  Debug logging utility that only prints in DEBUG builds.
+//  Debug logging utility. Outputs in DEBUG builds or when Debug Mode is enabled.
 //
 
 import Foundation
 import os.log
 
-/// Debug logger that only outputs in DEBUG builds
+/// Logger that outputs in DEBUG builds or when user enables Debug Mode in Settings
 enum Log {
     private static let subsystem = Bundle.main.bundleIdentifier ?? "com.velvet.motive"
     
@@ -17,33 +17,38 @@ enum Log {
     private static let permissionLogger = os.Logger(subsystem: subsystem, category: "Permission")
     private static let configLogger = os.Logger(subsystem: subsystem, category: "Config")
     
+    /// Check if debug logging is enabled (DEBUG build or user setting)
+    private static var isDebugEnabled: Bool {
+        #if DEBUG
+        return true
+        #else
+        return UserDefaults.standard.bool(forKey: "debugMode")
+        #endif
+    }
+    
     /// Log general app messages
     static func debug(_ message: String, file: String = #file, function: String = #function) {
-        #if DEBUG
+        guard isDebugEnabled else { return }
         let filename = (file as NSString).lastPathComponent
         appLogger.debug("[\(filename):\(function)] \(message)")
-        #endif
     }
     
     /// Log OpenCode bridge messages
     static func bridge(_ message: String) {
-        #if DEBUG
+        guard isDebugEnabled else { return }
         bridgeLogger.debug("\(message)")
-        #endif
     }
     
     /// Log permission-related messages
     static func permission(_ message: String) {
-        #if DEBUG
+        guard isDebugEnabled else { return }
         permissionLogger.debug("\(message)")
-        #endif
     }
     
     /// Log configuration messages
     static func config(_ message: String) {
-        #if DEBUG
+        guard isDebugEnabled else { return }
         configLogger.debug("\(message)")
-        #endif
     }
     
     /// Log errors (always logged, even in release)

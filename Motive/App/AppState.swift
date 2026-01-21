@@ -444,6 +444,12 @@ final class AppState: ObservableObject {
         case .call, .tool:
             menuBarState = .executing
             currentToolName = event.toolName ?? "Processing"
+            
+            // Intercept AskUserQuestion tool calls
+            if event.toolName == "AskUserQuestion", let inputDict = event.toolInputDict {
+                handleAskUserQuestion(input: inputDict)
+                return  // Don't add to message list
+            }
         case .diff:
             menuBarState = .executing
             currentToolName = "Editing file"
@@ -479,6 +485,81 @@ final class AppState: ObservableObject {
         
         // Process event content (save session ID, add messages)
         processEventContent(event)
+    }
+    
+    /// Handle AskUserQuestion tool call - show popup and send response via PTY
+    private func handleAskUserQuestion(input: [String: Any]) {
+        Log.debug("Intercepted AskUserQuestion tool call")
+        
+        // Parse questions from input
+        guard let questions = input["questions"] as? [[String: Any]],
+              let firstQuestion = questions.first else {
+            Log.debug("AskUserQuestion: no questions found in input")
+            return
+        }
+        
+        let questionText = firstQuestion["question"] as? String ?? "Question from AI"
+        let header = firstQuestion["header"] as? String ?? "Question"
+        let multiSelect = firstQuestion["multiSelect"] as? Bool ?? false
+        
+        // Parse options
+        var options: [PermissionRequest.QuestionOption] = []
+        if let rawOptions = firstQuestion["options"] as? [[String: Any]] {
+            options = rawOptions.map { opt in
+                PermissionRequest.QuestionOption(
+                    label: opt["label"] as? String ?? "",
+                    description: opt["description"] as? String
+                )
+            }
+        }
+        
+        // If no options provided, add default Yes/No/Other
+        if options.isEmpty {
+            options = [
+                PermissionRequest.QuestionOption(label: "Yes"),
+                PermissionRequest.QuestionOption(label: "No"),
+                PermissionRequest.QuestionOption(label: "Other", description: "Custom response")
+            ]
+        }
+        
+        let requestId = "askuser_\(UUID().uuidString)"
+        let request = PermissionRequest(
+            id: requestId,
+            taskId: requestId,
+            type: .question,
+            question: questionText,
+            header: header,
+            options: options,
+            multiSelect: multiSelect
+        )
+        
+        // Show quick confirm with custom handlers for AskUserQuestion
+        if quickConfirmController == nil {
+            quickConfirmController = QuickConfirmWindowController()
+        }
+        
+        let anchorFrame = statusBarController?.buttonFrame
+        
+        quickConfirmController?.show(
+            request: request,
+            anchorFrame: anchorFrame,
+            onResponse: { [weak self] (response: String) in
+                // Send response to OpenCode via PTY stdin
+                Log.debug("AskUserQuestion response: \(response)")
+                Task { [weak self] in
+                    await self?.bridge.sendResponse(response)
+                }
+                self?.updateStatusBar()
+            },
+            onCancel: { [weak self] in
+                // User cancelled - send empty response
+                Log.debug("AskUserQuestion cancelled")
+                Task { [weak self] in
+                    await self?.bridge.sendResponse("")
+                }
+                self?.updateStatusBar()
+            }
+        )
     }
     
     /// Detect errors from OpenCode output

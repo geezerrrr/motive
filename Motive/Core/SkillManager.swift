@@ -48,6 +48,45 @@ final class SkillManager {
         skills.filter { $0.type == type }
     }
     
+    // MARK: - SKILL.md File Generation
+    
+    /// Write SKILL.md files to the skills directory for OpenCode to discover
+    /// OpenCode looks for skills at $OPENCODE_CONFIG_DIR/skills/<name>/SKILL.md
+    func writeSkillFiles(to baseDirectory: URL) {
+        let skillsDir = baseDirectory.appendingPathComponent("skills")
+        
+        // Only write MCP tool skills as SKILL.md files
+        for skill in skills(ofType: .mcpTool) {
+            let skillDir = skillsDir.appendingPathComponent(skill.id)
+            let skillMdPath = skillDir.appendingPathComponent("SKILL.md")
+            
+            do {
+                try FileManager.default.createDirectory(at: skillDir, withIntermediateDirectories: true)
+                
+                let skillMdContent = generateSkillMd(for: skill)
+                try skillMdContent.write(to: skillMdPath, atomically: true, encoding: .utf8)
+                
+                Log.debug("Written SKILL.md for '\(skill.id)' at: \(skillMdPath.path)")
+            } catch {
+                Log.debug("Failed to write SKILL.md for '\(skill.id)': \(error)")
+            }
+        }
+    }
+    
+    /// Generate SKILL.md content in OpenCode's expected format
+    private func generateSkillMd(for skill: Skill) -> String {
+        """
+---
+name: \(skill.id)
+description: \(skill.description)
+---
+
+# \(skill.name)
+
+\(skill.content)
+"""
+    }
+    
     /// Generate combined system prompt from all skills
     func generateSystemPrompt() -> String {
         var sections: [String] = []
@@ -115,71 +154,112 @@ final class SkillManager {
         Skill(
             id: "ask-user-question",
             name: "AskUserQuestion",
-            description: "Present choices to users when you need them to make a decision.",
+            description: "Ask users questions via the UI. The user CANNOT see CLI output - this tool is the ONLY way to communicate with them.",
             content: """
-            Shows a modal dialog for users to select from options.
+            Use this MCP tool to ask users questions and get their responses.
+            This is the **ONLY** way to communicate with the user - they cannot see CLI/terminal output.
+            
+            ## Critical Rule
+            
+            The user **CANNOT** see your text output or CLI prompts!
+            
+            If you write "Let me ask you..." and then just output text - **THE USER WILL NOT SEE IT**.
+            You MUST call this tool to display a modal in the UI.
             
             ## ⛔ MANDATORY: "options" ARRAY IS REQUIRED
             
             Every call MUST include an "options" array with 2-4 choices.
             Calls WITHOUT options will FAIL and break the UI.
             
-            ## ⚠️ DO NOT USE FOR CONVERSATION
+            ## When to Use
             
-            If user is chatting → Just respond with text (visible in Drawer)
-            If user needs to CHOOSE → Use this tool WITH options
+            - Clarifying questions before starting ambiguous tasks
+            - Asking user preferences (e.g., "How would you like files organized?")
+            - Confirming actions before executing (especially destructive/irreversible ones)
+            - Getting approval for sensitive actions (financial, messaging, deletion, etc.)
+            - Any situation where you need user input to proceed
             
-            ## Required Format
+            ## Parameters
             
             ```json
             {
               "questions": [{
-                "question": "Your question",
+                "question": "Your question to the user",
+                "header": "Short label (max 12 chars)",
                 "options": [
-                  { "label": "Choice 1", "description": "What this does" },
-                  { "label": "Choice 2", "description": "What this does" },
-                  { "label": "Other", "description": "Custom input" }
-                ]
+                  { "label": "Option 1", "description": "What this does" },
+                  { "label": "Option 2", "description": "What this does" }
+                ],
+                "multiSelect": false
               }]
             }
             ```
             
-            ## Parameters
+            - `question` (required): The question text to display
+            - `header` (optional): Short category label, shown as modal title (max 12 chars)
+            - `options` (⛔ REQUIRED): Array of selectable choices (2-4 recommended)
+            - `multiSelect` (optional): Allow selecting multiple options (default: false)
             
-            - `question` (required): The question text
-            - `options` (⛔ REQUIRED): Array of 2-4 choices. NEVER omit this!
-            - `header` (optional): Short title (max 12 chars)
-            - `multiSelect` (optional): Allow multiple selections
+            **Custom text input:** To allow users to type their own response, include an option with label "Other".
             
-            ## When to Use
+            ## Examples
             
-            ✅ User gave a task with multiple valid approaches → Ask with options
-            ✅ Destructive action needs confirmation → Ask with Yes/No options
-            
-            ## When NOT to Use
-            
-            ❌ Casual conversation → Just reply in text
-            ❌ Asking "how can I help" → Don't ask, wait for task
-            ❌ Open-ended questions without options → Don't call this tool
-            
-            ## Response Format
-            
-            - `User selected: Option Name` - Single selection
-            - `User selected: Option A, Option B` - Multiple selections (if multiSelect: true)
-            - `User responded: [custom text]` - If user typed a custom response via "Other"
-            - `User declined to answer the question.` - If user dismissed the modal
-            
-            ## Example
+            ### Asking about preferences
             
             ```
             AskUserQuestion({
               "questions": [{
-                "question": "How would you like to organize your Downloads folder?",
+                "question": "How would you like to organize your files?",
                 "header": "Organize",
                 "options": [
-                  { "label": "By file type", "description": "Group into Documents, Images, Videos, etc." },
+                  { "label": "By file type", "description": "Group into Documents, Images, etc." },
                   { "label": "By date", "description": "Group by month/year" },
-                  { "label": "Other", "description": "Tell me your preference" }
+                  { "label": "Other", "description": "Let me specify" }
+                ]
+              }]
+            })
+            ```
+            
+            ### Confirming an action
+            
+            ```
+            AskUserQuestion({
+              "questions": [{
+                "question": "Found multiple matches. Which file do you want?",
+                "header": "Select",
+                "options": [
+                  { "label": "file1.pdf", "description": "Modified yesterday" },
+                  { "label": "file2.pdf", "description": "Modified last week" },
+                  { "label": "All of them", "description": "Process all matches" }
+                ]
+              }]
+            })
+            ```
+            
+            ## Response Format
+            
+            - `User selected: Option 1` - Single selection
+            - `User selected: Option A, Option B` - Multiple selections (if multiSelect: true)
+            - `User responded: [custom text]` - If user typed a custom response via "Other"
+            - `User declined to answer the question.` - If user dismissed the modal
+            
+            ## Wrong vs Correct
+            
+            **WRONG** (user won't see this):
+            ```
+            I found multiple files. Which one do you want?
+            1. file1.pdf
+            2. file2.pdf
+            ```
+            
+            **CORRECT** (user will see a modal):
+            ```
+            AskUserQuestion({
+              "questions": [{
+                "question": "Which file do you want?",
+                "options": [
+                  { "label": "file1.pdf" },
+                  { "label": "file2.pdf" }
                 ]
               }]
             })
@@ -193,13 +273,27 @@ final class SkillManager {
         Skill(
             id: "file-permission",
             name: "request_file_permission",
-            description: "Request user permission before performing file operations.",
+            description: "Request user permission before WRITE operations (create, delete, modify, etc). NOT needed for reading.",
             content: """
-            Use this MCP tool to request user permission before performing ANY file operation.
+            Use this MCP tool to request user permission before performing **WRITE** file operations.
+            
+            ## ⚠️ IMPORTANT: Reading Does NOT Require Permission
+            
+            **DO NOT call this tool for:**
+            - Reading file contents (Read tool)
+            - Listing directory contents (Glob, LS)
+            - Searching file contents (Grep)
+            - Any operation that only READS data
+            
+            **ONLY call this tool for WRITE operations:**
+            - Creating new files
+            - Deleting files
+            - Modifying/overwriting file contents
+            - Renaming or moving files
             
             ## When to Use
             
-            BEFORE using Write, Edit, Bash (with file ops), or ANY tool that touches files:
+            BEFORE using Write, Edit, or Bash commands that CREATE/DELETE/MODIFY files:
             1. FIRST: Call request_file_permission and wait for response
             2. ONLY IF response is "allowed": Proceed with the file operation
             3. IF "denied": Stop and inform the user via AskUserQuestion

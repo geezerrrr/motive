@@ -902,8 +902,10 @@ WRONG example (missing options - DO NOT DO THIS):
   }]
 }
 
-Before ANY file operation (create, delete, rename, move, modify, overwrite),
+Before WRITE operations (create, delete, rename, move, modify, overwrite),
 you MUST call the request_file_permission tool and wait for the response.
+
+IMPORTANT: Reading files does NOT require permission. Do not call request_file_permission for Read, Glob, Grep, or any read-only operation.
 
 Never attempt to prompt via CLI or rely on terminal prompts - they will not work!
 </important>
@@ -1004,6 +1006,10 @@ Never attempt to prompt via CLI or rely on terminal prompts - they will not work
             // Store config path for environment variable
             openCodeConfigPath = configPath.path
             openCodeConfigDir = appSupport.path
+            
+            // Write SKILL.md files for OpenCode to discover MCP tools
+            // OpenCode looks for skills at $OPENCODE_CONFIG_DIR/skills/<name>/SKILL.md
+            SkillManager.shared.writeSkillFiles(to: appSupport)
         } catch {
             Log.config(" ERROR - Failed to write OpenCode config: \(error)")
         }

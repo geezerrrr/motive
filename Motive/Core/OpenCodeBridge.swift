@@ -55,6 +55,16 @@ actor OpenCodeBridge {
         Log.bridge("Sent SIGINT to OpenCode process (PID: \(pty.pid))")
     }
     
+    /// Send a response to OpenCode via PTY stdin (for AskUserQuestion responses)
+    func sendResponse(_ response: String) {
+        guard let pty = ptyProcess, pty.isRunning else {
+            Log.bridge("Cannot send response: PTY not running")
+            return
+        }
+        Log.bridge("Sending response to OpenCode: \(response)")
+        pty.writeLine(response)
+    }
+    
     /// Get the current OpenCode session ID
     func getSessionId() -> String? {
         return currentSessionId

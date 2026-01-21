@@ -68,6 +68,19 @@ final class PTYProcess: @unchecked Sendable {
         return fh.bytes.lines
     }
     
+    /// Write string to PTY stdin
+    func write(_ string: String) {
+        guard masterFd >= 0, let data = string.data(using: .utf8) else { return }
+        data.withUnsafeBytes { buffer in
+            _ = Darwin.write(masterFd, buffer.baseAddress, buffer.count)
+        }
+    }
+    
+    /// Write string with newline to PTY stdin
+    func writeLine(_ string: String) {
+        write(string + "\n")
+    }
+    
     /// Send interrupt signal (Ctrl+C)
     func interrupt() {
         guard pid > 0 else { return }
