@@ -74,6 +74,7 @@ build_app() {
         -arch "$arch" \
         -derivedDataPath "$build_path" \
         ONLY_ACTIVE_ARCH=NO \
+        MACOSX_DEPLOYMENT_TARGET=15.0 \
         clean build
     
     log "Build complete for $arch"
