@@ -54,8 +54,8 @@ Download the latest release for your architecture:
 
 | Chip | Download |
 |------|----------|
-| Apple Silicon | [Motive-arm64.dmg](https://github.com/geezerrrr/motive/releases/latest) |
-| Intel | [Motive-x86_64.dmg](https://github.com/geezerrrr/motive/releases/latest) |
+| Apple Silicon | [Motive-0.2.0-arm64.dmg](https://github.com/geezerrrr/motive/releases/download/v0.2.0/Motive-0.2.0-arm64.dmg) |
+| Intel | [Motive-0.2.0-x86_64.dmg](https://github.com/geezerrrr/motive/releases/download/v0.2.0/Motive-0.2.0-x86_64.dmg) |
 
 > **First launch:** If blocked, go to System Settings → Privacy & Security → Click "Open Anyway"
 
