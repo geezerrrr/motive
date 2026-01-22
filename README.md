@@ -17,10 +17,6 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
 </p>
 
-<p align="center">
-  <img src="assets/demo.gif" width="600" alt="Demo">
-</p>
-
 ---
 
 ## Why Motive?
@@ -45,6 +41,12 @@ Today's AI tools keep you hostage — Cursor locks you in a window, Claude Code 
 - **Local-first** — All data stays on your machine. Only AI API requests leave your device.
 - **Native macOS** — Built with SwiftUI and AppKit. No Electron, no web views.
 - **Multi-provider** — Claude, OpenAI, Gemini, or fully local with Ollama.
+
+<p align="center">
+
+https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
+
+</p>
 
 ## Quick Start
 
