@@ -5,7 +5,7 @@
 <h1 align="center">Motive</h1>
 
 <h3 align="center"><strong>Say it. Walk away.</strong></h3>
-<p align="center">A macOS-native AI agent that works in the background while you stay in your flow.</p>
+<p align="center">A personal AI agent for macOS. Turns intent into completed work, running from your menu bar.</p>
 
 <p align="center">
   <a href="https://github.com/geezerrrr/motive/releases"><img src="https://img.shields.io/badge/release-v0.2.1-blue?style=flat-square" alt="Release"></a>
