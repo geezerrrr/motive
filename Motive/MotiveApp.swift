@@ -28,8 +28,8 @@ struct MotiveApp: App {
         _appState = StateObject(wrappedValue: appState)
         modelContainer = container
         appDelegate.appState = appState
-        // Ensure status bar is created even if no window appears
-        appState.start()
+        // Note: appState.start() is called in AppDelegate.applicationDidFinishLaunching
+        // to ensure GUI connection is fully established before creating NSStatusItem
     }
  
     var body: some Scene {
