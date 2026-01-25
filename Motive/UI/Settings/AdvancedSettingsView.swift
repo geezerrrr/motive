@@ -210,6 +210,7 @@ struct AdvancedSettingsView: View {
                                     browserAgentAPIKeyInput = configManager.browserAgentAPIKey
                                     browserAgentBaseUrlInput = configManager.browserAgentBaseUrl
                                     syncBrowserAgentConfig()
+                                    appState.restartAgent()
                                 }
                             )) {
                                 ForEach(ConfigManager.BrowserAgentProvider.allCases, id: \.self) { provider in
@@ -370,6 +371,7 @@ struct AdvancedSettingsView: View {
                             .onChange(of: browserAgentAPIKeyInput) { _, newValue in
                                 configManager.browserAgentAPIKey = newValue
                                 syncBrowserAgentConfig()
+                                appState.restartAgent()
                             }
                     } else {
                         Text(configManager.hasBrowserAgentAPIKey ? "••••••••" : "Not set")
@@ -434,6 +436,7 @@ struct AdvancedSettingsView: View {
                     .onChange(of: browserAgentBaseUrlInput) { _, newValue in
                         configManager.browserAgentBaseUrl = newValue
                         syncBrowserAgentConfig()
+                        appState.restartAgent()
                     }
             }
             .padding(16)
