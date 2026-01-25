@@ -92,8 +92,6 @@
 
 <br />
 
----
-
 <br />
 
 ## The problem with AI tools today
@@ -111,7 +109,6 @@
 
 <br />
 
----
 
 <br />
 
@@ -125,7 +122,6 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 <br />
 
----
 
 <br />
 
@@ -140,7 +136,6 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 <br />
 
----
 
 <br />
 
@@ -166,7 +161,6 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 <br />
 
----
 
 <br />
 
@@ -181,7 +175,6 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 <br />
 
----
 
 <br />
 
@@ -203,7 +196,6 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 <br />
 
----
 
 <br />
 
@@ -226,7 +218,6 @@ open Motive.xcodeproj
 
 <br />
 
----
 
 <br />
 
@@ -260,17 +251,18 @@ Yes. Select Ollama as your provider and point it to your local instance. Zero cl
 
 <br />
 
----
 
 <br />
 
 ## Acknowledgments
 
-Powered by [OpenCode](https://github.com/sst/opencode) — the open-source AI coding agent.
+Built on the shoulders of giants:
+
+- [OpenCode](https://github.com/sst/opencode) — The open-source AI coding agent that powers task execution
+- [browser-use](https://github.com/browser-use/browser-use) — AI browser automation that makes web tasks possible
 
 <br />
 
----
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e.svg?style=for-the-badge" alt="MIT License"></a>
@@ -284,7 +276,6 @@ Powered by [OpenCode](https://github.com/sst/opencode) — the open-source AI co
   <a href="https://github.com/geezerrrr/motive/stargazers">⭐ Star on GitHub</a>
 </p>
 
----
 
 <!-- 
 Keywords: AI agent, AI assistant, macOS AI, menu bar AI, background AI agent, autonomous AI, agentic AI,
