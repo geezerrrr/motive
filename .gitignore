@@ -82,3 +82,5 @@ fastlane/test_output
 .env
 .env.local
 .vscode/
+Scripts/browser-use-sidecar/.venv/
+dist/

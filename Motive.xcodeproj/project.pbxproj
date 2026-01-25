@@ -432,6 +432,15 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/cryptography/hazmat/bindings",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/jiter",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/PIL/.dylibs",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/pydantic_core",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/rpds",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal",
+				);
 				MARKETING_VERSION = 0.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = velvetai.Motive;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -463,6 +472,15 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/cryptography/hazmat/bindings",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/jiter",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/PIL/.dylibs",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/pydantic_core",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal/rpds",
+					"$(PROJECT_DIR)/Motive/Resources/browser-use-sidecar/_internal",
 				);
 				MARKETING_VERSION = 0.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = velvetai.Motive;

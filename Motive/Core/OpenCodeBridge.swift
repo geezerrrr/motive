@@ -123,21 +123,49 @@ actor OpenCodeBridge {
         let safeCwd = FileManager.default.temporaryDirectory.path
         Log.bridge("Using working directory: \(safeCwd)")
         
-        let pty = PTYProcess()
-        do {
-            try pty.spawn(
-                executablePath: binaryPath,
-                arguments: args,
-                environment: configuration.environment,
-                currentDirectory: safeCwd
-            )
-            Log.bridge("OpenCode PTY process started with PID: \(pty.pid)")
-        } catch {
+        // Retry logic for OpenCode startup failures
+        let maxRetries = 3
+        var retryDelay: TimeInterval = 1.0
+        var pty: PTYProcess?
+        
+        for attempt in 0..<maxRetries {
+            // Create a new PTYProcess for each attempt
+            let newPty = PTYProcess()
+            do {
+                try newPty.spawn(
+                    executablePath: binaryPath,
+                    arguments: args,
+                    environment: configuration.environment,
+                    currentDirectory: safeCwd
+                )
+                Log.bridge("OpenCode PTY process started with PID: \(newPty.pid)")
+                pty = newPty
+                break  // Success, exit retry loop
+            } catch {
+                if attempt < maxRetries - 1 {
+                    Log.bridge("OpenCode launch failed (attempt \(attempt + 1)/\(maxRetries)), retrying in \(retryDelay)s...")
+                    try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+                    retryDelay *= 2  // Exponential backoff
+                } else {
+                    // Final attempt failed
+                    await eventHandler(
+                        OpenCodeEvent(
+                            kind: .unknown,
+                            rawJson: "",
+                            text: "OpenCode failed to launch after \(maxRetries) attempts: \(error.localizedDescription)"
+                        )
+                    )
+                    return
+                }
+            }
+        }
+        
+        guard let pty = pty else {
             await eventHandler(
                 OpenCodeEvent(
                     kind: .unknown,
                     rawJson: "",
-                    text: "OpenCode failed to launch: \(error.localizedDescription)"
+                    text: "OpenCode failed to launch: PTY process not created"
                 )
             )
             return

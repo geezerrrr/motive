@@ -28,6 +28,13 @@ final class SystemPromptBuilder {
         sections.append(buildCommunicationRules())
         sections.append(buildFileOperationRules())
         sections.append(buildMCPToolInstructions())
+        
+        // Add capability instructions (e.g., browser automation)
+        let capabilitySection = buildCapabilityInstructions()
+        if !capabilitySection.isEmpty {
+            sections.append(capabilitySection)
+        }
+        
         sections.append(buildBehavioralGuidelines())
         sections.append(buildExamples())
         
@@ -195,6 +202,27 @@ final class SystemPromptBuilder {
         }
         
         content += "</mcp-tools>"
+        return content
+    }
+    
+    private func buildCapabilityInstructions() -> String {
+        let capabilities = skillManager.skills(ofType: .capability).filter { $0.enabled }
+        guard !capabilities.isEmpty else { return "" }
+        
+        var content = "<capabilities>\n## Available Capabilities\n\n"
+        
+        for skill in capabilities {
+            content += """
+            ### \(skill.name)
+            
+            \(skill.content)
+            
+            ---
+            
+            """
+        }
+        
+        content += "</capabilities>"
         return content
     }
     

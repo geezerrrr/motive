@@ -1,0 +1,9 @@
+# Core browser automation library (uses CDP, not Playwright)
+browser-use>=0.11.4
+
+# SOCKS proxy support for httpx (to avoid "socksio not installed" errors)
+httpx[socks]
+socksio>=1.0.0
+
+# PyInstaller for building standalone binary
+pyinstaller>=6.0.0

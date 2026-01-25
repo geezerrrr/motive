@@ -4,6 +4,12 @@
 //
 //  Skill system architecture for extensible AI capabilities.
 //
+//  Skills are modular units that extend OpenCode's abilities:
+//  - MCP Tools: Provide callable MCP server functionality
+//  - Capabilities: External tools like browser automation (bundled binaries)
+//  - Instructions: Behavioral guidelines
+//  - Rules: Mandatory constraints
+//
 
 import Foundation
 
@@ -14,11 +20,22 @@ struct Skill: Identifiable {
     let description: String
     let content: String
     let type: SkillType
+    let enabled: Bool
     
     enum SkillType: String {
-        case mcpTool = "mcp"        // Provides MCP tool functionality
-        case instruction = "instruction"  // Provides behavioral instructions
-        case rule = "rule"          // Enforces rules/constraints
+        case mcpTool = "mcp"              // Provides MCP tool functionality
+        case capability = "capability"     // External tool (bundled binary)
+        case instruction = "instruction"   // Provides behavioral instructions
+        case rule = "rule"                 // Enforces rules/constraints
+    }
+    
+    init(id: String, name: String, description: String, content: String, type: SkillType, enabled: Bool = true) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.content = content
+        self.type = type
+        self.enabled = enabled
     }
 }
 
@@ -29,18 +46,36 @@ final class SkillManager {
     
     private(set) var skills: [Skill] = []
     
+    /// Reference to ConfigManager for checking feature toggles
+    private var configManager: ConfigManager?
+    
     private init() {
+        loadBuiltInSkills()
+    }
+    
+    /// Set config manager reference (called from AppDelegate/ConfigManager)
+    func setConfigManager(_ manager: ConfigManager) {
+        self.configManager = manager
+        // Reload skills to pick up enabled state
         loadBuiltInSkills()
     }
     
     /// Load all built-in skills
     private func loadBuiltInSkills() {
+        let browserUseEnabled = configManager?.browserUseEnabled ?? false
+        
         skills = [
             createAskUserQuestionSkill(),
             createFilePermissionSkill(),
-            createSafeFileDeletionSkill()
+            createSafeFileDeletionSkill(),
+            createBrowserAutomationSkill(enabled: browserUseEnabled)
         ]
-        Log.debug("Loaded \(skills.count) built-in skills")
+        Log.debug("Loaded \(skills.count) built-in skills (browser automation: \(browserUseEnabled ? "enabled" : "disabled"))")
+    }
+    
+    /// Reload skills (useful when settings change)
+    func reloadSkills() {
+        loadBuiltInSkills()
     }
     
     /// Get all skills of a specific type
@@ -55,8 +90,9 @@ final class SkillManager {
     func writeSkillFiles(to baseDirectory: URL) {
         let skillsDir = baseDirectory.appendingPathComponent("skills")
         
-        // Only write MCP tool skills as SKILL.md files
-        for skill in skills(ofType: .mcpTool) {
+        // Write MCP tool skills and capability skills (like browser automation) as SKILL.md files
+        let skillsToWrite = skills(ofType: .mcpTool) + skills(ofType: .capability).filter { $0.enabled }
+        for skill in skillsToWrite {
             let skillDir = skillsDir.appendingPathComponent(skill.id)
             let skillMdPath = skillDir.appendingPathComponent("SKILL.md")
             
@@ -117,6 +153,18 @@ description: \(skill.description)
                 <tool name="\(skill.name)">
                 \(skill.content)
                 </tool>
+                """)
+            }
+        }
+        
+        // Capability skills (external tools like browser automation)
+        let capabilitySkills = skills(ofType: .capability).filter { $0.enabled }
+        if !capabilitySkills.isEmpty {
+            for skill in capabilitySkills {
+                sections.append("""
+                <capability name="\(skill.name)">
+                \(skill.content)
+                </capability>
                 """)
             }
         }
@@ -392,6 +440,91 @@ description: \(skill.description)
             ```
             """,
             type: .rule
+        )
+    }
+    
+    private func createBrowserAutomationSkill(enabled: Bool) -> Skill {
+        let headedMode = configManager?.browserUseHeadedMode ?? true
+        let headedFlag = headedMode ? "--headed " : ""
+        
+        return Skill(
+            id: "browser-automation",
+            name: "Browser Automation",
+            description: "Autonomous browser agent for web tasks - shopping, searching, form filling. Auto-opens browser.",
+            content: """
+            # Browser Automation (agent_task)
+            
+            Use `browser-use-sidecar` for ALL browser tasks. The agent automatically opens browser, navigates, clicks, types, and asks user for choices when needed.
+            
+            ## Command: agent_task
+            
+            ```bash
+            browser-use-sidecar \(headedFlag)agent_task "your task description"
+            ```
+            
+            **The agent will:**
+            - Automatically open browser (no need to call `open` first)
+            - Navigate to websites
+            - Click buttons, fill forms
+            - Ask user for choices via `need_input` status
+            
+            ## Examples
+            
+            ```bash
+            # Shopping
+            browser-use-sidecar \(headedFlag)agent_task "去淘宝搜索卫生纸并挑选一款加入购物车"
+            
+            # Search
+            browser-use-sidecar \(headedFlag)agent_task "Search Google for iPhone 16 reviews"
+            
+            # Form
+            browser-use-sidecar \(headedFlag)agent_task "Fill contact form on example.com with name John"
+            ```
+            
+            ## Response Handling - CRITICAL POLLING LOOP
+            
+            **After calling `agent_task`, you MUST poll `agent_status` until task completes!**
+            
+            **Status types:**
+            - `"running"` - Task in progress, WAIT 3-5 seconds then call `agent_status` again
+            - `"need_input"` - Agent needs user choice, use AskUserQuestion then `agent_continue`
+            - `"completed"` - Done successfully
+            - `"error"` - Failed
+            
+            ## MANDATORY Workflow
+            
+            ```bash
+            # Step 1: Start task
+            browser-use-sidecar \(headedFlag)agent_task "去淘宝买卫生纸"
+            # Returns: {"status": "running", ...}
+            
+            # Step 2: POLL status (repeat until NOT "running")
+            sleep 5  # Wait a few seconds
+            browser-use-sidecar agent_status
+            # If still "running", repeat step 2
+            # If "need_input", go to step 3
+            # If "completed" or "error", done
+            
+            # Step 3: Handle need_input (if status is "need_input")
+            # Response example: {"status": "need_input", "question": "选择哪款?", "options": ["A", "B"]}
+            # -> Use AskUserQuestion to show options to user
+            # -> After user picks "A":
+            browser-use-sidecar agent_continue "A"
+            # -> Then go back to step 2 (poll status again)
+            
+            # Step 4: When completed
+            browser-use-sidecar close
+            ```
+            
+            ## Key Commands
+            
+            - `agent_task "description"` - Start autonomous browser task
+            - `agent_status` - Check task progress (MUST call repeatedly while running)
+            - `agent_continue "choice"` - Continue after user input
+            - `close` - Close browser when done
+            """,
+            type: .capability,
+            enabled: enabled
         )
     }
 }

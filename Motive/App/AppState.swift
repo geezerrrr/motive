@@ -61,6 +61,10 @@ final class AppState: ObservableObject {
     func start() {
         guard !hasStarted else { return }
         hasStarted = true
+        
+        // Initialize SkillManager with ConfigManager to enable browser automation skill
+        SkillManager.shared.setConfigManager(configManager)
+        
         PermissionManager.shared.startServers()
         observePermissionRequests()
         observeMenuBarState()
@@ -339,6 +343,14 @@ final class AppState: ObservableObject {
             debugMode: configManager.debugMode
         )
         await bridge.updateConfiguration(config)
+        
+        // Sync browser agent API configuration
+        BrowserUseBridge.shared.configureAgentAPIKey(
+            envName: configManager.browserAgentProvider.envKeyName,
+            apiKey: configManager.browserAgentAPIKey,
+            baseUrlEnvName: configManager.browserAgentProvider.baseUrlEnvName,
+            baseUrl: configManager.browserAgentBaseUrl
+        )
     }
 
     private func startNewSession(intent: String) {

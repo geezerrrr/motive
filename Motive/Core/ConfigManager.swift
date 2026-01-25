@@ -62,71 +62,32 @@ final class ConfigManager: ObservableObject {
         }
     }
     
-    enum Language: String, CaseIterable, Identifiable {
-        case system = "system"
-        case english = "en"
-        case chinese = "zh-Hans"
-        case japanese = "ja"
-        
-        var id: String { rawValue }
-        
-        var displayName: String {
-            switch self {
-            case .system: return "System"
-            case .english: return "English"
-            case .chinese: return "简体中文"
-            case .japanese: return "日本語"
-            }
-        }
-        
-        var localizedName: String {
-            switch self {
-            case .system: return L10n.Settings.languageSystem
-            case .english: return L10n.Settings.languageEnglish
-            case .chinese: return L10n.Settings.languageChinese
-            case .japanese: return L10n.Settings.languageJapanese
-            }
-        }
-    }
-
     @AppStorage("provider") var providerRawValue: String = Provider.claude.rawValue
     
     // Per-provider configurations
-    @AppStorage("claude.baseURL") private var claudeBaseURL: String = ""
-    @AppStorage("claude.modelName") private var claudeModelName: String = ""
-    @AppStorage("openai.baseURL") private var openaiBaseURL: String = ""
-    @AppStorage("openai.modelName") private var openaiModelName: String = ""
-    @AppStorage("gemini.baseURL") private var geminiBaseURL: String = ""
-    @AppStorage("gemini.modelName") private var geminiModelName: String = ""
-    @AppStorage("ollama.baseURL") private var ollamaBaseURL: String = "http://localhost:11434"
-    @AppStorage("ollama.modelName") private var ollamaModelName: String = ""
+    @AppStorage("claude.baseURL") var claudeBaseURL: String = ""
+    @AppStorage("claude.modelName") var claudeModelName: String = ""
+    @AppStorage("openai.baseURL") var openaiBaseURL: String = ""
+    @AppStorage("openai.modelName") var openaiModelName: String = ""
+    @AppStorage("gemini.baseURL") var geminiBaseURL: String = ""
+    @AppStorage("gemini.modelName") var geminiModelName: String = ""
+    @AppStorage("ollama.baseURL") var ollamaBaseURL: String = "http://localhost:11434"
+    @AppStorage("ollama.modelName") var ollamaModelName: String = ""
     
     @AppStorage("openCodeBinarySourcePath") var openCodeBinarySourcePath: String = ""
     @AppStorage("debugMode") var debugMode: Bool = false
     @AppStorage("launchAtLoginStorage") private var launchAtLoginStorage: Bool = false
-    @AppStorage("languageRawValue") private var languageRawValue: String = Language.system.rawValue
+    @AppStorage("languageRawValue") var languageRawValue: String = Language.system.rawValue
     
-    var language: Language {
-        get { Language(rawValue: languageRawValue) ?? .system }
-        set {
-            languageRawValue = newValue.rawValue
-            applyLanguage(newValue)
-        }
-    }
+    // Browser automation settings (browser-use-sidecar)
+    @AppStorage("browserUseEnabled") var browserUseEnabled: Bool = false
+    @AppStorage("browserUseHeadedMode") var browserUseHeadedMode: Bool = true  // Show browser window by default
+    @AppStorage("browserAgentProvider") var browserAgentProviderRaw: String = "anthropic"
+    var cachedBrowserAgentAPIKey: String?
+    @AppStorage("browserAgentBaseUrl_anthropic") var browserAgentBaseUrlAnthropic: String = ""
+    @AppStorage("browserAgentBaseUrl_openai") var browserAgentBaseUrlOpenAI: String = ""
     
-    private func applyLanguage(_ language: Language) {
-        if language == .system {
-            // Remove override, use system language
-            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
-        } else {
-            // Set specific language
-            UserDefaults.standard.set([language.rawValue], forKey: "AppleLanguages")
-        }
-        UserDefaults.standard.synchronize()
-        
-        // Notify user that restart is needed
-        NotificationCenter.default.post(name: .languageDidChange, object: nil)
-    }
+
     @AppStorage("hotkey") var hotkey: String = "⌥Space"
     @AppStorage("appearanceMode") var appearanceModeRawValue: String = AppearanceMode.system.rawValue
     
@@ -153,10 +114,10 @@ final class ConfigManager: ObservableObject {
         }
     }
 
-    private let keychainService = "com.velvet.motive"
+    let keychainService = "com.velvet.motive"
     
     // Cache API keys per provider
-    private var cachedAPIKeys: [Provider: String] = [:]
+    var cachedAPIKeys: [Provider: String] = [:]
     
     // Published status for UI
     @Published var binaryStatus: BinaryStatus = .notConfigured
@@ -196,139 +157,6 @@ final class ConfigManager: ObservableObject {
                 NSApp.appearance = NSAppearance(named: .darkAqua)
             }
         }
-    }
-    
-    // MARK: - Per-Provider Configuration Accessors
-    
-    /// Base URL for current provider
-    var baseURL: String {
-        get {
-            switch provider {
-            case .claude: return claudeBaseURL
-            case .openai: return openaiBaseURL
-            case .gemini: return geminiBaseURL
-            case .ollama: return ollamaBaseURL
-            }
-        }
-        set {
-            switch provider {
-            case .claude: claudeBaseURL = newValue
-            case .openai: openaiBaseURL = newValue
-            case .gemini: geminiBaseURL = newValue
-            case .ollama: ollamaBaseURL = newValue
-            }
-        }
-    }
-    
-    /// Model name for current provider
-    var modelName: String {
-        get {
-            switch provider {
-            case .claude: return claudeModelName
-            case .openai: return openaiModelName
-            case .gemini: return geminiModelName
-            case .ollama: return ollamaModelName
-            }
-        }
-        set {
-            switch provider {
-            case .claude: claudeModelName = newValue
-            case .openai: openaiModelName = newValue
-            case .gemini: geminiModelName = newValue
-            case .ollama: ollamaModelName = newValue
-            }
-        }
-    }
-    
-    /// API Key for current provider (stored in Keychain per-provider)
-    var apiKey: String {
-        get {
-            if let cached = cachedAPIKeys[provider] {
-                return cached
-            }
-            let account = "opencode.api.key.\(provider.rawValue)"
-            let value = KeychainStore.read(service: keychainService, account: account) ?? ""
-            cachedAPIKeys[provider] = value
-            return value
-        }
-        set {
-            cachedAPIKeys[provider] = newValue
-            let account = "opencode.api.key.\(provider.rawValue)"
-            if newValue.isEmpty {
-                KeychainStore.delete(service: keychainService, account: account)
-            } else {
-                KeychainStore.write(service: keychainService, account: account, value: newValue)
-            }
-        }
-    }
-
-    var hasAPIKey: Bool {
-        // Ollama doesn't require API key
-        if provider == .ollama { return true }
-        return !apiKey.isEmpty
-    }
-    
-    /// Check if current provider is properly configured
-    var isProviderConfigured: Bool {
-        switch provider {
-        case .claude, .openai:
-            return hasAPIKey
-        case .gemini:
-            return hasAPIKey
-        case .ollama:
-            return !baseURL.isEmpty
-        }
-    }
-    
-    /// Get configuration error message for current provider
-    var providerConfigurationError: String? {
-        switch provider {
-        case .claude:
-            if apiKey.isEmpty { return "Claude API Key not configured" }
-        case .openai:
-            if apiKey.isEmpty { return "OpenAI API Key not configured" }
-        case .gemini:
-            if apiKey.isEmpty { return "Gemini API Key not configured" }
-        case .ollama:
-            if baseURL.isEmpty { return "Ollama Base URL not configured" }
-        }
-        return nil
-    }
-    
-    /// Get the model string in format "provider/model" for OpenCode CLI
-    func getModelString() -> String? {
-        let modelValue = modelName.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Determine provider prefix
-        let providerPrefix: String
-        let defaultModel: String
-        switch provider {
-        case .claude:
-            providerPrefix = "anthropic"
-            defaultModel = "claude-sonnet-4-5-20250929"
-        case .openai:
-            providerPrefix = "openai"
-            defaultModel = "gpt-5.1-codex"
-        case .gemini:
-            providerPrefix = "google"
-            defaultModel = "gemini-3-pro-preview"
-        case .ollama:
-            providerPrefix = "ollama"
-            defaultModel = "llama3"
-        }
-        
-        // If model name is provided, use it
-        if !modelValue.isEmpty {
-            // If model already has provider prefix, use as-is
-            if modelValue.contains("/") {
-                return modelValue
-            }
-            // Otherwise add provider prefix
-            return "\(providerPrefix)/\(modelValue)"
-        }
-        
-        // Use default model for provider
-        return "\(providerPrefix)/\(defaultModel)"
     }
     
     // MARK: - Binary Storage Directory
@@ -598,6 +426,15 @@ final class ConfigManager: ObservableObject {
         var environment = ProcessInfo.processInfo.environment
         let apiKeyValue = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         
+        // Remove proxy environment variables to avoid SOCKS proxy errors with browser-use
+        // browser-use uses httpx which doesn't have socksio installed by default
+        let proxyKeys = ["ALL_PROXY", "all_proxy", "HTTP_PROXY", "http_proxy", 
+                         "HTTPS_PROXY", "https_proxy", "NO_PROXY", "no_proxy",
+                         "SOCKS_PROXY", "socks_proxy"]
+        for key in proxyKeys {
+            environment.removeValue(forKey: key)
+        }
+        
         // Extend PATH with common Node.js installation paths
         // This is critical because /bin/sh doesn't load user's shell config
         environment["PATH"] = buildExtendedPath(base: environment["PATH"])
@@ -639,6 +476,19 @@ final class ConfigManager: ObservableObject {
             environment["DEBUG"] = "1"
         }
         
+        // Set Browser Agent API key for browser-use-sidecar agent_task
+        if browserUseEnabled && !browserAgentAPIKey.isEmpty {
+            let envKeyName = browserAgentProvider.envKeyName
+            environment[envKeyName] = browserAgentAPIKey
+            Log.config(" Browser Agent API key (\(envKeyName)): \(browserAgentAPIKey.prefix(10))...")
+            
+            // Set base URL if configured
+            if let baseUrlEnvName = browserAgentProvider.baseUrlEnvName, !browserAgentBaseUrl.isEmpty {
+                environment[baseUrlEnvName] = browserAgentBaseUrl
+                Log.config(" Browser Agent Base URL (\(baseUrlEnvName)): \(browserAgentBaseUrl)")
+            }
+        }
+        
         // Set OPENCODE_CONFIG if we generated a config file
         if !openCodeConfigPath.isEmpty {
             environment["OPENCODE_CONFIG"] = openCodeConfigPath
@@ -667,6 +517,11 @@ final class ConfigManager: ObservableObject {
     private func buildExtendedPath(base: String?) -> String {
         let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
         var pathParts: [String] = []
+        
+        // Add App Bundle Resources path for bundled binaries (browser-use-sidecar)
+        if let resourcesPath = Bundle.main.resourcePath {
+            pathParts.append(resourcesPath)
+        }
         
         // NVM paths (dynamic - check all installed versions)
         let nvmVersionsDir = "\(homeDir)/.nvm/versions/node"
@@ -848,7 +703,11 @@ final class ConfigManager: ObservableObject {
             Log.config(" WARNING - Node not found in PATH. MCP will use /usr/bin/env node")
         }
         
-        // System prompt - keep it simple and direct
+        // System prompt - build using SkillManager for capability instructions
+        let builder = SystemPromptBuilder()
+        let fullSystemPrompt = builder.build()
+        
+        // Add critical GUI communication rules at the beginning
         let systemPrompt = """
 <important name="user-communication">
 CRITICAL: The user CANNOT see your text output or CLI prompts!
@@ -895,6 +754,8 @@ IMPORTANT: Reading files does NOT require permission. Do not call request_file_p
 
 Never attempt to prompt via CLI or rely on terminal prompts - they will not work!
 </important>
+
+\(fullSystemPrompt)
 """
         
         // Build config - always include permission: "allow"

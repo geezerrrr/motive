@@ -23,6 +23,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hide dock icon - we're a menu bar app
         NSApp.setActivationPolicy(.accessory)
         
+        // Clean up any stale browser-sidecar processes from previous runs
+        cleanupBrowserSidecar()
+        
         // Apply saved appearance mode
         appState?.configManagerRef.applyAppearance()
         
@@ -51,6 +54,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let observer = hotkeyObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        
+        // Clean up browser-use-sidecar processes
+        cleanupBrowserSidecar()
+    }
+    
+    /// Kill any browser-use-sidecar processes when app terminates
+    private func cleanupBrowserSidecar() {
+        // Method 1: Try to send close command via CLI
+        // Supports both --onedir and --onefile builds
+        if let dirURL = Bundle.main.url(forResource: "browser-use-sidecar", withExtension: nil) {
+            var sidecarPath = dirURL.appendingPathComponent("browser-use-sidecar").path
+            // Fallback to --onefile structure
+            if !FileManager.default.isExecutableFile(atPath: sidecarPath) {
+                sidecarPath = dirURL.path
+            }
+            if FileManager.default.isExecutableFile(atPath: sidecarPath) {
+                let process = Process()
+                process.executableURL = URL(fileURLWithPath: sidecarPath)
+                process.arguments = ["close"]
+                process.standardOutput = nil
+                process.standardError = nil
+                try? process.run()
+                // Don't wait - just fire and forget
+            }
+        }
+        
+        // Method 2: Kill by PID file (backup)
+        let pidPath = FileManager.default.temporaryDirectory.appendingPathComponent("browser-use-sidecar.pid")
+        if let pidString = try? String(contentsOf: pidPath, encoding: .utf8),
+           let pid = Int32(pidString.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            kill(pid, SIGTERM)
+        }
+        
+        // Clean up files
+        let tempDir = FileManager.default.temporaryDirectory
+        try? FileManager.default.removeItem(at: tempDir.appendingPathComponent("browser-use-sidecar.sock"))
+        try? FileManager.default.removeItem(at: tempDir.appendingPathComponent("browser-use-sidecar.pid"))
+        try? FileManager.default.removeItem(at: tempDir.appendingPathComponent("browser-use-sidecar.lock"))
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
