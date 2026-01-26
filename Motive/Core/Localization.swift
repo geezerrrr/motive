@@ -217,6 +217,43 @@ enum L10n {
         static let binaryNotFound = "error.binary_not_found".localized
         static let connectionFailed = "error.connection_failed".localized
     }
+    
+    // MARK: - Onboarding
+    enum Onboarding {
+        // Welcome
+        static let welcomeTitle = "onboarding.welcome.title".localized
+        static let welcomeSubtitle = "onboarding.welcome.subtitle".localized
+        static let getStarted = "onboarding.welcome.get_started".localized
+        
+        // AI Provider
+        static let aiProviderTitle = "onboarding.ai_provider.title".localized
+        static let aiProviderSubtitle = "onboarding.ai_provider.subtitle".localized
+        
+        // Accessibility
+        static let accessibilityTitle = "onboarding.accessibility.title".localized
+        static let accessibilitySubtitle = "onboarding.accessibility.subtitle".localized
+        static let accessibilityGranted = "onboarding.accessibility.granted".localized
+        static let accessibilityRequired = "onboarding.accessibility.required".localized
+        static let accessibilityInstructions = "onboarding.accessibility.instructions".localized
+        static let openSystemSettings = "onboarding.accessibility.open_settings".localized
+        
+        // Browser
+        static let browserTitle = "onboarding.browser.title".localized
+        static let browserSubtitle = "onboarding.browser.subtitle".localized
+        static let browserEnableDesc = "onboarding.browser.enable_desc".localized
+        static let browserInfo = "onboarding.browser.info".localized
+        
+        // Complete
+        static let completeTitle = "onboarding.complete.title".localized
+        static let completeSubtitle = "onboarding.complete.subtitle".localized
+        static let hotkeyLabel = "onboarding.complete.hotkey_label".localized
+        static let hotkeyHint = "onboarding.complete.hotkey_hint".localized
+        static let startUsing = "onboarding.complete.start_using".localized
+        
+        // Common
+        static let skip = "onboarding.skip".localized
+        static let continueButton = "onboarding.continue".localized
+    }
 }
 
 // MARK: - String Extension

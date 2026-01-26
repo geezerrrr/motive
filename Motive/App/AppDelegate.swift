@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var localMonitor: Any?
     private var permissionCheckTimer: Timer?
     private var hotkeyObserver: NSObjectProtocol?
+    private var onboardingController: OnboardingWindowController?
     
     /// Parsed hotkey components from ConfigManager
     private var expectedModifiers: NSEvent.ModifierFlags = .option
@@ -29,8 +30,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply saved appearance mode
         appState?.configManagerRef.applyAppearance()
         
-        // Start the app state (creates status bar, etc.)
+        // Check if onboarding is needed
+        if let configManager = appState?.configManagerRef, !configManager.hasCompletedOnboarding {
+            showOnboarding()
+            return
+        }
+        
+        // Normal startup - Start the app state (creates status bar, etc.)
+        startNormalFlow()
+    }
+    
+    /// Show onboarding window for first-time users
+    private func showOnboarding() {
+        guard let appState = appState else { return }
+        
+        // Show dock icon during onboarding for better UX
+        NSApp.setActivationPolicy(.regular)
+        
+        onboardingController = OnboardingWindowController()
+        onboardingController?.show(configManager: appState.configManagerRef, appState: appState)
+        
+        // Observe when onboarding completes
+        NotificationCenter.default.addObserver(
+            forName: .onboardingCompleted,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.onboardingDidComplete()
+        }
+    }
+    
+    /// Called when onboarding is completed
+    private func onboardingDidComplete() {
+        onboardingController?.close()
+        onboardingController = nil
+        
+        // Switch back to accessory app (menu bar only)
+        NSApp.setActivationPolicy(.accessory)
+        
+        // Start normal flow
+        startNormalFlow()
+    }
+    
+    /// Start the normal app flow (after onboarding or on subsequent launches)
+    private func startNormalFlow() {
         appState?.start()
+        
         // Retry status bar creation after launch (safety)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.appState?.ensureStatusBar()
@@ -95,6 +140,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
+        // Skip during onboarding
+        guard onboardingController == nil else { return }
+        
         // Check if permission was granted while app was in background
         if globalMonitor == nil && AccessibilityHelper.hasPermission {
             registerHotkey()
@@ -103,6 +151,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // Skip during onboarding
+        guard onboardingController == nil else { return true }
+        
         appState?.showCommandBar()
         return true
     }

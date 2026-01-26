@@ -91,6 +91,9 @@ final class ConfigManager: ObservableObject {
     @AppStorage("hotkey") var hotkey: String = "⌥Space"
     @AppStorage("appearanceMode") var appearanceModeRawValue: String = AppearanceMode.system.rawValue
     
+    // Onboarding
+    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
+    
     /// Launch at Login with actual ServiceManagement implementation
     var launchAtLogin: Bool {
         get { launchAtLoginStorage }

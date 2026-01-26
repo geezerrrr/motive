@@ -198,3 +198,38 @@
 "error.invalid_config" = "配置无效";
 "error.binary_not_found" = "未找到 OpenCode 程序";
 "error.connection_failed" = "连接失败";
+
+// MARK: - Onboarding
+// Welcome
+"onboarding.welcome.title" = "欢迎使用 Motive";
+"onboarding.welcome.subtitle" = "你的私人 AI 助手，在后台默默工作，让你无需等待。";
+"onboarding.welcome.get_started" = "开始使用";
+
+// AI Provider
+"onboarding.ai_provider.title" = "配置 AI 服务商";
+"onboarding.ai_provider.subtitle" = "选择你的 AI 服务商并输入 API 密钥。";
+
+// Accessibility
+"onboarding.accessibility.title" = "启用全局快捷键";
+"onboarding.accessibility.subtitle" = "授予辅助功能权限，以便在任何地方使用全局快捷键。";
+"onboarding.accessibility.granted" = "辅助功能权限已授予";
+"onboarding.accessibility.required" = "需要辅助功能权限";
+"onboarding.accessibility.instructions" = "打开系统设置 → 隐私与安全性 → 辅助功能 → 启用 Motive";
+"onboarding.accessibility.open_settings" = "打开系统设置";
+
+// Browser
+"onboarding.browser.title" = "浏览器自动化";
+"onboarding.browser.subtitle" = "启用 AI 控制浏览器，执行网页任务如购物、搜索和填写表单。";
+"onboarding.browser.enable_desc" = "允许 AI 自动化浏览器任务";
+"onboarding.browser.info" = "你可以稍后在设置中更改。";
+
+// Complete
+"onboarding.complete.title" = "设置完成！";
+"onboarding.complete.subtitle" = "随时按下快捷键唤起 Motive，告诉它你想做什么。";
+"onboarding.complete.hotkey_label" = "你的快捷键";
+"onboarding.complete.hotkey_hint" = "在任何地方按下此快捷键打开命令栏";
+"onboarding.complete.start_using" = "开始使用 Motive";
+
+// Common
+"onboarding.skip" = "跳过";
+"onboarding.continue" = "继续";
