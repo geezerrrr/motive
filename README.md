@@ -31,81 +31,24 @@
 
 ## What makes it different
 
-<table>
-<tr>
-<td width="50%" valign="top" align="center">
+> **Other AI tools hold your attention hostage.**  
+> Cursor locks you in a window. Claude Code blocks your terminal. Switch away, and you miss the prompt.
+>
+> **Motive lets you walk away.** AI works in the background. When it needs you, a popup drops from your menu bar. One click, done, back to your flow.
+
+<br />
 
 ### 🎯 Background-first
+AI runs as a background process — like compiling or rendering. Submit a task, go back to your work. No window to watch.
 
-<div align="left">
-
-- AI runs in the background, not in a window
-- Submit a task, go back to your work
-- No need to babysit the AI
-
-</div>
-
-</td>
-<td width="50%" valign="top" align="center">
-
-### 📍 Menu bar native
-
-<div align="left">
-
-- Lives in your menu bar, always accessible
-- Permission requests drop down as popups
-- Never miss a prompt, never switch apps
-
-</div>
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top" align="center">
+### 📍 Menu bar native  
+Lives in your menu bar, always one click away. Permission requests drop down as popups. Never miss a prompt, never switch apps.
 
 ### 🔐 Local & private
-
-<div align="left">
-
-- All data stays on your machine
-- Bring your own API keys
-- Run fully offline with Ollama
-
-</div>
-
-</td>
-<td width="50%" valign="top" align="center">
+All data stays on your machine. Bring your own API keys. Run fully offline with Ollama.
 
 ### ⚡ Native macOS
-
-<div align="left">
-
-- Built with SwiftUI & AppKit
-- No Electron, no web views
-- Fast, lightweight, beautiful
-
-</div>
-
-</td>
-</tr>
-</table>
-
-<br />
-
-<br />
-
-## The problem with AI tools today
-
-| | Desktop Apps | CLI Tools | **Motive** |
-|:--|:--|:--|:--|
-| **Where it lives** | App window you must watch | Terminal you must keep open | Menu bar — always there |
-| **When AI needs input** | Buried in the app UI | Blocks with `[Y/n]` | Popup drops down to find you |
-| **Switch away?** | Miss the response | Hangs silently | AI finds you when ready |
-| **Your attention** | Hostage | Hostage | **Free** |
-
-**Cursor, Claude Desktop, Claude Code, Gemini CLI** — they all demand your attention.
-
-**Motive** lets you walk away. The AI works. You work. When it needs you, it taps your shoulder.
+Built with SwiftUI & AppKit. No Electron, no web views. Fast, lightweight, and feels like part of the OS.
 
 <br />
 
