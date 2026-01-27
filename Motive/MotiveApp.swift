@@ -17,7 +17,6 @@ struct MotiveApp: App {
 
     init() {
         let configManager = ConfigManager()
-        let appState = AppState(configManager: configManager)
         let container: ModelContainer
         do {
             container = try ModelContainer(for: Session.self, LogEntry.self)
@@ -30,7 +29,12 @@ struct MotiveApp: App {
             } catch {
                 fatalError("Could not create ModelContainer after reset: \(error)")
             }
-        } 
+        }
+        
+        // Create AppState with modelContext directly (no need for SwiftUI environment)
+        let appState = AppState(configManager: configManager)
+        appState.attachModelContext(container.mainContext)
+        
         _configManager = StateObject(wrappedValue: configManager)
         _appState = StateObject(wrappedValue: appState)
         modelContainer = container
@@ -56,18 +60,13 @@ struct MotiveApp: App {
         }
         print("[Motive] Deleted corrupted database files")
     }
- 
+ 
     var body: some Scene {
-        WindowGroup {
-            CommandBarRootView()
-                .environmentObject(configManager)
-                .environmentObject(appState)
-                .applyColorScheme(configManager.appearanceMode.colorScheme)
+        // Use Settings scene instead of WindowGroup to avoid creating a visible window
+        // This is a menu bar only app - all UI is managed via AppKit windows
+        Settings {
+            EmptyView()
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        .defaultPosition(.center)
-        .modelContainer(modelContainer)
         .commands {
             // Disable default File menu commands that conflict with our shortcuts
             CommandGroup(replacing: .newItem) {
@@ -85,17 +84,6 @@ struct MotiveApp: App {
                 }
                 .keyboardShortcut(",", modifiers: .command)
             }
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func applyColorScheme(_ scheme: ColorScheme?) -> some View {
-        if let scheme {
-            self.environment(\.colorScheme, scheme)
-        } else {
-            self
         }
     }
 }

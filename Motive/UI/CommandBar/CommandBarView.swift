@@ -95,24 +95,6 @@ struct CommandDefinition: Identifiable {
     }
 }
 
-// MARK: - Root View
-
-struct CommandBarRootView: View {
-    @Environment(\.modelContext) private var modelContext
-    @EnvironmentObject private var appState: AppState
-    @State private var didAttachContext = false
-
-    var body: some View {
-        Color.clear
-            .frame(width: 1, height: 1)
-            .onAppear {
-                guard !didAttachContext else { return }
-                didAttachContext = true
-                appState.attachModelContext(modelContext)
-            }
-    }
-}
-
 // MARK: - Main CommandBar View
 
 struct CommandBarView: View {
