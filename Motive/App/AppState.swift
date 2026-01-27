@@ -31,6 +31,8 @@ final class AppState: ObservableObject {
     @Published var sessionStatus: SessionStatus = .idle
     @Published var lastErrorMessage: String?
     @Published var currentToolName: String?
+    @Published var commandBarResetTrigger: Int = 0  // Increment to trigger reset
+    @Published var sessionListRefreshTrigger: Int = 0  // Increment to refresh session list
 
     private let configManager: ConfigManager
     private lazy var bridge: OpenCodeBridge = {
@@ -61,6 +63,10 @@ final class AppState: ObservableObject {
     func start() {
         guard !hasStarted else { return }
         hasStarted = true
+        
+        // Preload API keys early to trigger Keychain prompts at startup
+        // This avoids scattered prompts during usage
+        configManager.preloadAPIKeys()
         
         // Initialize SkillManager with ConfigManager to enable browser automation skill
         SkillManager.shared.setConfigManager(configManager)
@@ -186,7 +192,8 @@ final class AppState: ObservableObject {
 
     func ensureStatusBar() {
         if statusBarController == nil {
-        statusBarController = StatusBarController(delegate: self)
+            statusBarController = StatusBarController(delegate: self)
+            statusBarController?.configure(configManager: configManager)
         }
         updateStatusBar()
     }
@@ -214,7 +221,8 @@ final class AppState: ObservableObject {
         menuBarState = .executing
         sessionStatus = .running
         updateStatusBar()
-        hideCommandBar()
+        // Don't hide CommandBar - it will switch to running mode
+        // Only ESC or focus loss should hide it
         startNewSession(intent: trimmed)
         
         // Add user message to conversation
@@ -269,6 +277,9 @@ final class AppState: ObservableObject {
     }
 
     var commandBarWindowRef: NSWindow? { commandBarController?.getWindow() }
+    
+    /// Reference to current session (for UI to check current selection)
+    var currentSessionRef: Session? { currentSession }
 
     func showCommandBar() {
         guard let commandBarController else {
@@ -276,6 +287,8 @@ final class AppState: ObservableObject {
             return
         }
         Log.debug("Showing command bar window")
+        // Trigger SwiftUI state reset
+        commandBarResetTrigger += 1
         commandBarController.show()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak commandBarController] in
             commandBarController?.focusFirstResponder()
@@ -285,6 +298,21 @@ final class AppState: ObservableObject {
     func hideCommandBar() {
         Log.debug("Hiding command bar window")
         commandBarController?.hide()
+    }
+    
+    func updateCommandBarHeight(for modeName: String) {
+        // Disable window animation to prevent height jitter
+        commandBarController?.updateHeightForMode(modeName, animated: false)
+    }
+    
+    /// Suppress or allow auto-hide when command bar loses focus
+    func setCommandBarAutoHideSuppressed(_ suppressed: Bool) {
+        commandBarController?.suppressAutoHide = suppressed
+    }
+    
+    /// Refocus the command bar input field
+    func refocusCommandBar() {
+        commandBarController?.focusFirstResponder()
     }
 
     private func createCommandBarIfNeeded() {
@@ -326,6 +354,16 @@ final class AppState: ObservableObject {
     
     func hideDrawer() {
         drawerWindowController?.hide()
+    }
+    
+    /// Get the Drawer window for showing alerts as sheets
+    var drawerWindowRef: NSWindow? {
+        drawerWindowController?.getWindow()
+    }
+    
+    /// Temporarily suppress auto-hide for Drawer (e.g., during alert display)
+    func setDrawerAutoHideSuppressed(_ suppressed: Bool) {
+        drawerWindowController?.suppressAutoHide = suppressed
     }
 
     private func configureBridge() async {
@@ -417,6 +455,32 @@ final class AppState: ObservableObject {
         // Clear OpenCodeBridge session ID for fresh start
         Task { await bridge.setSessionId(nil) }
         
+        objectWillChange.send()
+    }
+    
+    /// Clear current session messages without deleting
+    func clearCurrentSession() {
+        messages = []
+        currentSession = nil
+        sessionStatus = .idle
+        menuBarState = .idle
+        currentToolName = nil
+        
+        Task { await bridge.setSessionId(nil) }
+        objectWillChange.send()
+    }
+    
+    /// Delete a session from storage
+    func deleteSession(_ session: Session) {
+        guard let modelContext else { return }
+        
+        // If deleting current session, clear it first
+        if currentSession?.id == session.id {
+            clearCurrentSession()
+        }
+        
+        modelContext.delete(session)
+        try? modelContext.save()
         objectWillChange.send()
     }
     

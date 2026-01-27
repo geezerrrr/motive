@@ -75,6 +75,11 @@ extension ConfigManager {
     var hasAPIKey: Bool {
         // Ollama doesn't require API key
         if provider == .ollama { return true }
+        // Check cache first to avoid Keychain prompt
+        if let cached = cachedAPIKeys[provider] {
+            return !cached.isEmpty
+        }
+        // Fall back to full check (will trigger Keychain if needed)
         return !apiKey.isEmpty
     }
     

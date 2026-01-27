@@ -22,6 +22,27 @@
 "commandbar.settings" = "設定";
 "commandbar.run" = "実行";
 "commandbar.close" = "閉じる";
+"commandbar.select" = "選択";
+"commandbar.complete" = "補完";
+"commandbar.navigate" = "移動";
+"commandbar.back" = "戻る";
+"commandbar.open" = "開く";
+"commandbar.delete" = "削除";
+"commandbar.new" = "新規";
+"commandbar.commands" = "コマンド";
+"commandbar.stop" = "停止";
+"commandbar.drawer" = "詳細";
+"commandbar.send" = "送信";
+"commandbar.retry" = "再試行";
+"commandbar.cancel" = "キャンセル";
+"commandbar.running" = "実行中";
+"commandbar.new_task" = "新規タスク";
+"commandbar.completed" = "完了";
+"commandbar.details" = "詳細";
+"commandbar.error" = "エラー";
+"commandbar.dismiss" = "閉じる";
+"commandbar.ready" = "準備完了";
+"commandbar.type_request" = "以下にリクエストを入力";
 
 // MARK: - Settings
 "settings.title" = "設定";
@@ -162,8 +183,8 @@
 "drawer.new_session" = "新規セッション";
 "drawer.new_chat" = "新しいチャット";
 "drawer.conversation" = "会話";
-"drawer.thinking" = "考え中...";
-"drawer.processing" = "処理中...";
+"drawer.thinking" = "考え中";
+"drawer.processing" = "処理中";
 "drawer.completed" = "完了";
 "drawer.failed" = "失敗";
 "drawer.interrupted" = "中断";
@@ -185,6 +206,16 @@
 "permission.allow_once" = "許可";
 "permission.deny_once" = "拒否";
 
+// MARK: - Alerts
+"alert.delete_session_title" = "このセッションを削除しますか？";
+"alert.delete_session_message" = "「%@」を完全に削除します";
+
+// MARK: - Time
+"time.just_now" = "たった今";
+"time.minutes_ago" = "%d分前";
+"time.hours_ago" = "%d時間前";
+"time.days_ago" = "%d日前";
+
 // MARK: - Status Bar
 "statusbar.idle" = "Motive";
 "statusbar.reasoning" = "考え中...";
@@ -198,3 +229,38 @@
 "error.invalid_config" = "設定が無効です";
 "error.binary_not_found" = "OpenCodeバイナリが見つかりません";
 "error.connection_failed" = "接続に失敗しました";
+
+// MARK: - Onboarding
+// Welcome
+"onboarding.welcome.title" = "Motiveへようこそ";
+"onboarding.welcome.subtitle" = "バックグラウンドで動作するパーソナルAIアシスタント。待つ必要はありません。";
+"onboarding.welcome.get_started" = "始める";
+
+// AI Provider
+"onboarding.ai_provider.title" = "AIプロバイダーを設定";
+"onboarding.ai_provider.subtitle" = "AIプロバイダーを選択し、APIキーを入力してください。";
+
+// Accessibility
+"onboarding.accessibility.title" = "グローバルホットキーを有効化";
+"onboarding.accessibility.subtitle" = "どこからでもグローバルホットキーを使用するには、アクセシビリティ権限を許可してください。";
+"onboarding.accessibility.granted" = "アクセシビリティ権限が許可されました";
+"onboarding.accessibility.required" = "アクセシビリティ権限が必要です";
+"onboarding.accessibility.instructions" = "システム設定 → プライバシーとセキュリティ → アクセシビリティ → Motiveを有効化";
+"onboarding.accessibility.open_settings" = "システム設定を開く";
+
+// Browser
+"onboarding.browser.title" = "ブラウザ自動化";
+"onboarding.browser.subtitle" = "ショッピング、調査、フォーム入力などのウェブタスクにAIがブラウザを制御できるようにします。";
+"onboarding.browser.enable_desc" = "AIにブラウザタスクの自動化を許可";
+"onboarding.browser.info" = "後で設定で変更できます。";
+
+// Complete
+"onboarding.complete.title" = "準備完了！";
+"onboarding.complete.subtitle" = "いつでもホットキーを押してMotiveを呼び出し、やりたいことを伝えてください。";
+"onboarding.complete.hotkey_label" = "ホットキー";
+"onboarding.complete.hotkey_hint" = "どこでもこのキーを押してコマンドバーを開く";
+"onboarding.complete.start_using" = "Motiveを使い始める";
+
+// Common
+"onboarding.skip" = "スキップ";
+"onboarding.continue" = "続ける";

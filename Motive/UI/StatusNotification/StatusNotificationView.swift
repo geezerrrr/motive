@@ -2,7 +2,7 @@
 //  StatusNotificationView.swift
 //  Motive
 //
-//  Simple notification popup below status bar.
+//  Aurora Design System - Status Notification Popup
 //
 
 import SwiftUI
@@ -19,10 +19,16 @@ enum StatusNotificationType {
     }
     
     var color: Color {
-        // 保留彩色以区分成功/失败
         switch self {
-        case .success: return .green
-        case .error: return .red
+        case .success: return Color.Aurora.success
+        case .error: return Color.Aurora.error
+        }
+    }
+    
+    var gradientColors: [Color] {
+        switch self {
+        case .success: return [Color.Aurora.success, Color(hex: "059669")]
+        case .error: return [Color.Aurora.error, Color(hex: "DC2626")]
         }
     }
     
@@ -39,35 +45,75 @@ struct StatusNotificationView: View {
     let onDismiss: () -> Void
     
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showContent = false
     
     private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: type.icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(type.color)
+        HStack(spacing: AuroraSpacing.space3) {
+            // Icon with gradient background
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: type.gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ).opacity(0.15)
+                    )
+                    .frame(width: 28, height: 28)
+                
+                Image(systemName: type.icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: type.gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
             
             Text(type.title)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color.Velvet.textPrimary)
+                .font(.Aurora.bodySmall.weight(.medium))
+                .foregroundColor(Color.Aurora.textPrimary)
                 .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, AuroraSpacing.space4)
+        .padding(.vertical, AuroraSpacing.space3)
         .fixedSize()
         .background(
             ZStack {
+                // Blur effect
                 VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, state: .active)
-                (isDark ? Color(hex: "1A1A1C").opacity(0.85) : Color.white.opacity(0.92))
+                
+                // Base color
+                Color.Aurora.background.opacity(0.95)
+                
+                // Subtle gradient tint
+                if isDark {
+                    LinearGradient(
+                        colors: type.gradientColors.map { $0.opacity(0.03) },
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
             }
         )
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(isDark ? 0.3 : 0.1), radius: 12, x: 0, y: 6)
+        .shadow(color: type.color.opacity(isDark ? 0.15 : 0.1), radius: 16, y: 8)
+        .shadow(color: Color.black.opacity(isDark ? 0.25 : 0.1), radius: 12, x: 0, y: 6)
+        .scaleEffect(showContent ? 1.0 : 0.9)
+        .opacity(showContent ? 1.0 : 0)
+        .onAppear {
+            withAnimation(.auroraSpring) {
+                showContent = true
+            }
+        }
         .onTapGesture { onDismiss() }
     }
 }

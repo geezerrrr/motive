@@ -32,7 +32,7 @@ struct AdvancedSettingsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(L10n.Settings.binaryStatus)
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Color.Velvet.textPrimary)
+                                .foregroundColor(Color.Aurora.textPrimary)
                             
                             binaryStatusText
                         }
@@ -53,11 +53,11 @@ struct AdvancedSettingsView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(L10n.Settings.sourcePath)
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Color.Velvet.textPrimary)
+                                    .foregroundColor(Color.Aurora.textPrimary)
                                 
                                 Text(configManager.openCodeBinarySourcePath)
                                     .font(.system(size: 11, design: .monospaced))
-                                    .foregroundColor(Color.Velvet.textMuted)
+                                    .foregroundColor(Color.Aurora.textMuted)
                                     .lineLimit(1)
                                     .truncationMode(.middle)
                             }
@@ -87,7 +87,7 @@ struct AdvancedSettingsView: View {
                                 Text(isImporting ? L10n.Settings.importing : L10n.Settings.selectBinary)
                                     .font(.system(size: 12, weight: .medium))
                             }
-                            .foregroundColor(Color.Velvet.textPrimary)
+                            .foregroundColor(Color.Aurora.textPrimary)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .background(
@@ -111,7 +111,7 @@ struct AdvancedSettingsView: View {
                                 Text(L10n.Settings.autoDetect)
                                     .font(.system(size: 12, weight: .medium))
                             }
-                            .foregroundColor(Color.Velvet.textSecondary)
+                            .foregroundColor(Color.Aurora.textSecondary)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .background(
@@ -133,11 +133,11 @@ struct AdvancedSettingsView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 14))
-                        .foregroundColor(Color.Velvet.error)
+                        .foregroundColor(Color.Aurora.error)
                     
                     Text(error)
                         .font(.system(size: 12))
-                        .foregroundColor(Color.Velvet.error)
+                        .foregroundColor(Color.Aurora.error)
                     
                     Spacer()
                     
@@ -146,18 +146,18 @@ struct AdvancedSettingsView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(Color.Velvet.error.opacity(0.7))
+                            .foregroundColor(Color.Aurora.error.opacity(0.7))
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(14)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.Velvet.error.opacity(0.1))
+                        .fill(Color.Aurora.error.opacity(0.1))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color.Velvet.error.opacity(0.3), lineWidth: 1)
+                        .strokeBorder(Color.Aurora.error.opacity(0.3), lineWidth: 1)
                 )
             }
             
@@ -168,7 +168,7 @@ struct AdvancedSettingsView: View {
                     SettingsRow(label: L10n.Settings.browserEnable, description: L10n.Settings.browserEnableDesc) {
                         Toggle("", isOn: $configManager.browserUseEnabled)
                             .toggleStyle(.switch)
-                            .tint(Color.Velvet.primary)
+                            .tint(Color.Aurora.accent)
                             .onChange(of: configManager.browserUseEnabled) { _, newValue in
                                 // Reload skills when toggled
                                 SkillManager.shared.reloadSkills()
@@ -181,7 +181,7 @@ struct AdvancedSettingsView: View {
                         SettingsRow(label: L10n.Settings.browserShowWindow, description: L10n.Settings.browserShowWindowDesc) {
                             Toggle("", isOn: $configManager.browserUseHeadedMode)
                                 .toggleStyle(.switch)
-                                .tint(Color.Velvet.primary)
+                                .tint(Color.Aurora.accent)
                                 .onChange(of: configManager.browserUseHeadedMode) { _, _ in
                                     SkillManager.shared.reloadSkills()
                                     appState.restartAgent()
@@ -192,7 +192,7 @@ struct AdvancedSettingsView: View {
                         HStack {
                             Text(L10n.Settings.browserAgentMode)
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color.Velvet.textMuted)
+                                .foregroundColor(Color.Aurora.textMuted)
                                 .textCase(.uppercase)
                             Spacer()
                         }
@@ -240,7 +240,7 @@ struct AdvancedSettingsView: View {
                 SettingsRow(label: L10n.Settings.debugMode, description: L10n.Settings.debugModeDesc, showDivider: false) {
                     Toggle("", isOn: $configManager.debugMode)
                         .toggleStyle(.switch)
-                        .tint(Color.Velvet.primary)
+                        .tint(Color.Aurora.accent)
                 }
             }
             
@@ -277,17 +277,17 @@ struct AdvancedSettingsView: View {
             case .notConfigured:
                 Text(L10n.Settings.notConfigured)
                     .font(.system(size: 11))
-                    .foregroundColor(Color.Velvet.warning)
+                    .foregroundColor(Color.Aurora.warning)
             case .ready(let path):
                 Text(path)
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(Color.Velvet.textMuted)
+                    .foregroundColor(Color.Aurora.textMuted)
                     .lineLimit(1)
                     .truncationMode(.middle)
             case .error(let error):
                 Text(error)
                     .font(.system(size: 11))
-                    .foregroundColor(Color.Velvet.error)
+                    .foregroundColor(Color.Aurora.error)
             }
         }
     }
@@ -298,15 +298,15 @@ struct AdvancedSettingsView: View {
             case .notConfigured:
                 Image(systemName: "questionmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(Color.Velvet.warning)
+                    .foregroundColor(Color.Aurora.warning)
             case .ready:
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(Color.Velvet.success)
+                    .foregroundColor(Color.Aurora.success)
             case .error:
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(Color.Velvet.error)
+                    .foregroundColor(Color.Aurora.error)
             }
         }
     }
@@ -318,11 +318,11 @@ struct AdvancedSettingsView: View {
             HStack {
                 Text(label)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .foregroundColor(Color.Aurora.textSecondary)
                 Spacer()
                 Text(value)
                     .font(.system(size: 12, design: .monospaced))
-                    .foregroundColor(Color.Velvet.textMuted)
+                    .foregroundColor(Color.Aurora.textMuted)
             }
             .padding(16)
             
@@ -343,11 +343,11 @@ struct AdvancedSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(configManager.browserAgentProvider.envKeyName)")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .foregroundColor(Color.Aurora.textPrimary)
                     
                     Text(L10n.Settings.browserApiKeyDesc)
                         .font(.system(size: 11))
-                        .foregroundColor(Color.Velvet.textMuted)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
                 
                 Spacer()
@@ -357,16 +357,17 @@ struct AdvancedSettingsView: View {
                         TextField("sk-...", text: $browserAgentAPIKeyInput)
                             .textFieldStyle(.plain)
                             .font(.system(size: 12, design: .monospaced))
+                            .foregroundColor(Color.Aurora.textPrimary)
                             .frame(width: 180)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
                             .background(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                                    .fill(isDark ? Color(red: 0x19/255.0, green: 0x19/255.0, blue: 0x19/255.0) : Color(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .strokeBorder(isDark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 1)
+                                    .strokeBorder(Color.Aurora.border, lineWidth: 1)
                             )
                             .onChange(of: browserAgentAPIKeyInput) { _, newValue in
                                 configManager.browserAgentAPIKey = newValue
@@ -376,7 +377,7 @@ struct AdvancedSettingsView: View {
                     } else {
                         Text(configManager.hasBrowserAgentAPIKey ? "••••••••" : L10n.Settings.browserNotSet)
                             .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(configManager.hasBrowserAgentAPIKey ? Color.Velvet.textMuted : Color.Velvet.warning)
+                            .foregroundColor(configManager.hasBrowserAgentAPIKey ? Color.Aurora.textMuted : Color.Aurora.warning)
                             .frame(width: 180, alignment: .leading)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
@@ -390,7 +391,7 @@ struct AdvancedSettingsView: View {
                     } label: {
                         Image(systemName: showBrowserAgentAPIKey ? "eye.slash" : "eye")
                             .font(.system(size: 12))
-                            .foregroundColor(Color.Velvet.textSecondary)
+                            .foregroundColor(Color.Aurora.textSecondary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -410,11 +411,11 @@ struct AdvancedSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.Settings.browserBaseUrl)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .foregroundColor(Color.Aurora.textPrimary)
                     
                     Text(L10n.Settings.browserBaseUrlDesc)
                         .font(.system(size: 11))
-                        .foregroundColor(Color.Velvet.textMuted)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
                 
                 Spacer()
@@ -422,16 +423,17 @@ struct AdvancedSettingsView: View {
                 TextField("https://api.example.com", text: $browserAgentBaseUrlInput)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12, design: .monospaced))
+                    .foregroundColor(Color.Aurora.textPrimary)
                     .frame(width: 200)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                            .fill(isDark ? Color(red: 0x19/255.0, green: 0x19/255.0, blue: 0x19/255.0) : Color(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .strokeBorder(isDark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 1)
+                            .strokeBorder(Color.Aurora.border, lineWidth: 1)
                     )
                     .onChange(of: browserAgentBaseUrlInput) { _, newValue in
                         configManager.browserAgentBaseUrl = newValue
@@ -473,15 +475,15 @@ struct AdvancedSettingsView: View {
         case .ready:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 16))
-                .foregroundColor(Color.Velvet.success)
+                .foregroundColor(Color.Aurora.success)
         case .binaryNotFound:
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 16))
-                .foregroundColor(Color.Velvet.warning)
+                .foregroundColor(Color.Aurora.warning)
         case .disabled:
             Image(systemName: "minus.circle.fill")
                 .font(.system(size: 16))
-                .foregroundColor(Color.Velvet.textMuted)
+                .foregroundColor(Color.Aurora.textMuted)
         }
     }
     

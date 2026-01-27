@@ -91,6 +91,9 @@ final class ConfigManager: ObservableObject {
     @AppStorage("hotkey") var hotkey: String = "⌥Space"
     @AppStorage("appearanceMode") var appearanceModeRawValue: String = AppearanceMode.system.rawValue
     
+    // Onboarding
+    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
+    
     /// Launch at Login with actual ServiceManagement implementation
     var launchAtLogin: Bool {
         get { launchAtLoginStorage }
@@ -118,6 +121,45 @@ final class ConfigManager: ObservableObject {
     
     // Cache API keys per provider
     var cachedAPIKeys: [Provider: String] = [:]
+    
+    /// Migrate legacy per-account keychain items to unified storage
+    /// This ensures only ONE authorization prompt for all API keys
+    private func migrateKeychainIfNeeded() {
+        // Build list of all possible legacy account names
+        var legacyAccounts: [String] = []
+        
+        // AI provider accounts
+        for provider in Provider.allCases {
+            legacyAccounts.append("opencode.api.key.\(provider.rawValue)")
+        }
+        
+        // Browser agent accounts
+        for provider in Provider.allCases {
+            legacyAccounts.append("browser.agent.api.key.\(provider.rawValue)")
+        }
+        
+        KeychainStore.migrateToUnifiedStorage(service: keychainService, accounts: legacyAccounts)
+    }
+    
+    /// Preload current provider's API key into cache
+    /// Call this once at startup to trigger Keychain prompt early
+    /// Now triggers only ONE prompt thanks to unified storage
+    func preloadAPIKeys() {
+        // First, migrate any legacy keychain items (one-time)
+        migrateKeychainIfNeeded()
+        
+        // Read current provider's key (single unified Keychain read)
+        let account = "opencode.api.key.\(provider.rawValue)"
+        let value = KeychainStore.read(service: keychainService, account: account) ?? ""
+        cachedAPIKeys[provider] = value
+        
+        // Read browser agent key from the same unified storage (no additional prompt)
+        if browserUseEnabled {
+            let browserAccount = "browser.agent.api.key.\(browserAgentProvider.rawValue)"
+            let browserValue = KeychainStore.read(service: keychainService, account: browserAccount) ?? ""
+            cachedBrowserAgentAPIKey = browserValue
+        }
+    }
     
     // Published status for UI
     @Published var binaryStatus: BinaryStatus = .notConfigured
@@ -477,10 +519,11 @@ final class ConfigManager: ObservableObject {
         }
         
         // Set Browser Agent API key for browser-use-sidecar agent_task
-        if browserUseEnabled && !browserAgentAPIKey.isEmpty {
+        // Only use cached value to avoid triggering additional Keychain prompts
+        if browserUseEnabled, let cachedKey = cachedBrowserAgentAPIKey, !cachedKey.isEmpty {
             let envKeyName = browserAgentProvider.envKeyName
-            environment[envKeyName] = browserAgentAPIKey
-            Log.config(" Browser Agent API key (\(envKeyName)): \(browserAgentAPIKey.prefix(10))...")
+            environment[envKeyName] = cachedKey
+            Log.config(" Browser Agent API key (\(envKeyName)): \(cachedKey.prefix(10))...")
             
             // Set base URL if configured
             if let baseUrlEnvName = browserAgentProvider.baseUrlEnvName, !browserAgentBaseUrl.isEmpty {

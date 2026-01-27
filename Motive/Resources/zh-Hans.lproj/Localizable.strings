@@ -22,6 +22,27 @@
 "commandbar.settings" = "设置";
 "commandbar.run" = "执行";
 "commandbar.close" = "关闭";
+"commandbar.select" = "选择";
+"commandbar.complete" = "补全";
+"commandbar.navigate" = "导航";
+"commandbar.back" = "返回";
+"commandbar.open" = "打开";
+"commandbar.delete" = "删除";
+"commandbar.new" = "新建";
+"commandbar.commands" = "命令";
+"commandbar.stop" = "停止";
+"commandbar.drawer" = "详情";
+"commandbar.send" = "发送";
+"commandbar.retry" = "重试";
+"commandbar.cancel" = "取消";
+"commandbar.running" = "运行中";
+"commandbar.new_task" = "新任务";
+"commandbar.completed" = "已完成";
+"commandbar.details" = "详情";
+"commandbar.error" = "错误";
+"commandbar.dismiss" = "关闭";
+"commandbar.ready" = "就绪";
+"commandbar.type_request" = "在下方输入你的请求";
 
 // MARK: - Settings
 "settings.title" = "设置";
@@ -162,8 +183,8 @@
 "drawer.new_session" = "新会话";
 "drawer.new_chat" = "新对话";
 "drawer.conversation" = "对话";
-"drawer.thinking" = "思考中...";
-"drawer.processing" = "处理中...";
+"drawer.thinking" = "思考中";
+"drawer.processing" = "处理中";
 "drawer.completed" = "已完成";
 "drawer.failed" = "失败";
 "drawer.interrupted" = "已中断";
@@ -185,6 +206,16 @@
 "permission.allow_once" = "允许";
 "permission.deny_once" = "拒绝";
 
+// MARK: - Alerts
+"alert.delete_session_title" = "删除此会话？";
+"alert.delete_session_message" = "将永久删除「%@」";
+
+// MARK: - Time
+"time.just_now" = "刚刚";
+"time.minutes_ago" = "%d分钟前";
+"time.hours_ago" = "%d小时前";
+"time.days_ago" = "%d天前";
+
 // MARK: - Status Bar
 "statusbar.idle" = "Motive";
 "statusbar.reasoning" = "思考中...";
@@ -198,3 +229,38 @@
 "error.invalid_config" = "配置无效";
 "error.binary_not_found" = "未找到 OpenCode 程序";
 "error.connection_failed" = "连接失败";
+
+// MARK: - Onboarding
+// Welcome
+"onboarding.welcome.title" = "欢迎使用 Motive";
+"onboarding.welcome.subtitle" = "你的私人 AI 助手，在后台默默工作，让你无需等待。";
+"onboarding.welcome.get_started" = "开始使用";
+
+// AI Provider
+"onboarding.ai_provider.title" = "配置 AI 服务商";
+"onboarding.ai_provider.subtitle" = "选择你的 AI 服务商并输入 API 密钥。";
+
+// Accessibility
+"onboarding.accessibility.title" = "启用全局快捷键";
+"onboarding.accessibility.subtitle" = "授予辅助功能权限，以便在任何地方使用全局快捷键。";
+"onboarding.accessibility.granted" = "辅助功能权限已授予";
+"onboarding.accessibility.required" = "需要辅助功能权限";
+"onboarding.accessibility.instructions" = "打开系统设置 → 隐私与安全性 → 辅助功能 → 启用 Motive";
+"onboarding.accessibility.open_settings" = "打开系统设置";
+
+// Browser
+"onboarding.browser.title" = "浏览器自动化";
+"onboarding.browser.subtitle" = "启用 AI 控制浏览器，执行网页任务如购物、搜索和填写表单。";
+"onboarding.browser.enable_desc" = "允许 AI 自动化浏览器任务";
+"onboarding.browser.info" = "你可以稍后在设置中更改。";
+
+// Complete
+"onboarding.complete.title" = "设置完成！";
+"onboarding.complete.subtitle" = "随时按下快捷键唤起 Motive，告诉它你想做什么。";
+"onboarding.complete.hotkey_label" = "你的快捷键";
+"onboarding.complete.hotkey_hint" = "在任何地方按下此快捷键打开命令栏";
+"onboarding.complete.start_using" = "开始使用 Motive";
+
+// Common
+"onboarding.skip" = "跳过";
+"onboarding.continue" = "继续";

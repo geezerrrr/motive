@@ -1,61 +1,46 @@
 <p align="center">
-  <img src="assets/icon.png" width="128" height="128" alt="Motive - AI Agent for macOS">
+  <img src="assets/icon.png" width="128" height="128" alt="Motive">
 </p>
 
 <h1 align="center">Motive</h1>
 
 <h3 align="center"><strong>Say it. Walk away.</strong></h3>
-<p align="center">The AI agent that works while you don't watch. Lives in your menu bar, finds you when needed.</p>
+<p align="center">A personal AI agent for macOS. Turns intent into completed work, running from your menu bar.</p>
 
 <p align="center">
-  <a href="https://github.com/geezerrrr/motive/releases"><img src="https://img.shields.io/badge/Download-v0.3.0-22c55e?style=flat-square" alt="Download"></a>
-  <a href="https://github.com/geezerrrr/motive/stargazers"><img src="https://img.shields.io/github/stars/geezerrrr/motive?style=flat-square&color=22c55e" alt="Stars"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=flat-square" alt="License"></a>
-  <img src="https://img.shields.io/badge/macOS%2015+-Native-0ea5e9?style=flat-square" alt="macOS">
-  <img src="https://img.shields.io/badge/Swift%206-SwiftUI-f97316?style=flat-square" alt="Swift">
+  <a href="https://github.com/geezerrrr/motive/releases"><img src="https://img.shields.io/badge/release-v0.4.0-blue?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/geezerrrr/motive/stargazers"><img src="https://img.shields.io/github/stars/geezerrrr/motive?style=flat-square" alt="Stars"></a>
+  <img src="https://img.shields.io/badge/platform-macOS%2015+-blue?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/swift-6.0-orange?style=flat-square" alt="Swift">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
 </p>
-
-<p align="center">
-  <a href="https://github.com/geezerrrr/motive/releases/latest/download/Motive-arm64.dmg"><strong>Download for Mac (Apple Silicon)</strong></a>
-  ·
-  <a href="https://github.com/geezerrrr/motive/releases/latest/download/Motive-x86_64.dmg">Intel Mac</a>
-  ·
-  <a href="https://github.com/geezerrrr/motive/releases">All Releases</a>
-</p>
-
-<br />
 
 ---
 
-<br />
+## Why Motive?
 
-## What makes it different
+Today's AI tools keep you hostage — Cursor locks you in a window, Claude Code blocks your terminal. Switch away, and you'll miss prompts or return to a stale `[Y/n]` that's been waiting for minutes.
 
-> **Other AI tools hold your attention hostage.**  
-> Cursor locks you in a window. Claude Code blocks your terminal. Switch away, and you miss the prompt.
->
-> **Motive lets you walk away.** AI works in the background. When it needs you, a popup drops from your menu bar. One click, done, back to your flow.
+**Motive lives in your menu bar.** AI works in the background. When it needs you, a lightweight popup drops down from the menu bar — no need to switch apps. One click, done, back to your flow.
 
-<br />
+| | Desktop Apps | CLI Tools | **Motive** |
+|---|---|---|---|
+| **Where it lives** | App window | Terminal | Menu bar |
+| **Permission prompts** | Buried in UI | Blocks terminal | Menu bar popup |
+| **Switch apps?** | Miss responses | Hangs silently | AI finds you |
 
-### 🎯 Background-first
-AI runs as a background process — like compiling or rendering. Submit a task, go back to your work. No window to watch.
+## Features
 
-### 📍 Menu bar native  
-Lives in your menu bar, always one click away. Permission requests drop down as popups. Never miss a prompt, never switch apps.
+- **Intent-first** — Describe tasks in natural language, press Enter, done. No conversation needed.
+- **True background execution** — AI works as a background process, like compiling or rendering.
+- **Menu bar notifications** — Permission requests drop down from the menu bar, not buried in an app window.
+- **Ambient status** — A subtle menu bar icon shows progress without demanding attention.
+- **You are the final arbiter** — Like macOS system permission dialogs, you approve only what matters.
+- **Local-first** — All data stays on your machine. Only AI API requests leave your device.
+- **Native macOS** — Built with SwiftUI and AppKit. No Electron, no web views.
+- **Multi-provider** — Claude, OpenAI, Gemini, or fully local with Ollama.
 
-### 🔐 Local & private
-All data stays on your machine. Bring your own API keys. Run fully offline with Ollama.
-
-### ⚡ Native macOS
-Built with SwiftUI & AppKit. No Electron, no web views. Fast, lightweight, and feels like part of the OS.
-
-<br />
-
-
-<br />
-
-## Demo
+## Screenshots & Demo
 
 <p align="center">
 
@@ -63,86 +48,42 @@ https://github.com/user-attachments/assets/6209e3d9-60db-4166-a14a-ae90cdbc01d6
 
 </p>
 
-<br />
+## Quick Start
 
+### Install
 
-<br />
+Download the latest release for your architecture:
 
-## Use cases
+| Chip | Download |
+|------|----------|
+| Apple Silicon | [Motive-arm64.dmg](https://github.com/geezerrrr/motive/releases/latest/download/Motive-arm64.dmg) |
+| Intel | [Motive-x86_64.dmg](https://github.com/geezerrrr/motive/releases/latest/download/Motive-x86_64.dmg) |
 
-| | | |
-|:--|:--|:--|
-| **💻 Code & Dev** | **📁 File Management** | **🌐 Browser Tasks** |
-| Refactor code across files | Organize downloads by type | Research and summarize |
-| Generate boilerplate | Batch rename with rules | Fill forms automatically |
-| Write tests and docs | Clean up duplicates | Web scraping workflows |
+> **First launch:** If blocked, go to System Settings → Privacy & Security → Click "Open Anyway"
 
-<br />
+### Configure
 
+1. Click the menu bar icon → **Settings**
+2. Select your AI provider (Claude / OpenAI / Gemini / Ollama)
+3. Enter your API key
 
-<br />
+### Use
 
-## Quick start
+1. Press `⌥Space` to summon the command bar
+2. Describe what you want done
+3. Press Enter — the bar disappears, you're free
+4. Check the menu bar icon for status; click to view details
 
-> **2 minutes to get started.**
-
-| Step | Action |
-|:----:|--------|
-| **1** | **[Download](https://github.com/geezerrrr/motive/releases/latest/download/Motive-arm64.dmg)** and drag to Applications |
-| **2** | Click menu bar icon → **Settings** → Add your API key |
-| **3** | Press `⌥Space` → Describe your task → Press Enter |
-| **4** | Walk away. Check menu bar for status. |
-
-<br />
-
-### Supported AI providers
-
-- **Anthropic** (Claude)
-- **OpenAI** (GPT-4, GPT-4o)
-- **Google** (Gemini)
-- **Ollama** (Local models — fully offline)
-
-<br />
-
-
-<br />
-
-## Keyboard shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
-|:--------:|--------|
-| `⌥Space` | Summon command bar |
-| `↵` | Submit task |
-| `Esc` | Dismiss |
-| `⌘,` | Settings |
+|----------|--------|
+| `⌥Space` | Open command bar |
+| `↵` | Submit intent |
+| `Esc` | Dismiss command bar |
+| `⌘,` | Open settings |
 
-<br />
-
-
-<br />
-
-## Roadmap
-
-### Completed
-- [x] **Multi-language UI** — English, 简体中文, 日本語
-- [x] **Browser automation** — Web scraping, form filling, browser workflows
-
-### In Progress
-- [ ] **Multi-task queue** — Queue tasks, run independent ones in parallel
-- [ ] **Task resume** — Interrupt and resume long-running tasks
-
-### Planned
-- [ ] **Custom Skills** — Define your own skills in `~/.motive/skills/`
-- [ ] **Personal Profile** — AI remembers your preferences and context
-- [ ] **Memory & RAG** — Long-term memory for context-aware assistance
-- [ ] **Task templates** — Save and reuse common workflows
-
-<br />
-
-
-<br />
-
-## Build from source
+## Build from Source
 
 ```bash
 git clone https://github.com/geezerrrr/motive.git
@@ -150,87 +91,98 @@ cd motive
 open Motive.xcodeproj
 ```
 
-<details>
-<summary><strong>Requirements</strong></summary>
+The OpenCode binary is bundled automatically during release builds. For development, place it at `Motive/Resources/opencode`.
+
+## Requirements
 
 - macOS 15.0 (Sequoia) or later
-- Xcode 16+
-- For release builds, OpenCode binary is bundled automatically
-
-</details>
-
-<br />
-
-
-<br />
+- API key for Claude, OpenAI, Gemini, or local Ollama setup
 
 ## FAQ
 
 <details>
-<summary><strong>How is this different from Cursor / Claude Desktop?</strong></summary>
+<summary><strong>How is this different from Cursor / Claude Desktop / Claude Code / Gemini CLI?</strong></summary>
 
-They lock you in a window. Motive lives in your menu bar. You submit a task, walk away, and the AI finds you when it needs input.
+**Desktop apps** (Cursor, Claude Desktop) are **window-locked** — you must stay in their interface.
 
-Think of it this way: desktop apps are like a colleague who insists you sit in their office. Motive is like a colleague who handles everything autonomously and only taps your shoulder when necessary.
+**CLI tools** (Claude Code, Gemini CLI) are **terminal-locked** — if you switch away, the terminal hangs waiting for input. You come back to find a cryptic `[Y/n]` prompt that's been sitting there for 20 minutes.
+
+**Motive** lives in your menu bar — the AI runs as a background process. When it needs your input, a popup drops down from the menu bar. One click, done, back to your flow.
+
+Think: desktop apps are like a colleague who insists you sit in their office. CLI tools are like someone who emails you but marks it "urgent" with no notification. Motive is like a colleague who taps your shoulder only when necessary, handles everything else autonomously.
 </details>
 
 <details>
-<summary><strong>Is my data sent anywhere?</strong></summary>
+<summary><strong>Why does Motive need Accessibility permission?</strong></summary>
+
+To register the global hotkey (`⌥Space`) that summons the command bar from anywhere. Without it, you'd need to click the menu bar icon every time.
+</details>
+
+<details>
+<summary><strong>Is my data sent to the cloud?</strong></summary>
 
 Motive is local-first. Sessions and history stay on your machine. The only network traffic is API requests to your chosen AI provider. Use Ollama for 100% offline operation.
 </details>
 
 <details>
-<summary><strong>Why does it need Accessibility permission?</strong></summary>
-
-To register the global hotkey (`⌥Space`) that summons the command bar from anywhere on your Mac.
-</details>
-
-<details>
-<summary><strong>Can I use local models?</strong></summary>
+<summary><strong>Can I use a local LLM?</strong></summary>
 
 Yes. Select Ollama as your provider and point it to your local instance. Zero cloud dependency.
 </details>
 
-<br />
+<details>
+<summary><strong>What can Motive do?</strong></summary>
 
+Anything an AI coding agent can do: refactor code, generate files, run scripts, organize projects, write docs, and more. Motive passes your intent to OpenCode, which has full filesystem and terminal access.
+</details>
 
-<br />
+## Roadmap
+
+### Completed
+- [x] **Multi-language UI** — English, 简体中文, 日本語
+- [x] **Browser automation** — Full support for web scraping, form filling, and browser-based workflows
+
+### In Progress
+- [ ] **Multi-task queue** — Task queuing with parallel execution for independent tasks and sequential processing for dependent ones
+- [ ] **Task resume** — Interrupt and resume long-running tasks, preserving state across app restarts
+
+### Planned
+- [ ] **Custom Skills** — User-defined skills via `~/.motive/skills/` directory, no code required
+- [ ] **Personal Profile** — Store personal context (name, preferences, work style) for more relevant AI responses
+- [ ] **Memory & RAG** — Long-term memory with retrieval-augmented generation for context-aware assistance
+- [ ] **Task templates** — Save and reuse common task patterns with customizable parameters
 
 ## Acknowledgments
 
-Built on the shoulders of giants:
+Powered by [OpenCode](https://github.com/anomalyco/opencode) — the open-source AI coding agent that makes autonomous task execution possible.
 
-- [OpenCode](https://github.com/sst/opencode) — The open-source AI coding agent that powers task execution
-- [browser-use](https://github.com/browser-use/browser-use) — AI browser automation that makes web tasks possible
-
-<br />
-
+---
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e.svg?style=for-the-badge" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
 <p align="center">
-  <sub><strong>Let AI wait for you, so you don't have to wait for it.</strong></sub>
+  <sub>Let AI wait for you, so you don't have to wait for it.</sub>
 </p>
 
 <p align="center">
-  <a href="https://github.com/geezerrrr/motive/stargazers">⭐ Star on GitHub</a>
+  <a href="https://github.com/geezerrrr/motive/stargazers">⭐ Star us on GitHub</a>
 </p>
 
+---
 
+<!-- SEO Keywords -->
 <!-- 
-Keywords: AI agent, AI assistant, macOS AI, menu bar AI, background AI agent, autonomous AI, agentic AI,
-Claude Desktop alternative, Cursor alternative, ChatGPT alternative, Copilot alternative, Gemini CLI alternative,
-OpenCode GUI, local LLM, Ollama GUI, private AI, on-device AI, offline AI,
-Spotlight AI, Raycast alternative, Alfred alternative, macOS menu bar app,
-AI automation, AI workflow, task automation, no-code AI, AI for developers,
-Claude API, OpenAI API, Gemini API, Anthropic, GPT-4, Claude Sonnet,
-SwiftUI app, native macOS app, Apple Silicon, M1 M2 M3 M4 Mac,
-AI productivity, developer tools, code generation, AI code review,
-natural language interface, intent-based AI, AI copilot,
-open source AI, free AI assistant, self-hosted AI, privacy-first AI,
-file management AI, browser automation, web scraping, form filling,
-personal AI assistant, background task runner, macOS automation
+Cowork | Openwork | AI Agent | AI Assistant | macOS AI | Background AI | Autonomous AI Agent | AI Coding Assistant |
+Claude Desktop Alternative | ChatGPT Alternative | Cursor Alternative | Copilot Alternative |
+OpenCode GUI | Local LLM | Ollama GUI | Private AI | On-device AI |
+Spotlight AI | Raycast Alternative | Alfred Alternative | macOS Menu Bar App |
+AI Automation | AI Workflow | Task Automation | No-code AI | AI for Developers |
+Claude API | OpenAI API | Gemini API | Anthropic | GPT-4 | Claude Sonnet |
+SwiftUI | Native macOS App | Apple Silicon | M1 M2 M3 M4 |
+AI Productivity | Developer Tools | Code Generation | AI Code Review |
+Natural Language Interface | Intent-based AI | Agentic AI | AI Copilot |
+Open Source AI | Free AI Assistant | Self-hosted AI | Privacy-first AI
 -->
+

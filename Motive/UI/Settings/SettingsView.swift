@@ -2,7 +2,7 @@
 //  SettingsView.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - Settings Window
 //
 
 import SwiftUI
@@ -24,20 +24,17 @@ struct SettingsView: View {
             // Sidebar
             sidebar
             
-            // Divider
+            // Divider (extend to full height including titlebar)
             Rectangle()
-                .fill(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.08))
+                .fill(Color.Aurora.border)
                 .frame(width: 1)
+                .ignoresSafeArea()
             
             // Content
             contentArea
         }
-        .frame(width: 720, height: 520)
-        .background(
-            isDark
-                ? Color(hex: "1C1C1E")
-                : Color(hex: "F5F5F7")
-        )
+        .frame(width: 760, height: 560)
+        .background(Color.Aurora.background.ignoresSafeArea())
     }
     
     // MARK: - Sidebar
@@ -45,84 +42,86 @@ struct SettingsView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
             // App branding
-            HStack(spacing: 12) {
-                // Use logo based on color scheme with rounded corners
-                if let logoImage = NSImage(named: isDark ? "logo-light" : "logo-dark") {
-                    Image(nsImage: logoImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                } else {
-                    // Fallback
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.Velvet.primary)
-                        .frame(width: 44, height: 44)
+            HStack(spacing: AuroraSpacing.space3) {
+                // Logo with aurora glow
+                ZStack {
+                    if let logoImage = NSImage(named: isDark ? "logo-light" : "logo-dark") {
+                        Image(nsImage: logoImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
+                    } else {
+                        RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                            .fill(Color.Aurora.auroraGradient)
+                            .frame(width: 48, height: 48)
+                    }
                 }
+                .shadow(color: Color.Aurora.accentMid.opacity(0.2), radius: 8, y: 2)
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                     Text(L10n.appName)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.headline)
+                        .foregroundColor(Color.Aurora.textPrimary)
                     
                     Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0")")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color.Velvet.textMuted)
+                        .font(.Aurora.micro)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 24)
-            .padding(.bottom, 28)
+            .padding(.horizontal, AuroraSpacing.space5)
+            .padding(.top, AuroraSpacing.space6)
+            .padding(.bottom, AuroraSpacing.space8)
             
             // Navigation
-            VStack(spacing: 4) {
+            VStack(spacing: AuroraSpacing.space1) {
                 ForEach(SettingsTab.allCases) { tab in
-                    SettingsNavItem(
+                    AuroraSettingsNavItem(
                         tab: tab,
-                        isSelected: selectedTab == tab,
-                        isDark: isDark
+                        isSelected: selectedTab == tab
                     ) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        withAnimation(.auroraSpring) {
                             selectedTab = tab
                         }
                     }
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, AuroraSpacing.space3)
             
             Spacer()
             
             // Footer
-            VStack(spacing: 8) {
-                Divider()
-                    .background(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.08))
+            VStack(spacing: AuroraSpacing.space3) {
+                Rectangle()
+                    .fill(Color.Aurora.border)
+                    .frame(height: 1)
                 
                 Link(destination: URL(string: "https://github.com/geezerrrr/motive")!) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: AuroraSpacing.space2) {
                         Image(systemName: "star")
-                            .font(.system(size: 12))
+                            .font(.system(size: 13))
                         Text(L10n.Settings.starOnGitHub)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.Aurora.bodySmall.weight(.medium))
                     }
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .foregroundColor(Color.Aurora.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, AuroraSpacing.space3)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.04))
+                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                            .fill(Color.Aurora.surface)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                            .stroke(Color.Aurora.border, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, AuroraSpacing.space3)
             }
-            .padding(.bottom, 16)
+            .padding(.bottom, AuroraSpacing.space4)
         }
-        .frame(width: 200)
-        .background(
-            isDark
-                ? Color(hex: "141416")
-                : Color.white
-        )
+        .frame(width: 220)
+        .background(Color.Aurora.backgroundDeep.ignoresSafeArea())
     }
     
     // MARK: - Content Area
@@ -131,23 +130,23 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
                     Text(selectedTab.title)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.title1)
+                        .foregroundColor(Color.Aurora.textPrimary)
                     
                     Text(selectedTab.subtitle)
-                        .font(.system(size: 13))
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .font(.Aurora.body)
+                        .foregroundColor(Color.Aurora.textSecondary)
                 }
-                .padding(.top, 28)
-                .padding(.bottom, 24)
-                .padding(.horizontal, 32)
+                .padding(.top, AuroraSpacing.space8)
+                .padding(.bottom, AuroraSpacing.space6)
+                .padding(.horizontal, AuroraSpacing.space8)
                 
                 // Content
                 selectedTab.contentView
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 32)
+                    .padding(.horizontal, AuroraSpacing.space8)
+                    .padding(.bottom, AuroraSpacing.space8)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -206,47 +205,66 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Navigation Item
+// MARK: - Aurora Settings Navigation Item
 
-private struct SettingsNavItem: View {
+private struct AuroraSettingsNavItem: View {
     let tab: SettingsTab
     let isSelected: Bool
-    let isDark: Bool
     let action: () -> Void
     
     @State private var isHovering = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+            HStack(spacing: AuroraSpacing.space3) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? Color.Velvet.primary : Color.Velvet.textSecondary)
-                    .frame(width: 20)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(isSelected ? Color.Aurora.accent : Color.Aurora.textSecondary)
+                    .frame(width: 22)
                 
                 Text(tab.title)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(isSelected ? Color.Velvet.textPrimary : Color.Velvet.textSecondary)
+                    .font(.Aurora.body.weight(isSelected ? .semibold : .medium))
+                    .foregroundColor(isSelected ? Color.Aurora.textPrimary : Color.Aurora.textSecondary)
                 
                 Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space3)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(
-                        isSelected
-                            ? (isDark ? Color.white.opacity(0.1) : Color.Velvet.primary.opacity(0.12))
-                            : (isHovering ? (isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.04)) : Color.clear)
-                    )
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(backgroundColor)
+            )
+            .overlay(
+                // Gradient left border for selected
+                HStack {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.Aurora.auroraGradient)
+                            .frame(width: 3)
+                    }
+                    Spacer()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
             )
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
     }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return Color.Aurora.accent.opacity(isDark ? 0.15 : 0.12)
+        } else if isHovering {
+            return Color.Aurora.surfaceElevated
+        }
+        return Color.clear
+    }
 }
 
-// MARK: - Settings Card
+// MARK: - Aurora Settings Card
 
 struct SettingsCard<Content: View>: View {
     let title: String
@@ -263,42 +281,39 @@ struct SettingsCard<Content: View>: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space4) {
             // Header
-            HStack(spacing: 8) {
+            HStack(spacing: AuroraSpacing.space2) {
                 if let icon {
                     Image(systemName: icon)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color.Velvet.primary)
+                        .foregroundStyle(Color.Aurora.auroraGradient)
                 }
                 
                 Text(title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.caption)
+                    .foregroundColor(Color.Aurora.textSecondary)
                     .textCase(.uppercase)
                     .tracking(0.5)
             }
             
-            // Content
+            // Content card
             VStack(spacing: 0) {
                 content
             }
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isDark ? Color.white.opacity(0.05) : Color.white)
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .fill(Color.Aurora.surface)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(
-                        isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.06),
-                        lineWidth: 1
-                    )
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
             )
         }
     }
 }
 
-// MARK: - Settings Row
+// MARK: - Aurora Settings Row
 
 struct SettingsRow<Content: View>: View {
     let label: String
@@ -319,15 +334,15 @@ struct SettingsRow<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                     Text(label)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.body.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
                     
                     if let description {
                         Text(description)
-                            .font(.system(size: 11))
-                            .foregroundColor(Color.Velvet.textMuted)
+                            .font(.Aurora.caption)
+                            .foregroundColor(Color.Aurora.textMuted)
                     }
                 }
                 
@@ -335,19 +350,20 @@ struct SettingsRow<Content: View>: View {
                 
                 content
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space4)
             
             if showDivider {
-                Divider()
-                    .background(isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.06))
-                    .padding(.leading, 16)
+                Rectangle()
+                    .fill(Color.Aurora.border)
+                    .frame(height: 1)
+                    .padding(.leading, AuroraSpacing.space4)
             }
         }
     }
 }
 
-// MARK: - Legacy Support (SettingsSection wraps SettingsCard for compatibility)
+// MARK: - Legacy Support
 
 struct SettingsSection<Content: View>: View {
     let title: String

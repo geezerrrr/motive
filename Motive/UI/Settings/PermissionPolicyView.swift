@@ -79,7 +79,7 @@ struct PermissionPolicyView: View {
                         .font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(Color.Velvet.textMuted)
+                .foregroundStyle(Color.Aurora.textMuted)
             }
         }
         .onAppear {

@@ -1,71 +1,98 @@
+//
+//  PermissionRequestView.swift
+//  Motive
+//
+//  Aurora Design System - Permission Request Modal
+//
+
 import SwiftUI
 
-/// Modal view for displaying permission requests
 struct PermissionRequestView: View {
     let request: PermissionRequest
     let onRespond: (PermissionResponse) -> Void
     
+    @Environment(\.colorScheme) private var colorScheme
     @State private var selectedOptions: Set<String> = []
     @State private var customResponse: String = ""
     @State private var showCustomInput: Bool = false
     
+    private var isDark: Bool { colorScheme == .dark }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Backdrop
-            Color.black.opacity(0.4)
+            Color.black.opacity(isDark ? 0.5 : 0.3)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    // Dismiss on backdrop tap (deny)
                     respond(allowed: false)
                 }
             
             // Modal Card
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: AuroraSpacing.space4) {
                 // Header
-                HStack(alignment: .top, spacing: 12) {
-                    // Icon
+                HStack(alignment: .top, spacing: AuroraSpacing.space3) {
+                    // Icon with gradient background
                     ZStack {
                         Circle()
-                            .fill(iconBackgroundColor)
-                            .frame(width: 40, height: 40)
+                            .fill(
+                                LinearGradient(
+                                    colors: iconGradientColors,
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ).opacity(0.15)
+                            )
+                            .frame(width: 44, height: 44)
                         
                         iconImage
-                            .font(.system(size: 18))
-                            .foregroundColor(iconColor)
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: iconGradientColors,
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                         Text(headerTitle)
-                            .font(.headline)
-                            .foregroundColor(Color.Velvet.textPrimary)
+                            .font(.Aurora.headline)
+                            .foregroundColor(Color.Aurora.textPrimary)
                         
-                        // Content based on request type
                         requestContent
                     }
                 }
                 
                 // Action Buttons
-                HStack(spacing: 12) {
+                HStack(spacing: AuroraSpacing.space3) {
                     Button(action: { respond(allowed: false) }) {
                         Text(denyButtonText)
+                            .font(.Aurora.bodySmall.weight(.medium))
                             .frame(maxWidth: .infinity)
+                            .padding(.vertical, AuroraSpacing.space3)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AuroraPermissionButtonStyle(style: .secondary))
                     
                     Button(action: { respond(allowed: true) }) {
                         Text(allowButtonText)
+                            .font(.Aurora.bodySmall.weight(.semibold))
                             .frame(maxWidth: .infinity)
+                            .padding(.vertical, AuroraSpacing.space3)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.primary.opacity(0.8))
+                    .buttonStyle(AuroraPermissionButtonStyle(style: request.isDeleteOperation ? .danger : .primary))
                     .disabled(isAllowDisabled)
                 }
             }
-            .padding(20)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(color: .black.opacity(0.2), radius: 20)
-            .padding(32)
+            .padding(AuroraSpacing.space5)
+            .background(Color.Aurora.background)
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.lg, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
+            )
+            .shadow(color: Color.Aurora.accentMid.opacity(isDark ? 0.1 : 0.05), radius: 30, y: 10)
+            .shadow(color: Color.black.opacity(isDark ? 0.3 : 0.15), radius: 20, y: 10)
+            .padding(AuroraSpacing.space8)
         }
         .onAppear {
             if request.type == .question,
@@ -92,14 +119,19 @@ struct PermissionRequestView: View {
         }
     }
     
-    private var iconBackgroundColor: Color {
-        // Monochrome for all types
-        return Color.primary.opacity(0.08)
-    }
-    
-    private var iconColor: Color {
-        // Monochrome for all types
-        return Color.primary.opacity(0.8)
+    private var iconGradientColors: [Color] {
+        if request.isDeleteOperation {
+            return [Color.Aurora.error, Color.Aurora.warning]
+        }
+        
+        switch request.type {
+        case .file:
+            return [Color.Aurora.warning, Color(hex: "F97316")]
+        case .question:
+            return Color.Aurora.auroraGradientColors
+        case .tool:
+            return [Color.Aurora.accentMid, Color.Aurora.accentEnd]
+        }
     }
     
     private var iconImage: Image {
@@ -129,7 +161,6 @@ struct PermissionRequestView: View {
     }
     
     private var isAllowDisabled: Bool {
-        // For questions with options, require at least one selection
         if request.type == .question,
            !showCustomInput,
            let options = request.options,
@@ -155,52 +186,55 @@ struct PermissionRequestView: View {
     
     @ViewBuilder
     private var filePermissionContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space3) {
             // Delete warning banner
             if request.isDeleteOperation {
                 HStack {
                     Text(request.displayFilePaths.count > 1
                          ? "\(request.displayFilePaths.count) files will be permanently deleted:"
                          : "This file will be permanently deleted:")
-                        .font(.caption)
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.error)
                 }
-                .padding(8)
-                .background(Color.primary.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(AuroraSpacing.space2)
+                .background(Color.Aurora.error.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous))
             } else if let operation = request.fileOperation {
-                // Operation badge
                 Text(operation.rawValue.uppercased())
-                    .font(.caption2.bold())
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(operationBadgeColor(for: operation))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .font(.Aurora.micro.weight(.bold))
+                    .foregroundColor(Color.Aurora.accent)
+                    .padding(.horizontal, AuroraSpacing.space2)
+                    .padding(.vertical, AuroraSpacing.space1)
+                    .background(Color.Aurora.accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous))
             }
             
             // File paths
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                 ForEach(request.displayFilePaths, id: \.self) { path in
                     Text(request.displayFilePaths.count > 1 ? "• \(path)" : path)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.monoSmall)
+                        .foregroundColor(Color.Aurora.textPrimary)
                 }
                 
                 if let targetPath = request.targetPath {
                     Text("→ \(targetPath)")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .font(.Aurora.monoSmall)
+                        .foregroundColor(Color.Aurora.textSecondary)
                 }
             }
-            .padding(12)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(AuroraSpacing.space3)
+            .background(Color.Aurora.surface)
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 0.5)
+            )
             
-            // Delete warning text
             if request.isDeleteOperation {
                 Text("This action cannot be undone.")
-                    .font(.caption)
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.caption)
+                    .foregroundColor(Color.Aurora.textMuted)
             }
             
             // Content preview
@@ -208,51 +242,53 @@ struct PermissionRequestView: View {
                 DisclosureGroup("Preview content") {
                     ScrollView {
                         Text(preview)
-                            .font(.system(.caption2, design: .monospaced))
-                            .foregroundColor(Color.Velvet.textSecondary)
+                            .font(.Aurora.monoSmall)
+                            .foregroundColor(Color.Aurora.textSecondary)
                     }
                     .frame(maxHeight: 100)
                 }
-                .font(.caption)
-                .foregroundColor(Color.Velvet.textSecondary)
+                .font(.Aurora.caption)
+                .foregroundColor(Color.Aurora.textSecondary)
             }
         }
     }
     
     @ViewBuilder
     private var questionContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Question text
+        VStack(alignment: .leading, spacing: AuroraSpacing.space3) {
             if let question = request.question {
                 Text(question)
-                    .font(.subheadline)
-                    .foregroundColor(Color.Velvet.textPrimary)
+                    .font(.Aurora.body)
+                    .foregroundColor(Color.Aurora.textPrimary)
             }
             
-            // Options or custom input
             if showCustomInput {
-                // Custom text input
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
                     TextField("Type your response...", text: $customResponse)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(AuroraModernTextFieldStyle())
                         .onSubmit {
                             if !customResponse.trimmingCharacters(in: .whitespaces).isEmpty {
                                 respond(allowed: true)
                             }
                         }
                     
-                    Button("← Back to options") {
-                        showCustomInput = false
-                        customResponse = ""
+                    if request.options != nil && !request.options!.isEmpty {
+                        Button("← Back to options") {
+                            showCustomInput = false
+                            customResponse = ""
+                        }
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textSecondary)
                     }
-                    .font(.caption)
-                    .foregroundColor(Color.Velvet.textSecondary)
                 }
             } else if let options = request.options, !options.isEmpty {
-                // Options list
-                VStack(spacing: 8) {
+                VStack(spacing: AuroraSpacing.space2) {
                     ForEach(options, id: \.label) { option in
-                        Button(action: {
+                        AuroraOptionButton(
+                            option: option,
+                            isSelected: selectedOptions.contains(option.label),
+                            isMultiSelect: request.multiSelect == true
+                        ) {
                             if option.label.lowercased() == "other" {
                                 showCustomInput = true
                                 selectedOptions.removeAll()
@@ -265,39 +301,7 @@ struct PermissionRequestView: View {
                             } else {
                                 selectedOptions = [option.label]
                             }
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(option.label)
-                                        .font(.subheadline.weight(.medium))
-                                    
-                                    if let desc = option.description {
-                                        Text(desc)
-                                            .font(.caption)
-                                            .foregroundColor(Color.Velvet.textSecondary)
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                if selectedOptions.contains(option.label) {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(Color.primary.opacity(0.8))
-                }
-                            }
-                        .padding(12)
-                        .background(selectedOptions.contains(option.label)
-                                    ? Color.primary.opacity(0.08)
-                                    : Color(nsColor: .controlBackgroundColor))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(selectedOptions.contains(option.label)
-                                        ? Color.primary.opacity(0.3)
-                                        : Color.Velvet.border, lineWidth: 1)
-                        )
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -306,39 +310,38 @@ struct PermissionRequestView: View {
     
     @ViewBuilder
     private var toolContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
             if let toolName = request.toolName {
                 Text("Allow \(toolName.simplifiedToolName)?")
-                    .font(.subheadline)
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.body)
+                    .foregroundColor(Color.Aurora.textSecondary)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                     Text("Tool: \(toolName.simplifiedToolName)")
-                        .font(.caption)
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textSecondary)
                     
                     if let input = request.toolInput {
                         ScrollView {
                             Text(formatToolInput(input))
-                                .font(.system(.caption2, design: .monospaced))
-                                .foregroundColor(Color.Velvet.textPrimary)
+                                .font(.Aurora.monoSmall)
+                                .foregroundColor(Color.Aurora.textPrimary)
                         }
                         .frame(maxHeight: 100)
                     }
                 }
-                .padding(12)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(AuroraSpacing.space3)
+                .background(Color.Aurora.surface)
+                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 0.5)
+                )
             }
         }
     }
     
     // MARK: - Helpers
-    
-    private func operationBadgeColor(for operation: FileOperation) -> Color {
-        // Monochrome for all operations
-        return Color.primary.opacity(0.08)
-    }
     
     private func formatToolInput(_ input: [String: Any]) -> String {
         if let data = try? JSONSerialization.data(withJSONObject: input, options: .prettyPrinted),
@@ -355,7 +358,6 @@ struct PermissionRequestView: View {
             decision: allowed ? .allow : .deny
         )
         
-        // For questions, include selected options or custom text
         if request.type == .question {
             if showCustomInput && !customResponse.trimmingCharacters(in: .whitespaces).isEmpty {
                 response.customText = customResponse.trimmingCharacters(in: .whitespaces)
@@ -365,6 +367,120 @@ struct PermissionRequestView: View {
         }
         
         onRespond(response)
+    }
+}
+
+// MARK: - Aurora Option Button
+
+private struct AuroraOptionButton: View {
+    let option: PermissionRequest.QuestionOption
+    let isSelected: Bool
+    let isMultiSelect: Bool
+    let action: () -> Void
+    
+    @State private var isHovering = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
+                    Text(option.label)
+                        .font(.Aurora.body.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
+                    
+                    if let desc = option.description {
+                        Text(desc)
+                            .font(.Aurora.caption)
+                            .foregroundColor(Color.Aurora.textSecondary)
+                    }
+                }
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.Aurora.auroraGradient)
+                }
+            }
+            .padding(AuroraSpacing.space3)
+            .background(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(isSelected ? Color.Aurora.accent.opacity(0.1) : (isHovering ? Color.Aurora.surfaceElevated : Color.Aurora.surface))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .stroke(
+                        isSelected
+                            ? Color.Aurora.accent.opacity(0.3)
+                            : Color.Aurora.border,
+                        lineWidth: isSelected ? 1.5 : 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+    }
+}
+
+// MARK: - Aurora Permission Button Style
+
+private struct AuroraPermissionButtonStyle: ButtonStyle {
+    enum Style {
+        case primary, secondary, danger
+    }
+    
+    let style: Style
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.isEnabled) private var isEnabled
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(background(isPressed: configuration.isPressed))
+            .foregroundColor(foregroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+            .overlay(overlay)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .opacity(isEnabled ? 1.0 : 0.5)
+            .animation(.auroraSpringStiff, value: configuration.isPressed)
+    }
+    
+    @ViewBuilder
+    private func background(isPressed: Bool) -> some View {
+        switch style {
+        case .primary:
+            LinearGradient(
+                colors: Color.Aurora.auroraGradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .opacity(isPressed ? 0.8 : 1.0)
+        case .secondary:
+            Color.Aurora.surface
+                .opacity(isPressed ? 0.8 : 1.0)
+        case .danger:
+            LinearGradient(
+                colors: [Color.Aurora.error, Color(hex: "DC2626")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .opacity(isPressed ? 0.8 : 1.0)
+        }
+    }
+    
+    private var foregroundColor: Color {
+        switch style {
+        case .primary, .danger: return .white
+        case .secondary: return Color.Aurora.textPrimary
+        }
+    }
+    
+    @ViewBuilder
+    private var overlay: some View {
+        if style == .secondary {
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 1)
+        }
     }
 }
 

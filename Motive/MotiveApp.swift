@@ -68,12 +68,23 @@ struct MotiveApp: App {
         .windowResizability(.contentSize)
         .defaultPosition(.center)
         .modelContainer(modelContainer)
-
-        Settings {
-            SettingsView()
-                .environmentObject(configManager)
-                .environmentObject(appState)
-                .applyColorScheme(configManager.appearanceMode.colorScheme)
+        .commands {
+            // Disable default File menu commands that conflict with our shortcuts
+            CommandGroup(replacing: .newItem) {
+                // Custom "New Session" command that delegates to AppState
+                Button("New Session") {
+                    appState.startNewEmptySession()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+            
+            // Custom Settings command using our window controller
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings...") {
+                    SettingsWindowController.shared.show()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 //  DrawerComponents.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - Drawer Components
 //
 
 import SwiftUI
@@ -15,57 +15,59 @@ struct SessionListItem: View {
     let onSelect: () -> Void
     @State private var isHovering = false
     
-    private var hoverBackground: Color {
-        isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.04)
-    }
-    
     var body: some View {
         Button(action: onSelect) {
-            HStack(spacing: 10) {
-                // Status indicator
+            HStack(spacing: AuroraSpacing.space3) {
+                // Status indicator with gradient for active
                 Circle()
-                    .fill(statusColor)
-                    .frame(width: 5, height: 5)
+                    .fill(statusGradient)
+                    .frame(width: 6, height: 6)
                 
                 // Content
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                     Text(session.intent)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.bodySmall.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
                         .lineLimit(1)
                     
                     Text(timeAgo)
-                        .font(.system(size: 10))
-                        .foregroundColor(Color.Velvet.textMuted)
+                        .font(.Aurora.micro)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(Color.Velvet.textMuted)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Color.Aurora.textMuted)
                     .opacity(isHovering ? 1 : 0)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(isHovering ? hoverBackground : Color.clear)
+            .padding(.horizontal, AuroraSpacing.space3)
+            .padding(.vertical, AuroraSpacing.space3)
+            .background(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(isHovering ? Color.Aurora.surfaceElevated : Color.clear)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hovering in
-            withAnimation(.easeOut(duration: 0.15)) {
+            withAnimation(.auroraFast) {
                 isHovering = hovering
             }
         }
     }
     
-    private var statusColor: Color {
-        // 保留彩色以区分状态
+    private var statusGradient: AnyShapeStyle {
         switch session.status {
-        case "running": return .blue
-        case "completed": return .green
-        case "failed": return .red
-        default: return Color.Velvet.textMuted
+        case "running":
+            return AnyShapeStyle(Color.Aurora.primary)
+        case "completed":
+            return AnyShapeStyle(Color.Aurora.accent)
+        case "failed":
+            return AnyShapeStyle(Color.Aurora.error)
+        default:
+            return AnyShapeStyle(Color.Aurora.textMuted)
         }
     }
     
@@ -89,22 +91,13 @@ struct MessageBubble: View {
     
     private var isDark: Bool { colorScheme == .dark }
     
-    // Adaptive colors for bubbles
-    private var bubbleBackground: Color {
-        isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.04)
-    }
-    private var bubbleBorder: Color {
-        isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.08)
-    }
-    
     var body: some View {
         HStack {
             if message.type == .user {
-                Spacer(minLength: 50)
+                Spacer(minLength: 60)
             }
             
             VStack(alignment: message.type == .user ? .trailing : .leading, spacing: 0) {
-                // Message content with overlay timestamp
                 ZStack(alignment: message.type == .user ? .topTrailing : .topLeading) {
                     // Message content
                     Group {
@@ -120,120 +113,146 @@ struct MessageBubble: View {
                         }
                     }
                     
-                    // Timestamp overlay (show on hover)
+                    // Timestamp overlay on hover
                     if isHovering {
-                        Text(message.timestamp, style: .time)
-                            .font(.system(size: 9, design: .monospaced))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .fill(Color.black.opacity(0.7))
-                            )
-                            .offset(
-                                x: message.type == .user ? -6 : 6,
-                                y: -6
-                            )
-                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                        timestampBadge
                     }
                 }
             }
-            .animation(.easeOut(duration: 0.15), value: isHovering)
+            .animation(.auroraFast, value: isHovering)
             
             if message.type != .user {
-                Spacer(minLength: 30)
+                Spacer(minLength: 40)
             }
         }
         .onHover { isHovering = $0 }
     }
     
+    // MARK: - User Bubble
+    
     private var userBubble: some View {
         Text(message.content)
-            .font(.system(size: 13))
-            .foregroundColor(isDark ? .black : .white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(isDark ? Color.white : Color.black)
+            .font(.Aurora.body)
+            .foregroundColor(Color.Aurora.textPrimary)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space3)
+            .background(Color.Aurora.surface)
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
             )
             .textSelection(.enabled)
     }
     
+    // MARK: - Assistant Bubble (Dark with amber accent)
+    
     private var assistantBubble: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Avatar
-            HStack(spacing: 5) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
+            // Avatar row
+            HStack(spacing: AuroraSpacing.space2) {
                 Image(systemName: "sparkle")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(.purple)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color.Aurora.primary)
                 
                 Text(L10n.Drawer.assistant)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.micro.weight(.semibold))
+                    .foregroundColor(Color.Aurora.textSecondary)
             }
             
             Text(message.content)
-                .font(.system(size: 13))
-                .foregroundColor(Color.Velvet.textPrimary)
+                .font(.Aurora.body)
+                .foregroundColor(Color.Aurora.textPrimary)
                 .textSelection(.enabled)
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(bubbleBackground)
+        .padding(AuroraSpacing.space3)
+        .background(Color.Aurora.primaryDark.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
+        .overlay(
+            // Left accent border - amber
+            HStack {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.Aurora.primary)
+                    .frame(width: 3)
+                Spacer()
+            }
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(bubbleBorder, lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 0.5)
         )
     }
     
+    // MARK: - Tool Bubble (Compact inline)
+    
     private var toolBubble: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: AuroraSpacing.space2) {
             Image(systemName: toolIcon)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.green)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color.Aurora.accent)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AuroraSpacing.space0_5) {
                 Text(message.toolName?.simplifiedToolName ?? L10n.Drawer.tool)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.caption.weight(.medium))
+                    .foregroundColor(Color.Aurora.textSecondary)
                 
                 if !message.content.isEmpty && message.content != "…" {
                     Text(message.content)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(Color.Velvet.textMuted)
+                        .font(.Aurora.monoSmall)
+                        .foregroundColor(Color.Aurora.textMuted)
                         .lineLimit(2)
                 }
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.horizontal, AuroraSpacing.space3)
+        .padding(.vertical, AuroraSpacing.space2)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.green.opacity(0.08))
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .fill(Color.Aurora.accent.opacity(0.08))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color.green.opacity(0.15), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .stroke(Color.Aurora.accent.opacity(0.15), lineWidth: 0.5)
         )
     }
     
+    // MARK: - System Bubble
+    
     private var systemBubble: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: AuroraSpacing.space2) {
             Image(systemName: "info.circle")
-                .font(.system(size: 10))
-                .foregroundColor(Color.Velvet.textMuted)
+                .font(.system(size: 11))
+                .foregroundColor(Color.Aurora.textMuted)
             
             Text(message.content)
-                .font(.system(size: 11))
-                .foregroundColor(Color.Velvet.textMuted)
+                .font(.Aurora.bodySmall)
+                .foregroundColor(Color.Aurora.textMuted)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
+        .padding(.horizontal, AuroraSpacing.space3)
+        .padding(.vertical, AuroraSpacing.space2)
     }
+    
+    // MARK: - Timestamp Badge
+    
+    private var timestampBadge: some View {
+        Text(message.timestamp, style: .time)
+            .font(.system(size: 9, weight: .medium, design: .monospaced))
+            .foregroundColor(.white)
+            .padding(.horizontal, AuroraSpacing.space2)
+            .padding(.vertical, AuroraSpacing.space1)
+            .background(
+                Capsule()
+                    .fill(Color.black.opacity(0.75))
+            )
+            .offset(
+                x: message.type == .user ? -8 : 8,
+                y: -8
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+    }
+    
+    // MARK: - Tool Icon
     
     private var toolIcon: String {
         guard let toolName = message.toolName?.lowercased() else { return "terminal" }
@@ -260,16 +279,50 @@ struct ThinkingIndicator: View {
     private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
-        ShimmerText(
-            text: toolName?.simplifiedToolName ?? L10n.Drawer.thinking,
-            isDark: isDark
-        )
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        HStack(spacing: AuroraSpacing.space2) {
+            // Aurora animated dots
+            AuroraLoadingDots()
+            
+            Text(toolName?.simplifiedToolName ?? L10n.Drawer.thinking)
+                .font(.Aurora.caption.weight(.medium))
+                .foregroundColor(Color.Aurora.textSecondary)
+                .auroraShimmer(isDark: isDark)
+        }
+        .padding(.horizontal, AuroraSpacing.space3)
+        .padding(.vertical, AuroraSpacing.space2)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.04))
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .fill(Color.Aurora.surface)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 0.5)
+        )
+    }
+}
+
+// MARK: - Aurora Loading Dots
+
+struct AuroraLoadingDots: View {
+    @State private var animationPhase: Int = 0
+    
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .fill(Color.Aurora.primary)
+                    .frame(width: 4, height: 4)
+                    .scaleEffect(animationPhase == index ? 1.3 : 0.8)
+                    .opacity(animationPhase == index ? 1.0 : 0.4)
+            }
+        }
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    animationPhase = (animationPhase + 1) % 3
+                }
+            }
+        }
     }
 }
 
@@ -280,37 +333,35 @@ struct SessionStatusBadge: View {
     let currentTool: String?
     
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: AuroraSpacing.space1) {
             statusIcon
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
             
             Text(statusText)
-                .font(.system(size: 10, weight: .semibold))
+                .font(.Aurora.micro.weight(.semibold))
         }
-        .foregroundColor(statusColor)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
+        .foregroundColor(foregroundColor)
+        .padding(.horizontal, AuroraSpacing.space2)
+        .padding(.vertical, AuroraSpacing.space1)
         .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(statusColor.opacity(0.1))
+            RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
+                .fill(backgroundColor)
         )
     }
     
+    @ViewBuilder
     private var statusIcon: some View {
-        Group {
-            switch status {
-            case .idle:
-                Image(systemName: "circle")
-            case .running:
-                Image(systemName: "circle.fill")
-                    .foregroundColor(.blue)
-            case .completed:
-                Image(systemName: "checkmark.circle.fill")
-            case .failed:
-                Image(systemName: "xmark.circle.fill")
-            case .interrupted:
-                Image(systemName: "pause.circle.fill")
-            }
+        switch status {
+        case .idle:
+            Image(systemName: "circle")
+        case .running:
+            Image(systemName: "circle.fill")
+        case .completed:
+            Image(systemName: "checkmark.circle.fill")
+        case .failed:
+            Image(systemName: "xmark.circle.fill")
+        case .interrupted:
+            Image(systemName: "pause.circle.fill")
         }
     }
     
@@ -329,20 +380,18 @@ struct SessionStatusBadge: View {
         }
     }
     
-    private var statusColor: Color {
-        // 保留彩色以区分状态
+    private var foregroundColor: Color {
         switch status {
-        case .idle:
-            return Color.Velvet.textMuted
-        case .running:
-            return .blue
-        case .completed:
-            return .green
-        case .failed:
-            return .red
-        case .interrupted:
-            return .orange
+        case .idle: return Color.Aurora.textMuted
+        case .running: return Color.Aurora.primary  // Amber for active state
+        case .completed: return Color.Aurora.success
+        case .failed: return Color.Aurora.error
+        case .interrupted: return Color.Aurora.warning
         }
+    }
+    
+    private var backgroundColor: Color {
+        foregroundColor.opacity(0.12)
     }
 }
 
@@ -355,37 +404,37 @@ struct ShimmerText: View {
     
     var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(isDark ? .white.opacity(0.6) : .black.opacity(0.6))
+            .font(.Aurora.caption.weight(.medium))
+            .foregroundColor(Color.Aurora.textSecondary)
             .overlay(
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0),
-                                .init(color: shimmerColor, location: 0.4),
-                                .init(color: shimmerColor.opacity(0.5), location: 0.5),
-                                .init(color: shimmerColor, location: 0.6),
-                                .init(color: .clear, location: 1)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                GeometryReader { geometry in
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: shimmerColor.opacity(0.5), location: 0.4),
+                            .init(color: shimmerColor.opacity(0.7), location: 0.5),
+                            .init(color: shimmerColor.opacity(0.5), location: 0.6),
+                            .init(color: .clear, location: 1)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
-                    .offset(x: offset * 200)
-                    .mask(
-                        Text(text)
-                            .font(.system(size: 12, weight: .medium))
-                    )
+                    .frame(width: geometry.size.width * 2)
+                    .offset(x: -geometry.size.width + offset * geometry.size.width * 2)
+                }
+                .mask(
+                    Text(text)
+                        .font(.Aurora.caption.weight(.medium))
+                )
             )
             .onAppear {
                 withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    offset = 2
+                    offset = 1
                 }
             }
     }
     
     private var shimmerColor: Color {
-        isDark ? .white : .black
+        isDark ? Color.Aurora.accentMid : Color.Aurora.accentStart
     }
 }

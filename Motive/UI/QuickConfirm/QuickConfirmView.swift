@@ -2,7 +2,7 @@
 //  QuickConfirmView.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - Quick Confirm Popup
 //
 
 import SwiftUI
@@ -20,7 +20,7 @@ struct QuickConfirmView: View {
     private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space3) {
             // Header
             headerView
             
@@ -30,41 +30,54 @@ struct QuickConfirmView: View {
             // Actions
             actionButtons
         }
-        .padding(16)
-        .frame(width: 320)
+        .padding(AuroraSpacing.space4)
+        .frame(width: 340)
         .background(backgroundView)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.lg, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                    isDark ? Color.white.opacity(0.1) : Color.black.opacity(0.08),
-                    lineWidth: 0.5
-                )
+            RoundedRectangle(cornerRadius: AuroraRadius.lg, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(isDark ? 0.3 : 0.12), radius: 20, x: 0, y: 10)
+        .shadow(color: Color.Aurora.accentMid.opacity(isDark ? 0.1 : 0.05), radius: 20, y: 8)
+        .shadow(color: Color.black.opacity(isDark ? 0.3 : 0.12), radius: 16, x: 0, y: 8)
     }
     
     // MARK: - Header
     
     private var headerView: some View {
-        HStack(spacing: 10) {
-            // Icon based on type
-            Image(systemName: iconName)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(iconColor)
-                .frame(width: 28, height: 28)
-                .background(iconColor.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+        HStack(spacing: AuroraSpacing.space3) {
+            // Icon with gradient
+            ZStack {
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: iconGradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ).opacity(0.15)
+                    )
+                    .frame(width: 32, height: 32)
+                
+                Image(systemName: iconName)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: iconGradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AuroraSpacing.space0_5) {
                 Text(headerTitle)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .font(.Aurora.bodySmall.weight(.semibold))
+                    .foregroundColor(Color.Aurora.textPrimary)
                 
                 if let subtitle = headerSubtitle {
                     Text(subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textSecondary)
                         .lineLimit(1)
                 }
             }
@@ -75,9 +88,9 @@ struct QuickConfirmView: View {
             Button(action: onCancel) {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 20, height: 20)
-                    .background(.secondary.opacity(0.1))
+                    .foregroundColor(Color.Aurora.textMuted)
+                    .frame(width: 22, height: 22)
+                    .background(Color.Aurora.surface)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -99,12 +112,12 @@ struct QuickConfirmView: View {
     }
     
     private var questionContent: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space3) {
             // Question text
             if let question = request.question {
                 Text(question)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.primary)
+                    .font(.Aurora.bodySmall)
+                    .foregroundColor(Color.Aurora.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             
@@ -115,16 +128,20 @@ struct QuickConfirmView: View {
                 // Free text input
                 TextField("Type your answer...", text: $textInput)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 12))
-                    .padding(10)
-                    .background(Color.primary.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .font(.Aurora.bodySmall)
+                    .padding(AuroraSpacing.space3)
+                    .background(Color.Aurora.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                            .stroke(Color.Aurora.border, lineWidth: 0.5)
+                    )
             }
         }
     }
     
     private func optionsView(options: [PermissionRequest.QuestionOption]) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: AuroraSpacing.space2) {
             ForEach(options, id: \.effectiveValue) { option in
                 optionButton(option: option)
             }
@@ -144,55 +161,54 @@ struct QuickConfirmView: View {
                     selectedOptions.insert(optionValue)
                 }
             } else {
-                // Single select - submit immediately
                 onResponse(optionValue)
             }
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: AuroraSpacing.space3) {
                 if isMultiSelect {
                     Image(systemName: isSelected ? "checkmark.square.fill" : "square")
                         .font(.system(size: 14))
-                        .foregroundStyle(isSelected ? Color.primary.opacity(0.8) : .secondary)
+                        .foregroundStyle(isSelected ? AnyShapeStyle(Color.Aurora.auroraGradient) : AnyShapeStyle(Color.Aurora.textSecondary))
                 }
                 
                 Text(option.label)
-                    .font(.system(size: 12, weight: isSelected ? .medium : .regular))
-                    .foregroundStyle(.primary)
-                
+                    .font(.Aurora.bodySmall.weight(isSelected ? .medium : .regular))
+                    .foregroundColor(Color.Aurora.textPrimary)
+                  
                 Spacer()
                 
                 if !isMultiSelect {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.tertiary)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, AuroraSpacing.space3)
+            .padding(.vertical, AuroraSpacing.space3)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.primary.opacity(0.08) : Color.primary.opacity(0.03))
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(isSelected ? Color.Aurora.accent.opacity(0.08) : Color.Aurora.surface)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(isSelected ? Color.primary.opacity(0.2) : Color.clear, lineWidth: 1)
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .stroke(isSelected ? Color.Aurora.accent.opacity(0.2) : Color.Aurora.border, lineWidth: isSelected ? 1 : 0.5)
             )
         }
         .buttonStyle(.plain)
     }
     
     private var filePermissionContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
             // Operation description
-            HStack(spacing: 8) {
+            HStack(spacing: AuroraSpacing.space2) {
                 Text(operationVerb)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .font(.Aurora.bodySmall.weight(.medium))
+                    .foregroundColor(Color.Aurora.textPrimary)
                 
                 if let path = request.filePath {
                     Text(shortenPath(path))
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .font(.Aurora.monoSmall)
+                        .foregroundColor(Color.Aurora.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -202,29 +218,29 @@ struct QuickConfirmView: View {
             if let preview = request.contentPreview, !preview.isEmpty {
                 ScrollView {
                     Text(preview)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .font(.Aurora.monoSmall)
+                        .foregroundColor(Color.Aurora.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 80)
-                .padding(8)
-                .background(Color.primary.opacity(0.03))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(AuroraSpacing.space2)
+                .background(Color.Aurora.surface)
+                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous))
             }
         }
     }
     
     private var toolPermissionContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
             if let toolName = request.toolName {
-                HStack(spacing: 8) {
+                HStack(spacing: AuroraSpacing.space2) {
                     Text("Tool:")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .font(.Aurora.bodySmall)
+                        .foregroundColor(Color.Aurora.textSecondary)
                     
                     Text(toolName.simplifiedToolName)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.primary)
+                        .font(.Aurora.mono.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
                 }
             }
         }
@@ -237,14 +253,13 @@ struct QuickConfirmView: View {
         switch request.type {
         case .question:
             if request.multiSelect == true || request.options == nil {
-                // Multi-select or text input needs confirm button
-                HStack(spacing: 8) {
+                HStack(spacing: AuroraSpacing.space2) {
                     Spacer()
                     
                     Button("Cancel") {
                         onCancel()
                     }
-                    .buttonStyle(QuickConfirmButtonStyle(isPrimary: false))
+                    .buttonStyle(AuroraQuickConfirmButtonStyle(style: .secondary))
                     
                     Button("Confirm") {
                         if request.options != nil {
@@ -253,25 +268,24 @@ struct QuickConfirmView: View {
                             onResponse(textInput)
                         }
                     }
-                    .buttonStyle(QuickConfirmButtonStyle(isPrimary: true))
+                    .buttonStyle(AuroraQuickConfirmButtonStyle(style: .primary))
                     .disabled(request.options != nil ? selectedOptions.isEmpty : textInput.isEmpty)
                 }
             }
-            // Single-select options don't need buttons - they submit on click
             
         case .file, .tool:
-            HStack(spacing: 8) {
+            HStack(spacing: AuroraSpacing.space2) {
                 Spacer()
                 
                 Button(L10n.deny) {
                     onResponse("denied")
                 }
-                .buttonStyle(QuickConfirmButtonStyle(isPrimary: false))
+                .buttonStyle(AuroraQuickConfirmButtonStyle(style: .secondary))
                 
                 Button(L10n.allow) {
                     onResponse("approved")
                 }
-                .buttonStyle(QuickConfirmButtonStyle(isPrimary: true))
+                .buttonStyle(AuroraQuickConfirmButtonStyle(style: .primary))
             }
         }
     }
@@ -283,11 +297,19 @@ struct QuickConfirmView: View {
             // Blur effect
             VisualEffectBlur(material: .popover, blendingMode: .behindWindow)
             
-            // Base overlay for consistency
+            // Base overlay
+            Color.Aurora.background.opacity(0.95)
+            
+            // Subtle gradient
             if isDark {
-                Color(hex: "1C1C1E").opacity(0.85)
-            } else {
-                Color.white.opacity(0.85)
+                LinearGradient(
+                    colors: [
+                        Color.Aurora.accentMid.opacity(0.02),
+                        Color.clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
             }
         }
     }
@@ -302,12 +324,11 @@ struct QuickConfirmView: View {
         }
     }
     
-    private var iconColor: Color {
-        // 保留彩色以区分不同类型
+    private var iconGradientColors: [Color] {
         switch request.type {
-        case .question: return .blue
-        case .file: return .orange
-        case .tool: return .purple
+        case .question: return Color.Aurora.auroraGradientColors
+        case .file: return [Color.Aurora.warning, Color(hex: "F97316")]
+        case .tool: return [Color.Aurora.accentMid, Color.Aurora.accentEnd]
         }
     }
     
@@ -356,27 +377,64 @@ struct QuickConfirmView: View {
     }
 }
 
-// MARK: - Button Style
+// MARK: - Aurora Quick Confirm Button Style
 
-struct QuickConfirmButtonStyle: ButtonStyle {
-    let isPrimary: Bool
+private struct AuroraQuickConfirmButtonStyle: ButtonStyle {
+    enum Style {
+        case primary, secondary
+    }
+    
+    let style: Style
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.isEnabled) private var isEnabled
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(isPrimary ? (colorScheme == .dark ? .black : .white) : .primary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 7)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isPrimary ? (colorScheme == .dark ? Color.white : Color.black) : Color.primary.opacity(0.08))
+            .font(.Aurora.bodySmall.weight(.medium))
+            .foregroundColor(foregroundColor)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space2)
+            .background(background(isPressed: configuration.isPressed))
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+            .overlay(overlay)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .opacity(isEnabled ? 1.0 : 0.5)
+            .animation(.auroraSpringStiff, value: configuration.isPressed)
+    }
+    
+    @ViewBuilder
+    private func background(isPressed: Bool) -> some View {
+        switch style {
+        case .primary:
+            LinearGradient(
+                colors: Color.Aurora.auroraGradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
-            .opacity(configuration.isPressed ? 0.8 : 1)
+            .opacity(isPressed ? 0.8 : 1.0)
+        case .secondary:
+            Color.Aurora.surface
+                .opacity(isPressed ? 0.8 : 1.0)
+        }
+    }
+    
+    private var foregroundColor: Color {
+        switch style {
+        case .primary: return .white
+        case .secondary: return Color.Aurora.textPrimary
+        }
+    }
+    
+    @ViewBuilder
+    private var overlay: some View {
+        if style == .secondary {
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .stroke(Color.Aurora.border, lineWidth: 1)
+        }
     }
 }
 
-// MARK: - Visual Effect
+// MARK: - Visual Effect (Legacy compatibility)
 
 struct VisualEffectBlur: NSViewRepresentable {
     let material: NSVisualEffectView.Material
@@ -393,5 +451,32 @@ struct VisualEffectBlur: NSViewRepresentable {
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.material = material
         nsView.blendingMode = blendingMode
+    }
+}
+
+// MARK: - Legacy Button Style (compatibility)
+
+struct QuickConfirmButtonStyle: ButtonStyle {
+    let isPrimary: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.Aurora.bodySmall.weight(.medium))
+            .foregroundColor(isPrimary ? .white : Color.Aurora.textPrimary)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space2)
+            .background(
+                isPrimary
+                    ? AnyShapeStyle(Color.Aurora.auroraGradient)
+                    : AnyShapeStyle(Color.Aurora.surface)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+            .overlay(
+                !isPrimary
+                    ? RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
+                    : nil
+            )
+            .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }

@@ -16,12 +16,18 @@ final class DrawerWindowController {
     private var statusBarButtonFrame: NSRect?
     private var resignKeyObserver: Any?
     var isVisible: Bool { window.isVisible }
+    
+    /// When true, the window will not hide on resign key (used during delete confirmation)
+    var suppressAutoHide: Bool = false
 
     init<Content: View>(rootView: Content) {
         let hostingView = NSHostingView(rootView: AnyView(rootView))
+        hostingView.wantsLayer = true
+        hostingView.layer?.masksToBounds = false
+        
         window = KeyablePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 540),
-            styleMask: [.borderless],
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 600),
+            styleMask: [.titled, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -30,18 +36,29 @@ final class DrawerWindowController {
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.hasShadow = false  // Shadow handled by SwiftUI
+        window.hasShadow = true  // Use native window shadow (like CommandBar)
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
         window.isMovableByWindowBackground = true
         window.contentView = hostingView
+        window.contentView?.wantsLayer = true
+        window.contentView?.layer?.cornerRadius = AuroraRadius.xl
+        window.contentView?.layer?.masksToBounds = true
         window.hidesOnDeactivate = false
         
-        // Hide when window loses key status (clicks outside)
+        // Hide when window loses key status (clicks outside, unless suppressed)
         resignKeyObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
             object: window,
             queue: .main
         ) { [weak self] _ in
-            self?.hide()
+            guard let self = self else { return }
+            if !self.suppressAutoHide {
+                self.hide()
+            }
         }
     }
     
@@ -64,6 +81,10 @@ final class DrawerWindowController {
 
     func hide() {
         window.orderOut(nil)
+    }
+    
+    func getWindow() -> NSWindow {
+        window
     }
 
     private func positionBelowStatusBar() {

@@ -22,6 +22,27 @@
 "commandbar.settings" = "Settings";
 "commandbar.run" = "Run";
 "commandbar.close" = "Close";
+"commandbar.select" = "Select";
+"commandbar.complete" = "Complete";
+"commandbar.navigate" = "Navigate";
+"commandbar.back" = "Back";
+"commandbar.open" = "Open";
+"commandbar.delete" = "Delete";
+"commandbar.new" = "New";
+"commandbar.commands" = "Commands";
+"commandbar.stop" = "Stop";
+"commandbar.drawer" = "Details";
+"commandbar.send" = "Send";
+"commandbar.retry" = "Retry";
+"commandbar.cancel" = "Cancel";
+"commandbar.running" = "Running";
+"commandbar.new_task" = "New Task";
+"commandbar.completed" = "Completed";
+"commandbar.details" = "Details";
+"commandbar.error" = "Error";
+"commandbar.dismiss" = "Dismiss";
+"commandbar.ready" = "Ready";
+"commandbar.type_request" = "Type your request below";
 
 // MARK: - Settings
 "settings.title" = "Settings";
@@ -162,8 +183,8 @@
 "drawer.new_session" = "New Session";
 "drawer.new_chat" = "New Chat";
 "drawer.conversation" = "Conversation";
-"drawer.thinking" = "Thinking...";
-"drawer.processing" = "Processing...";
+"drawer.thinking" = "Thinking";
+"drawer.processing" = "Processing";
 "drawer.completed" = "Completed";
 "drawer.failed" = "Failed";
 "drawer.interrupted" = "Interrupted";
@@ -185,6 +206,16 @@
 "permission.allow_once" = "Allow";
 "permission.deny_once" = "Deny";
 
+// MARK: - Alerts
+"alert.delete_session_title" = "Delete this session?";
+"alert.delete_session_message" = "This will permanently delete \"%@\"";
+
+// MARK: - Time
+"time.just_now" = "just now";
+"time.minutes_ago" = "%dm ago";
+"time.hours_ago" = "%dh ago";
+"time.days_ago" = "%dd ago";
+
 // MARK: - Status Bar
 "statusbar.idle" = "Motive";
 "statusbar.reasoning" = "Thinking...";
@@ -198,3 +229,38 @@
 "error.invalid_config" = "Invalid configuration";
 "error.binary_not_found" = "OpenCode binary not found";
 "error.connection_failed" = "Connection failed";
+
+// MARK: - Onboarding
+// Welcome
+"onboarding.welcome.title" = "Welcome to Motive";
+"onboarding.welcome.subtitle" = "Your personal AI agent that works in the background, so you don't have to wait.";
+"onboarding.welcome.get_started" = "Get Started";
+
+// AI Provider
+"onboarding.ai_provider.title" = "Configure AI Provider";
+"onboarding.ai_provider.subtitle" = "Choose your AI provider and enter your API key to get started.";
+
+// Accessibility
+"onboarding.accessibility.title" = "Enable Global Hotkey";
+"onboarding.accessibility.subtitle" = "Grant Accessibility permission to use the global hotkey from anywhere.";
+"onboarding.accessibility.granted" = "Accessibility permission granted";
+"onboarding.accessibility.required" = "Accessibility permission required";
+"onboarding.accessibility.instructions" = "Open System Settings → Privacy & Security → Accessibility → Enable Motive";
+"onboarding.accessibility.open_settings" = "Open System Settings";
+
+// Browser
+"onboarding.browser.title" = "Browser Automation";
+"onboarding.browser.subtitle" = "Enable AI to control your browser for web tasks like shopping, research, and form filling.";
+"onboarding.browser.enable_desc" = "Allow AI to automate browser tasks";
+"onboarding.browser.info" = "You can change this later in Settings.";
+
+// Complete
+"onboarding.complete.title" = "You're All Set!";
+"onboarding.complete.subtitle" = "Press the hotkey anytime to summon Motive and describe what you want done.";
+"onboarding.complete.hotkey_label" = "Your hotkey";
+"onboarding.complete.hotkey_hint" = "Press this anywhere to open the Command Bar";
+"onboarding.complete.start_using" = "Start Using Motive";
+
+// Common
+"onboarding.skip" = "Skip";
+"onboarding.continue" = "Continue";

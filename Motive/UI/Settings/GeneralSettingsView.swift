@@ -2,7 +2,7 @@
 //  GeneralSettingsView.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - General Settings
 //
 
 import AppKit
@@ -17,13 +17,13 @@ struct GeneralSettingsView: View {
     private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space6) {
             // Startup
             SettingsCard(title: L10n.Settings.startup, icon: "power") {
                 SettingsRow(label: L10n.Settings.launchAtLogin, description: L10n.Settings.launchAtLoginDesc, showDivider: false) {
                     Toggle("", isOn: $configManager.launchAtLogin)
                         .toggleStyle(.switch)
-                        .tint(Color.Velvet.primary)
+                        .tint(Color.Aurora.accent)
                 }
             }
             
@@ -85,7 +85,6 @@ struct GeneralSettingsView: View {
     private func restartApp() {
         guard let bundlePath = Bundle.main.bundlePath as String? else { return }
         
-        // Use shell script to wait and relaunch
         let script = """
         sleep 0.5
         open "\(bundlePath)"
@@ -101,7 +100,6 @@ struct GeneralSettingsView: View {
             Log.error("Failed to restart: \(error)")
         }
         
-        // Force quit the app
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NSApplication.shared.terminate(nil)
         }
@@ -177,7 +175,6 @@ final class HotkeyRecorderButton: NSButton {
         isRecording = true
         updateTitle()
         
-        // Listen for key events
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
             guard let self = self, self.isRecording else { return event }
             
@@ -185,19 +182,17 @@ final class HotkeyRecorderButton: NSButton {
                 let symbols = self.modifierSymbols(for: event.modifierFlags)
                 let key = self.keyName(for: event)
                 
-                // Only record if there's a modifier or it's a special key
                 if !symbols.isEmpty || self.isSpecialKey(event.keyCode) {
                     let value = symbols + key
                     self.currentHotkey = value
                     self.onHotkeyChange?(value)
                     self.stopRecording()
-                    return nil // Consume the event
+                    return nil
                 }
             }
             return event
         }
         
-        // Stop recording when clicking elsewhere
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
             self?.stopRecording()
         }
@@ -214,9 +209,7 @@ final class HotkeyRecorderButton: NSButton {
     }
     
     private func isSpecialKey(_ keyCode: UInt16) -> Bool {
-        // Special keys: Space, Return, Tab, Delete, Escape, Arrows
         let specialKeys: Set<UInt16> = [49, 36, 48, 51, 53, 123, 124, 125, 126]
-        // Function keys F1-F12 (keyCodes are scattered, not sequential)
         let functionKeys: Set<UInt16> = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111]
         return specialKeys.contains(keyCode) || functionKeys.contains(keyCode)
     }
@@ -232,7 +225,6 @@ final class HotkeyRecorderButton: NSButton {
     
     private func keyName(for event: NSEvent) -> String {
         switch event.keyCode {
-        // Special keys
         case 49: return "Space"
         case 36: return "Return"
         case 48: return "Tab"
@@ -242,7 +234,6 @@ final class HotkeyRecorderButton: NSButton {
         case 124: return "→"
         case 125: return "↓"
         case 126: return "↑"
-        // Function keys F1-F12
         case 122: return "F1"
         case 120: return "F2"
         case 99: return "F3"

@@ -30,6 +30,27 @@ enum L10n {
         static let settings = "commandbar.settings".localized
         static let run = "commandbar.run".localized
         static let close = "commandbar.close".localized
+        static let select = "commandbar.select".localized
+        static let complete = "commandbar.complete".localized
+        static let navigate = "commandbar.navigate".localized
+        static let back = "commandbar.back".localized
+        static let open = "commandbar.open".localized
+        static let delete = "commandbar.delete".localized
+        static let new = "commandbar.new".localized
+        static let commands = "commandbar.commands".localized
+        static let stop = "commandbar.stop".localized
+        static let drawer = "commandbar.drawer".localized
+        static let send = "commandbar.send".localized
+        static let retry = "commandbar.retry".localized
+        static let cancel = "commandbar.cancel".localized
+        static let running = "commandbar.running".localized
+        static let newTask = "commandbar.new_task".localized
+        static let completed = "commandbar.completed".localized
+        static let details = "commandbar.details".localized
+        static let error = "commandbar.error".localized
+        static let dismiss = "commandbar.dismiss".localized
+        static let ready = "commandbar.ready".localized
+        static let typeRequest = "commandbar.type_request".localized
     }
     
     // MARK: - Settings
@@ -200,6 +221,20 @@ enum L10n {
         static let denyOnce = "permission.deny_once".localized
     }
     
+    // MARK: - Alerts
+    enum Alert {
+        static let deleteSessionTitle = "alert.delete_session_title".localized
+        static let deleteSessionMessage = "alert.delete_session_message".localized
+    }
+    
+    // MARK: - Time
+    enum Time {
+        static let justNow = "time.just_now".localized
+        static let minutesAgo = "time.minutes_ago".localized
+        static let hoursAgo = "time.hours_ago".localized
+        static let daysAgo = "time.days_ago".localized
+    }
+    
     // MARK: - Status Bar
     enum StatusBar {
         static let idle = "statusbar.idle".localized
@@ -216,6 +251,43 @@ enum L10n {
         static let invalidConfig = "error.invalid_config".localized
         static let binaryNotFound = "error.binary_not_found".localized
         static let connectionFailed = "error.connection_failed".localized
+    }
+    
+    // MARK: - Onboarding
+    enum Onboarding {
+        // Welcome
+        static let welcomeTitle = "onboarding.welcome.title".localized
+        static let welcomeSubtitle = "onboarding.welcome.subtitle".localized
+        static let getStarted = "onboarding.welcome.get_started".localized
+        
+        // AI Provider
+        static let aiProviderTitle = "onboarding.ai_provider.title".localized
+        static let aiProviderSubtitle = "onboarding.ai_provider.subtitle".localized
+        
+        // Accessibility
+        static let accessibilityTitle = "onboarding.accessibility.title".localized
+        static let accessibilitySubtitle = "onboarding.accessibility.subtitle".localized
+        static let accessibilityGranted = "onboarding.accessibility.granted".localized
+        static let accessibilityRequired = "onboarding.accessibility.required".localized
+        static let accessibilityInstructions = "onboarding.accessibility.instructions".localized
+        static let openSystemSettings = "onboarding.accessibility.open_settings".localized
+        
+        // Browser
+        static let browserTitle = "onboarding.browser.title".localized
+        static let browserSubtitle = "onboarding.browser.subtitle".localized
+        static let browserEnableDesc = "onboarding.browser.enable_desc".localized
+        static let browserInfo = "onboarding.browser.info".localized
+        
+        // Complete
+        static let completeTitle = "onboarding.complete.title".localized
+        static let completeSubtitle = "onboarding.complete.subtitle".localized
+        static let hotkeyLabel = "onboarding.complete.hotkey_label".localized
+        static let hotkeyHint = "onboarding.complete.hotkey_hint".localized
+        static let startUsing = "onboarding.complete.start_using".localized
+        
+        // Common
+        static let skip = "onboarding.skip".localized
+        static let continueButton = "onboarding.continue".localized
     }
 }
 

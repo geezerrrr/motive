@@ -2,7 +2,7 @@
 //  ModelConfigView.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - Model Configuration
 //
 
 import SwiftUI
@@ -22,39 +22,39 @@ struct ModelConfigView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            // Provider Selection with inline warning
-            VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space6) {
+            // Provider Selection
+            VStack(alignment: .leading, spacing: AuroraSpacing.space4) {
                 // Header with warning badge
-                HStack(spacing: 8) {
+                HStack(spacing: AuroraSpacing.space2) {
                     Image(systemName: "cpu")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color.Velvet.primary)
+                        .foregroundStyle(Color.Aurora.auroraGradient)
                     
                     Text(L10n.Settings.provider)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textSecondary)
                         .textCase(.uppercase)
                         .tracking(0.5)
                     
                     Spacer()
                     
-                    // Warning badge inline with title
+                    // Warning badge
                     if let error = configManager.providerConfigurationError {
-                        HStack(spacing: 6) {
+                        HStack(spacing: AuroraSpacing.space2) {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.system(size: 11))
-                                .foregroundColor(.orange)
+                                .foregroundColor(Color.Aurora.warning)
                             
                             Text(error)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.orange)
+                                .font(.Aurora.micro.weight(.medium))
+                                .foregroundColor(Color.Aurora.warning)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, AuroraSpacing.space3)
+                        .padding(.vertical, AuroraSpacing.space2)
                         .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color.orange.opacity(0.15))
+                            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                                .fill(Color.Aurora.warning.opacity(0.12))
                         )
                     }
                 }
@@ -62,18 +62,15 @@ struct ModelConfigView: View {
                 // Provider cards
                 VStack(spacing: 0) {
                     providerPicker
-                        .padding(16)
+                        .padding(AuroraSpacing.space4)
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isDark ? Color.white.opacity(0.05) : Color.white)
+                    RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                        .fill(Color.Aurora.surface)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(
-                            isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.06),
-                            lineWidth: 1
-                        )
+                    RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
                 )
             }
             
@@ -82,71 +79,82 @@ struct ModelConfigView: View {
                 VStack(spacing: 0) {
                     // API Key (not for Ollama)
                     if configManager.provider != .ollama {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
                             HStack {
                                 Text(L10n.Settings.apiKey)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Color.Velvet.textPrimary)
+                                    .font(.Aurora.body.weight(.medium))
+                                    .foregroundColor(Color.Aurora.textPrimary)
                                 
                                 Spacer()
                                 
                                 if configManager.hasAPIKey {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: AuroraSpacing.space1) {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(Color.Velvet.success)
+                                            .font(.system(size: 11))
+                                            .foregroundColor(Color.Aurora.success)
                                         Text(L10n.Settings.apiKeyConfigured)
-                                            .font(.system(size: 10, weight: .medium))
-                                            .foregroundColor(Color.Velvet.success)
+                                            .font(.Aurora.micro.weight(.medium))
+                                            .foregroundColor(Color.Aurora.success)
                                     }
                                 }
                             }
                             
-                            SecureField(apiKeyPlaceholder, text: Binding(
-                                get: { configManager.apiKey },
-                                set: { configManager.apiKey = $0 }
-                            ))
-                            .textFieldStyle(ModernTextFieldStyle())
+                            SettingsSecureField(
+                                placeholder: apiKeyPlaceholder,
+                                text: Binding(
+                                    get: { configManager.apiKey },
+                                    set: { configManager.apiKey = $0 }
+                                ),
+                                isFocused: focusedField == .apiKey
+                            )
                             .focused($focusedField, equals: .apiKey)
                         }
-                        .padding(16)
+                        .padding(AuroraSpacing.space4)
                         
-                        Divider()
-                            .background(isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.06))
-                            .padding(.leading, 16)
+                        Rectangle()
+                            .fill(Color.Aurora.border)
+                            .frame(height: 1)
+                            .padding(.leading, AuroraSpacing.space4)
                     }
                     
                     // Base URL
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
                         Text(configManager.provider == .ollama ? L10n.Settings.ollamaHost : L10n.Settings.baseURL)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color.Velvet.textPrimary)
+                            .font(.Aurora.body.weight(.medium))
+                            .foregroundColor(Color.Aurora.textPrimary)
                         
-                        TextField(baseURLPlaceholder, text: $configManager.baseURL)
-                            .textFieldStyle(ModernTextFieldStyle())
-                            .focused($focusedField, equals: .baseURL)
+                        SettingsTextField(
+                            placeholder: baseURLPlaceholder,
+                            text: $configManager.baseURL,
+                            isFocused: focusedField == .baseURL
+                        )
+                        .focused($focusedField, equals: .baseURL)
                         
                         Text(L10n.Settings.defaultEndpoint)
-                            .font(.system(size: 11))
-                            .foregroundColor(Color.Velvet.textMuted)
+                            .font(.Aurora.caption)
+                            .foregroundColor(Color.Aurora.textMuted)
                     }
-                    .padding(16)
+                    .padding(AuroraSpacing.space4)
                     
-                    Divider()
-                        .background(isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.06))
-                        .padding(.leading, 16)
+                    Rectangle()
+                        .fill(Color.Aurora.border)
+                        .frame(height: 1)
+                        .padding(.leading, AuroraSpacing.space4)
                     
                     // Model Name
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
                         Text(L10n.Settings.model)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color.Velvet.textPrimary)
+                            .font(.Aurora.body.weight(.medium))
+                            .foregroundColor(Color.Aurora.textPrimary)
                         
-                        TextField(modelPlaceholder, text: $configManager.modelName)
-                            .textFieldStyle(ModernTextFieldStyle())
-                            .focused($focusedField, equals: .modelName)
+                        SettingsTextField(
+                            placeholder: modelPlaceholder,
+                            text: $configManager.modelName,
+                            isFocused: focusedField == .modelName
+                        )
+                        .focused($focusedField, equals: .modelName)
                     }
-                    .padding(16)
+                    .padding(AuroraSpacing.space4)
                 }
             }
             
@@ -155,48 +163,52 @@ struct ModelConfigView: View {
                 Spacer()
                 
                 if showSavedFeedback {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AuroraSpacing.space2) {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(Color.Velvet.success)
+                            .foregroundColor(Color.Aurora.success)
                         Text(L10n.Settings.agentRestarted)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color.Velvet.textSecondary)
+                            .font(.Aurora.bodySmall.weight(.medium))
+                            .foregroundColor(Color.Aurora.textSecondary)
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
                 
                 Button(action: saveAndRestart) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: AuroraSpacing.space2) {
                         Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text(L10n.Settings.saveRestart)
                             .font(.system(size: 12, weight: .semibold))
+                        Text(L10n.Settings.saveRestart)
+                            .font(.Aurora.bodySmall.weight(.semibold))
                     }
-                    .foregroundColor(isDark ? .black : .white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, AuroraSpacing.space4)
+                    .padding(.vertical, AuroraSpacing.space3)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(isDark ? Color.white : Color.black)
+                        LinearGradient(
+                            colors: Color.Aurora.auroraGradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
+                    .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                    .shadow(color: Color.Aurora.accentMid.opacity(0.3), radius: 8, y: 4)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showSavedFeedback)
+        .animation(.auroraSpring, value: showSavedFeedback)
     }
     
     // MARK: - Provider Picker
     
     private var providerPicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AuroraSpacing.space3) {
             ForEach(ConfigManager.Provider.allCases) { provider in
-                ProviderCard(
+                AuroraProviderCard(
                     provider: provider,
-                    isSelected: configManager.provider == provider,
-                    isDark: isDark
+                    isSelected: configManager.provider == provider
                 ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    withAnimation(.auroraSpring) {
                         configManager.provider = provider
                     }
                 }
@@ -242,76 +254,190 @@ struct ModelConfigView: View {
     }
 }
 
-// MARK: - Provider Card
+// MARK: - Aurora Provider Card
 
+struct AuroraProviderCard: View {
+    let provider: ConfigManager.Provider
+    let isSelected: Bool
+    let action: () -> Void
+    
+    @State private var isHovering = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var isDark: Bool { colorScheme == .dark }
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: AuroraSpacing.space3) {
+                // Provider icon
+                ZStack {
+                    if isSelected {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: Color.Aurora.auroraGradientColors.map { $0.opacity(0.15) },
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                    }
+                    
+                    Image(provider.iconAsset)
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(isSelected ? Color.Aurora.accent : Color.Aurora.textSecondary)
+                }
+                
+                Text(provider.displayName)
+                    .font(.Aurora.bodySmall.weight(.medium))
+                    .foregroundColor(isSelected ? Color.Aurora.textPrimary : Color.Aurora.textSecondary)
+                
+                // Selected checkmark
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.Aurora.auroraGradient)
+                } else {
+                    Circle()
+                        .stroke(Color.Aurora.border, lineWidth: 1.5)
+                        .frame(width: 14, height: 14)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AuroraSpacing.space4)
+            .background(
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .fill(
+                        isSelected
+                            ? Color.Aurora.accent.opacity(isDark ? 0.1 : 0.08)
+                            : (isHovering ? Color.Aurora.surfaceElevated : Color.clear)
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .stroke(
+                        isSelected
+                            ? LinearGradient(
+                                colors: Color.Aurora.auroraGradientColors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                              )
+                            : LinearGradient(
+                                colors: [Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                              ),
+                        lineWidth: isSelected ? 1.5 : 0
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .scaleEffect(isHovering && !isSelected ? 1.02 : 1.0)
+        .animation(.auroraFast, value: isHovering)
+    }
+}
+
+// Legacy ProviderCard for compatibility
 struct ProviderCard: View {
     let provider: ConfigManager.Provider
     let isSelected: Bool
     var isDark: Bool = true
     let action: () -> Void
     
-    @State private var isHovering = false
-    
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 10) {
-                Image(provider.iconAsset)
-                    .renderingMode(.template)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(isSelected ? Color.Velvet.primary : Color.Velvet.textSecondary)
-                
-                Text(provider.displayName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isSelected ? Color.Velvet.textPrimary : Color.Velvet.textSecondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(
-                        isSelected
-                            ? (isDark ? Color.white.opacity(0.1) : Color.Velvet.primary.opacity(0.1))
-                            : (isHovering ? (isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.04)) : Color.clear)
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(
-                        isSelected ? Color.Velvet.primary.opacity(0.5) : Color.clear,
-                        lineWidth: 1.5
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
+        AuroraProviderCard(provider: provider, isSelected: isSelected, action: action)
     }
 }
 
-// MARK: - Modern Text Field Style
+// MARK: - Settings Text Field (View-based, not TextFieldStyle)
 
-struct ModernTextFieldStyle: TextFieldStyle {
+struct SettingsTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    var isFocused: Bool = false
     @Environment(\.colorScheme) private var colorScheme
     
     private var isDark: Bool { colorScheme == .dark }
     
-    func _body(configuration: TextField<_Label>) -> some View {
-        configuration
-            .font(.system(size: 13))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+    private var backgroundColor: Color {
+        isDark ? Color(red: 0x19/255.0, green: 0x19/255.0, blue: 0x19/255.0) 
+               : Color(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0)
+    }
+    
+    var body: some View {
+        TextField(placeholder, text: $text)
+            .textFieldStyle(.plain)
+            .font(.Aurora.body)
+            .foregroundColor(Color.Aurora.textPrimary)
+            .padding(.horizontal, AuroraSpacing.space3)
+            .padding(.vertical, AuroraSpacing.space3)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.04))
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(backgroundColor)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(
-                        isDark ? Color.white.opacity(0.1) : Color.black.opacity(0.08),
-                        lineWidth: 1
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .stroke(
+                        isFocused ? Color.Aurora.borderFocus : Color.Aurora.border,
+                        lineWidth: isFocused ? 1.5 : 1
                     )
             )
+            .animation(.auroraFast, value: isFocused)
+    }
+}
+
+// MARK: - Settings Secure Field (View-based)
+
+struct SettingsSecureField: View {
+    let placeholder: String
+    @Binding var text: String
+    var isFocused: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var isDark: Bool { colorScheme == .dark }
+    
+    private var backgroundColor: Color {
+        isDark ? Color(red: 0x19/255.0, green: 0x19/255.0, blue: 0x19/255.0) 
+               : Color(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0)
+    }
+    
+    var body: some View {
+        SecureField(placeholder, text: $text)
+            .textFieldStyle(.plain)
+            .font(.Aurora.body)
+            .foregroundColor(Color.Aurora.textPrimary)
+            .padding(.horizontal, AuroraSpacing.space3)
+            .padding(.vertical, AuroraSpacing.space3)
+            .background(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .fill(backgroundColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                    .stroke(
+                        isFocused ? Color.Aurora.borderFocus : Color.Aurora.border,
+                        lineWidth: isFocused ? 1.5 : 1
+                    )
+            )
+            .animation(.auroraFast, value: isFocused)
+    }
+}
+
+// Legacy compatibility
+struct AuroraModernTextFieldStyle: TextFieldStyle {
+    var isFocused: Bool = false
+    func _body(configuration: TextField<_Label>) -> some View {
+        configuration
+    }
+}
+
+struct ModernTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<_Label>) -> some View {
+        configuration
     }
 }
 

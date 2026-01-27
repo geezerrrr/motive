@@ -70,8 +70,14 @@ extension ConfigManager {
     }
     
     /// Check if browser agent has API key configured
+    /// Uses cache to avoid triggering Keychain prompt
     var hasBrowserAgentAPIKey: Bool {
-        !browserAgentAPIKey.isEmpty
+        // Check cache first
+        if let cached = cachedBrowserAgentAPIKey {
+            return !cached.isEmpty
+        }
+        // Fall back to full check (will trigger Keychain if needed)
+        return !browserAgentAPIKey.isEmpty
     }
     
     var browserAgentBaseUrl: String {

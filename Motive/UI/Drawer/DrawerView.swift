@@ -2,7 +2,8 @@
 //  DrawerView.swift
 //  Motive
 //
-//  Created by geezerrrr on 2026/1/19.
+//  Aurora Design System - Drawer (Conversation Panel)
+//  Session management via dropdown menu in header
 //
 
 import SwiftUI
@@ -15,34 +16,39 @@ struct DrawerView: View {
     @State private var showContent = false
     @State private var inputText = ""
     @State private var showSessionPicker = false
+    @State private var sessions: [Session] = []
     @FocusState private var isInputFocused: Bool
     
     private var isDark: Bool { colorScheme == .dark }
-    
-    // Adaptive colors
-    private var buttonBackground: Color {
-        isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.05)
-    }
-    private var buttonBorder: Color {
-        isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.08)
-    }
 
     var body: some View {
         ZStack {
-            // Adaptive glass background
-            DarkGlassBackground(cornerRadius: 16)
+            // Aurora background
+            drawerBackground
             
             VStack(spacing: 0) {
-                // Header with session picker
+                // Header with session dropdown
                 conversationHeader
-                    .padding(.horizontal, 16)
-                    .padding(.top, 14)
-                    .padding(.bottom, 10)
+                    .padding(.horizontal, AuroraSpacing.space4)
+                    .padding(.top, AuroraSpacing.space4)
+                    .padding(.bottom, AuroraSpacing.space3)
                 
-                // Divider
+                // Subtle divider with fade edges
                 Rectangle()
-                    .fill(Color.Velvet.border)
+                    .fill(Color.Aurora.border)
                     .frame(height: 1)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0),
+                                .init(color: .black, location: 0.1),
+                                .init(color: .black, location: 0.9),
+                                .init(color: .clear, location: 1)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                 
                 // Error banner (if any)
                 if let error = appState.lastErrorMessage {
@@ -75,43 +81,75 @@ struct DrawerView: View {
                 .transition(.opacity)
             }
         }
-        .frame(width: 380, height: 540)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(isDark ? 0.4 : 0.15), radius: 40, y: 15)
+        .frame(width: 400, height: 600)
+        // Window handles: cornerRadius, masksToBounds, native shadow
+        // No clipShape/shadow here - handled at window layer (like CommandBar)
+        .overlay(
+            RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
+                .strokeBorder(Color.Aurora.border, lineWidth: 1)
+        )
         .onAppear {
-            withAnimation(.velvetSpring.delay(0.1)) {
+            withAnimation(.auroraSpring.delay(0.1)) {
                 showContent = true
             }
+            loadSessions()
         }
     }
     
-    // MARK: - Header
+    private func loadSessions() {
+        sessions = appState.getAllSessions()
+    }
+    
+    // MARK: - Background
+    
+    private var drawerBackground: some View {
+        ZStack {
+            // Use same approach as CommandBar: VisualEffectView with cornerRadius
+            VisualEffectView(
+                material: .menu,
+                blendingMode: .behindWindow,
+                state: .active,
+                cornerRadius: AuroraRadius.xl,
+                masksToBounds: true
+            )
+            
+            // Semi-transparent overlay for consistent appearance
+            RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
+                .fill(Color.Aurora.background.opacity(0.85))
+        }
+    }
+    
+    // MARK: - Header with Session Dropdown
     
     private var conversationHeader: some View {
-        HStack(spacing: 10) {
-            // Session selector button
-            Button(action: { showSessionPicker.toggle() }) {
-                HStack(spacing: 6) {
+        HStack(spacing: AuroraSpacing.space3) {
+            // Session dropdown button
+            Button(action: { 
+                loadSessions()
+                withAnimation(.auroraFast) {
+                    showSessionPicker.toggle()
+                }
+            }) {
+                HStack(spacing: AuroraSpacing.space2) {
                     Image(systemName: "bubble.left.and.bubble.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color.Velvet.textSecondary)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color.Aurora.textSecondary)
                     
                     Text(currentSessionTitle)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color.Velvet.textPrimary)
+                        .font(.Aurora.bodySmall.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
                         .lineLimit(1)
                     
-                    Image(systemName: showSessionPicker ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundColor(Color.Velvet.textMuted)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(Color.Aurora.textMuted)
+                        .rotationEffect(.degrees(showSessionPicker ? 180 : 0))
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(buttonBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(buttonBorder, lineWidth: 0.5)
+                .padding(.horizontal, AuroraSpacing.space2)
+                .padding(.vertical, AuroraSpacing.space1)
+                .background(
+                    RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                        .fill(showSessionPicker ? Color.Aurora.surface : Color.clear)
                 )
             }
             .buttonStyle(.plain)
@@ -122,31 +160,35 @@ struct DrawerView: View {
             SessionStatusBadge(status: appState.sessionStatus, currentTool: appState.currentToolName)
             
             // New chat button
-            Button(action: { appState.startNewEmptySession() }) {
+            Button(action: { 
+                appState.startNewEmptySession()
+                loadSessions()
+            }) {
                 Image(systemName: "plus")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(Color.Velvet.textSecondary)
-                    .frame(width: 26, height: 26)
-                    .background(buttonBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color.Aurora.textSecondary)
+                    .frame(width: 28, height: 28)
+                    .background(Color.Aurora.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            .stroke(buttonBorder, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                            .stroke(Color.Aurora.border, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.plain)
+            .help(L10n.Drawer.newChat)
             
             // Close button
             Button(action: { appState.hideDrawer() }) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color.Velvet.textMuted)
-                    .frame(width: 26, height: 26)
-                    .background(buttonBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color.Aurora.textMuted)
+                    .frame(width: 28, height: 28)
+                    .background(Color.Aurora.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            .stroke(buttonBorder, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                            .stroke(Color.Aurora.border, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.plain)
@@ -158,7 +200,6 @@ struct DrawerView: View {
         if appState.messages.isEmpty {
             return L10n.Drawer.newChat
         }
-        // Use first user message as title
         if let firstUser = appState.messages.first(where: { $0.type == .user }) {
             let text = firstUser.content
             return String(text.prefix(24)) + (text.count > 24 ? "…" : "")
@@ -166,22 +207,77 @@ struct DrawerView: View {
         return L10n.Drawer.conversation
     }
     
+    // MARK: - Session Picker Overlay
+    
+    private var sessionPickerOverlay: some View {
+        ZStack(alignment: .topLeading) {
+            // Dismiss area
+            Color.black.opacity(0.01)
+                .onTapGesture {
+                    withAnimation(.auroraFast) {
+                        showSessionPicker = false
+                    }
+                }
+            
+            // Dropdown menu
+            VStack(spacing: 0) {
+                if sessions.isEmpty {
+                    Text(L10n.Drawer.noHistory)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textMuted)
+                        .padding(AuroraSpacing.space4)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 2) {
+                            ForEach(sessions.prefix(15)) { session in
+                                SessionPickerItem(session: session) {
+                                    appState.switchToSession(session)
+                                    withAnimation(.auroraFast) {
+                                        showSessionPicker = false
+                                    }
+                                } onDelete: {
+                                    appState.deleteSession(session)
+                                    loadSessions()
+                                }
+                            }
+                        }
+                        .padding(AuroraSpacing.space2)
+                    }
+                    .frame(maxHeight: 300)
+                }
+            }
+            .frame(width: 280)
+            .background(
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .fill(Color.Aurora.backgroundDeep)
+                    .shadow(color: Color.black.opacity(0.2), radius: 12, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 0.5)
+            )
+            .padding(.top, 52) // Below header
+            .padding(.leading, AuroraSpacing.space4)
+        }
+        .transition(.opacity)
+    }
+    
     // MARK: - Error Banner
     
     private func errorBanner(_ error: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: AuroraSpacing.space3) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 14))
-                .foregroundColor(Color.Velvet.textPrimary)
+                .font(.system(size: 16))
+                .foregroundColor(Color.Aurora.error)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
                 Text(L10n.error)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color.Velvet.textPrimary)
+                    .font(.Aurora.bodySmall.weight(.semibold))
+                    .foregroundColor(Color.Aurora.textPrimary)
                 
                 Text(error)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.Aurora.caption)
+                    .foregroundColor(Color.Aurora.textSecondary)
                     .lineLimit(3)
             }
             
@@ -192,57 +288,68 @@ struct DrawerView: View {
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color.Velvet.textMuted)
-                    .frame(width: 20, height: 20)
-                    .background(Color.white.opacity(0.06))
+                    .foregroundColor(Color.Aurora.textMuted)
+                    .frame(width: 22, height: 22)
+                    .background(Color.Aurora.surface)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
         }
-        .padding(12)
+        .padding(AuroraSpacing.space3)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
+            RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                .fill(Color.Aurora.error.opacity(0.1))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                        .stroke(Color.Aurora.error.opacity(0.2), lineWidth: 0.5)
                 )
         )
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, AuroraSpacing.space4)
+        .padding(.vertical, AuroraSpacing.space3)
     }
     
     // MARK: - Empty State
     
     private var emptyState: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AuroraSpacing.space5) {
             Spacer()
             
             ZStack {
                 Circle()
-                    .fill(Color.primary.opacity(0.08))
-                    .frame(width: 72, height: 72)
+                    .fill(
+                        LinearGradient(
+                            colors: Color.Aurora.auroraGradientColors.map { $0.opacity(0.15) },
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
                 
                 Image(systemName: "sparkles")
-                    .font(.system(size: 28, weight: .light))
-                    .foregroundColor(Color.Velvet.textSecondary)
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundStyle(Color.Aurora.auroraGradient)
             }
             
-            VStack(spacing: 6) {
+            VStack(spacing: AuroraSpacing.space2) {
                 Text(L10n.Drawer.startConversation)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color.Velvet.textPrimary)
+                    .font(.Aurora.headline)
+                    .foregroundColor(Color.Aurora.textPrimary)
                 
                 Text(L10n.Drawer.startHint)
-                    .font(.system(size: 12))
-                    .foregroundColor(Color.Velvet.textMuted)
+                    .font(.Aurora.bodySmall)
+                    .foregroundColor(Color.Aurora.textMuted)
                     .multilineTextAlignment(.center)
-                    .lineSpacing(3)
+                    .lineSpacing(4)
             }
+            
+            // Hint about session dropdown
+            Text("Tip: Click the title above to switch sessions")
+                .font(.Aurora.caption)
+                .foregroundColor(Color.Aurora.textMuted)
             
             Spacer()
         }
-        .padding(24)
+        .padding(AuroraSpacing.space6)
     }
     
     // MARK: - Conversation Content
@@ -250,117 +357,119 @@ struct DrawerView: View {
     private var conversationContent: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 10) {
+                LazyVStack(spacing: AuroraSpacing.space3) {
                     ForEach(Array(appState.messages.enumerated()), id: \.element.id) { index, message in
                         MessageBubble(message: message)
                             .id(message.id)
                             .opacity(showContent ? 1 : 0)
                             .offset(y: showContent ? 0 : 8)
                             .animation(
-                                .velvetSpring.delay(Double(index) * 0.015),
+                                .auroraSpring.delay(Double(index) * 0.02),
                                 value: showContent
                             )
                     }
                     
-                    // Thinking indicator
+                    // Thinking indicator (with id for scrolling)
                     if appState.sessionStatus == .running {
                         ThinkingIndicator(toolName: appState.currentToolName)
+                            .id("thinking-indicator")
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
+                    
+                    // Invisible anchor at bottom for reliable scrolling
+                    Color.clear
+                        .frame(height: 1)
+                        .id("bottom-anchor")
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 12)
+                .padding(.horizontal, AuroraSpacing.space4)
+                .padding(.vertical, AuroraSpacing.space4)
+            }
+            .onAppear {
+                scrollToBottom(proxy: proxy)
             }
             .onChange(of: appState.messages.count) { _, _ in
-                if let last = appState.messages.last {
-                    withAnimation(.velvetSpring) {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+                scrollToBottom(proxy: proxy)
+            }
+            .onChange(of: appState.messages.last?.content) { _, _ in
+                // Scroll when message content updates (streaming)
+                scrollToBottom(proxy: proxy)
+            }
+            .onChange(of: appState.sessionStatus) { _, newStatus in
+                // Scroll when status changes (e.g., starts running)
+                if newStatus == .running {
+                    scrollToBottom(proxy: proxy)
                 }
+            }
+        }
+    }
+    
+    private func scrollToBottom(proxy: ScrollViewProxy) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.auroraSpring) {
+                proxy.scrollTo("bottom-anchor", anchor: .bottom)
             }
         }
     }
     
     // MARK: - Chat Input Area
     
-    // Adaptive colors for input area
-    private var inputFieldBackground: Color {
-        isDark ? Color.white.opacity(0.04) : Color.white
-    }
-    private var inputFieldBorder: Color {
-        isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.08)
-    }
-    private var inputAreaBackground: Color {
-        isDark ? Color.black.opacity(0.2) : Color.black.opacity(0.03)
-    }
-    private var sendButtonDisabledBg: Color {
-        isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.08)
-    }
-    
     private var chatInputArea: some View {
-        VStack(spacing: 0) {
-            // Top border
+        let isRunning = appState.sessionStatus == .running
+        
+        return VStack(spacing: 0) {
             Rectangle()
-                .fill(Color.Velvet.border)
+                .fill(Color.Aurora.border)
                 .frame(height: 1)
             
-            HStack(spacing: 10) {
-                if appState.sessionStatus == .running {
-                    // Running state with shimmer effect
-                    HStack(spacing: 8) {
-                        ShimmerText(text: L10n.Drawer.processing, isDark: isDark)
-                    }
+            HStack(spacing: AuroraSpacing.space3) {
+                HStack(spacing: AuroraSpacing.space2) {
+                    TextField("", text: $inputText, prompt: Text(L10n.Drawer.messagePlaceholder)
+                        .foregroundColor(Color.Aurora.textMuted))
+                        .textFieldStyle(.plain)
+                        .font(.Aurora.body)
+                        .foregroundColor(Color.Aurora.textPrimary)
+                        .focused($isInputFocused)
+                        .onSubmit(sendMessage)
+                        .disabled(isRunning)
                     
-                    Spacer()
-                    
-                    Button(action: { appState.interruptSession() }) {
-                        Image(systemName: "stop.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 26, height: 26)
-                            .background(Color.red)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                } else {
-                    // Input field with styled background
-                    HStack(spacing: 8) {
-                        TextField(L10n.Drawer.messagePlaceholder, text: $inputText)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 13))
-                            .foregroundColor(Color.Velvet.textPrimary)
-                            .focused($isInputFocused)
-                            .onSubmit(sendMessage)
-                        
-                        // Send button
-                        Button(action: sendMessage) {
-                            Image(systemName: "arrow.up")
+                    if isRunning {
+                        // Stop button when running
+                        Button(action: { appState.interruptSession() }) {
+                            Image(systemName: "stop.fill")
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(inputText.isEmpty ? Color.Velvet.textMuted : (isDark ? .black : .white))
-                                .frame(width: 24, height: 24)
-                                .background(
-                                    inputText.isEmpty
-                                        ? sendButtonDisabledBg
-                                        : (isDark ? Color.white : Color.black)
-                                )
+                                .foregroundColor(.white)
+                                .frame(width: 28, height: 28)
+                                .background(Color.Aurora.error)
                                 .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        // Send button when not running
+                        Button(action: sendMessage) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(inputText.isEmpty ? Color.Aurora.textMuted : Color.Aurora.primary)
                         }
                         .buttonStyle(.plain)
                         .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(inputFieldBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(inputFieldBorder, lineWidth: 0.5)
-                    )
                 }
+                .padding(.horizontal, AuroraSpacing.space3)
+                .padding(.vertical, AuroraSpacing.space2)
+                .background(Color.Aurora.surface.opacity(isRunning ? 0.5 : 1))
+                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
+                        .stroke(
+                            isInputFocused && !isRunning ? Color.Aurora.borderFocus : Color.Aurora.border,
+                            lineWidth: isInputFocused && !isRunning ? 1.5 : 0.5
+                        )
+                )
+                .animation(.auroraFast, value: isInputFocused)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(inputAreaBackground)
+            .padding(.horizontal, AuroraSpacing.space4)
+            .padding(.vertical, AuroraSpacing.space3)
+            .background(Color.Aurora.backgroundDeep.opacity(0.5))
         }
     }
     
@@ -370,91 +479,117 @@ struct DrawerView: View {
         inputText = ""
         
         if appState.messages.isEmpty {
-            // Start new session
             appState.submitIntent(text)
         } else {
-            // Continue existing session
             appState.resumeSession(with: text)
         }
     }
+}
+
+// MARK: - Session Picker Item
+
+private struct SessionPickerItem: View {
+    let session: Session
+    let onSelect: () -> Void
+    let onDelete: () -> Void
+    @EnvironmentObject private var appState: AppState
     
-    // MARK: - Session Picker Overlay
+    @State private var isHovering = false
     
-    private var sessionPickerOverlay: some View {
-        ZStack {
-            // Dismiss background
-            Color.black.opacity(isDark ? 0.4 : 0.2)
-                .ignoresSafeArea()
-                .onTapGesture { showSessionPicker = false }
+    var body: some View {
+        HStack(spacing: AuroraSpacing.space3) {
+            // Status dot
+            Circle()
+                .fill(statusColor)
+                .frame(width: 6, height: 6)
             
-            // Session list
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text(L10n.Drawer.history)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color.Velvet.textPrimary)
+            // Content (clickable to select)
+            Button(action: onSelect) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(session.intent)
+                        .font(.Aurora.bodySmall.weight(.medium))
+                        .foregroundColor(Color.Aurora.textPrimary)
+                        .lineLimit(1)
                     
-                    Spacer()
-                    
-                    Button(action: { showSessionPicker = false }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color.Velvet.textMuted)
-                            .frame(width: 20, height: 20)
-                            .background(buttonBackground)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
+                    Text(timeAgo)
+                        .font(.Aurora.caption)
+                        .foregroundColor(Color.Aurora.textMuted)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                
-                Rectangle()
-                    .fill(Color.Velvet.border)
-                    .frame(height: 1)
-                
-                // Session list
-                let sessions = appState.getAllSessions()
-                if sessions.isEmpty {
-                    VStack(spacing: 8) {
-                        Image(systemName: "clock")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundColor(Color.Velvet.textMuted)
-                        Text(L10n.Drawer.noHistory)
-                            .font(.system(size: 12))
-                            .foregroundColor(Color.Velvet.textMuted)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 30)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 1) {
-                            ForEach(sessions.prefix(15), id: \.id) { session in
-                                SessionListItem(session: session, isDark: isDark) {
-                                    appState.switchToSession(session)
-                                    showSessionPicker = false
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .frame(maxHeight: 280)
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(isDark ? Color(hex: "1A1A1C") : Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.1), lineWidth: 0.5)
-                    )
-            )
-            .shadow(color: .black.opacity(isDark ? 0.4 : 0.15), radius: 30, y: 10)
-            .frame(width: 320)
-            .padding(.top, 50)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .buttonStyle(.plain)
+            
+            // Delete button (separate from select)
+            if isHovering {
+                Button(action: {
+                    showDeleteConfirmation()
+                }) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color.Aurora.textMuted)
+                        .frame(width: 20, height: 20)
+                        .background(Color.Aurora.surface)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, AuroraSpacing.space3)
+        .padding(.vertical, AuroraSpacing.space2)
+        .background(
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .fill(isHovering ? Color.Aurora.surfaceElevated : Color.clear)
+        )
+        .onHover { isHovering = $0 }
+        .animation(.auroraFast, value: isHovering)
+    }
+    
+    private func showDeleteConfirmation() {
+        guard let window = appState.drawerWindowRef else { return }
+        
+        // Suppress auto-hide while alert is shown
+        appState.setDrawerAutoHideSuppressed(true)
+        
+        let alert = NSAlert()
+        alert.messageText = L10n.Alert.deleteSessionTitle
+        let sessionName = String(session.intent.prefix(50))
+        alert.informativeText = String(format: L10n.Alert.deleteSessionMessage, sessionName)
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: L10n.CommandBar.delete)
+        alert.addButton(withTitle: L10n.CommandBar.cancel)
+        
+        // Show as sheet attached to Drawer window
+        alert.beginSheetModal(for: window) { [onDelete] response in
+            if response == .alertFirstButtonReturn {
+                onDelete()
+            }
+            // Re-enable auto-hide and refocus
+            appState.setDrawerAutoHideSuppressed(false)
+            window.makeKeyAndOrderFront(nil)
         }
     }
     
+    private var statusColor: Color {
+        switch session.status {
+        case "running": return Color.Aurora.primary
+        case "completed": return Color.Aurora.accent
+        case "failed": return Color.Aurora.error
+        default: return Color.Aurora.textMuted
+        }
+    }
+    
+    private var timeAgo: String {
+        let now = Date()
+        let diff = now.timeIntervalSince(session.createdAt)
+        
+        if diff < 60 { return L10n.Time.justNow }
+        if diff < 3600 { return String(format: L10n.Time.minutesAgo, Int(diff / 60)) }
+        if diff < 86400 { return String(format: L10n.Time.hoursAgo, Int(diff / 3600)) }
+        if diff < 604800 { return String(format: L10n.Time.daysAgo, Int(diff / 86400)) }
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: session.createdAt)
+    }
 }
