@@ -80,6 +80,8 @@ final class DrawerWindowController {
     }
 
     func hide() {
+        // Resign first responder to prevent cursor from lingering
+        window.makeFirstResponder(nil)
         window.orderOut(nil)
     }
     
