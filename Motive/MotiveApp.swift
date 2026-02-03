@@ -19,12 +19,18 @@ struct MotiveApp: App {
         let configManager = ConfigManager()
         let container: ModelContainer
         
-        // Use local-only storage (no CloudKit sync for SwiftData)
+        // Use local-only storage in Application Support/Motive/
         // Our CloudKit usage is separate (CKRecord for remote commands)
         let schema = Schema([Session.self, LogEntry.self])
+        let storeURL = Self.storeURL()
+        
+        // Ensure the Motive directory exists
+        let motiveDir = storeURL.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: motiveDir, withIntermediateDirectories: true)
+        
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false,
+            url: storeURL,
             cloudKitDatabase: .none  // Explicitly disable CloudKit sync
         )
         
@@ -53,22 +59,24 @@ struct MotiveApp: App {
         // to ensure GUI connection is fully established before creating NSStatusItem
     }
     
+    /// Get the SwiftData store URL in Application Support/Motive/
+    private static func storeURL() -> URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport.appendingPathComponent("Motive/motive.store")
+    }
+    
     /// Delete corrupted SwiftData database files to allow recreation
     private static func deleteCorruptedDatabase() {
-        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            return
-        }
-        // SwiftData stores in Application Support/default.store
-        let defaultStoreURL = appSupport.appendingPathComponent("default.store")
+        let storeURL = Self.storeURL()
         let filesToDelete = [
-            defaultStoreURL,
-            defaultStoreURL.appendingPathExtension("shm"),
-            defaultStoreURL.appendingPathExtension("wal")
+            storeURL,
+            URL(fileURLWithPath: storeURL.path + "-shm"),
+            URL(fileURLWithPath: storeURL.path + "-wal")
         ]
         for url in filesToDelete {
             try? FileManager.default.removeItem(at: url)
         }
-        print("[Motive] Deleted corrupted database files")
+        print("[Motive] Deleted corrupted database files at \(storeURL.path)")
     }
  
     var body: some Scene {

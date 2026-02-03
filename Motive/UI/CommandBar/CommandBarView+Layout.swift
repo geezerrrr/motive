@@ -133,13 +133,15 @@ extension CommandBarView {
             AuroraPulsingDot()
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(L10n.CommandBar.running)
+                Text(runningStatusTitle)
                     .font(.Aurora.caption.weight(.semibold))
                     .foregroundColor(Color.Aurora.textPrimary)
 
-                Text(appState.currentToolName?.simplifiedToolName ?? "Processing...")
+                Text(runningStatusDetail)
                     .font(.Aurora.caption)
                     .foregroundColor(Color.Aurora.textMuted)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
 
             Spacer()
@@ -171,6 +173,37 @@ extension CommandBarView {
         }
         .padding(.horizontal, AuroraSpacing.space5)
         .padding(.vertical, AuroraSpacing.space3)
+    }
+    
+    /// Title for running status - overall task state
+    private var runningStatusTitle: String {
+        L10n.CommandBar.running  // Always "Running" as the task is in progress
+    }
+    
+    /// Detail for running status - current action (thinking or tool execution)
+    private var runningStatusDetail: String {
+        // When AI is thinking/reasoning
+        if appState.menuBarState == .reasoning {
+            return L10n.Drawer.thinking
+        }
+        
+        // When executing a tool, show tool name and details
+        if let toolName = appState.currentToolName {
+            let simpleName = toolName.simplifiedToolName
+            
+            // Try to get input detail from last matching tool message
+            if let lastToolMsg = appState.messages.last(where: { $0.type == .tool && $0.toolName == toolName }) {
+                if let input = lastToolMsg.toolInput, !input.isEmpty {
+                    // Format: "Bash: ls -la" or "Read: /path/to/file"
+                    return "\(simpleName): \(input)"
+                }
+            }
+            
+            return simpleName
+        }
+        
+        // Default to thinking if no tool info
+        return L10n.Drawer.thinking
     }
 
     // MARK: - Completed Summary (above input)

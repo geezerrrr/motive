@@ -50,13 +50,15 @@ struct CommandBarRunningView: View {
             }
             
             VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
-                Text("Running")
+                Text(statusTitle)
                     .font(.Aurora.bodySmall.weight(.semibold))
                     .foregroundColor(Color.Aurora.textPrimary)
                 
-                Text(toolName?.simplifiedToolName ?? "Processing…")
+                Text(statusDetail)
                     .font(.Aurora.caption)
                     .foregroundColor(Color.Aurora.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
             
             Spacer()
@@ -135,6 +137,37 @@ struct CommandBarRunningView: View {
     }
     
     // MARK: - Helpers
+    
+    /// Title - overall task state (always "Running")
+    private var statusTitle: String {
+        L10n.CommandBar.running
+    }
+    
+    /// Detail - current action (thinking or tool name with details)
+    private var statusDetail: String {
+        // When AI is thinking/reasoning
+        if appState.menuBarState == .reasoning {
+            return L10n.Drawer.thinking
+        }
+        
+        // When executing a tool, show tool name and details
+        if let name = toolName {
+            let simpleName = name.simplifiedToolName
+            
+            // Try to get input detail from last matching tool message
+            if let lastToolMsg = appState.messages.last(where: { $0.type == .tool && $0.toolName == name }) {
+                if let input = lastToolMsg.toolInput, !input.isEmpty {
+                    // Format: "Bash: ls -la" or "Read: /path/to/file"
+                    return "\(simpleName): \(input)"
+                }
+            }
+            
+            return simpleName
+        }
+        
+        // Default to thinking
+        return L10n.Drawer.thinking
+    }
     
     private var toolIcon: String {
         guard let tool = toolName?.lowercased() else { return "bolt.fill" }

@@ -221,7 +221,19 @@ actor OpenCodeBridge {
                 }
                 
                 guard let jsonLine else {
-                    Log.bridge("[pty] Non-JSON: \(trimmed)")
+                    // Check for session.idle in non-JSON log lines
+                    // Format: INFO ... type=session.idle publishing
+                    if trimmed.contains("type=session.idle") {
+                        Log.bridge("[pty] Detected session.idle - sending finish event")
+                        let idleEvent = OpenCodeEvent(
+                            kind: .finish,
+                            rawJson: "",
+                            text: "Session idle"
+                        )
+                        await eventHandler(idleEvent)
+                    } else {
+                        Log.bridge("[pty] Non-JSON: \(trimmed)")
+                    }
                     continue
                 }
                 
