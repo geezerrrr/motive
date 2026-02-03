@@ -567,6 +567,12 @@ private struct SkillDetail: View {
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(Color.Aurora.textSecondary)
             }
+            
+            if !status.missing.config.isEmpty {
+                Text("config: \(status.missing.config.joined(separator: ", "))")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(Color.Aurora.textSecondary)
+            }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
