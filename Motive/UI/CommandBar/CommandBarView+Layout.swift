@@ -36,8 +36,8 @@ extension CommandBarView {
         .background(commandBarBackground)
         .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous))
         .overlay(borderOverlay)  // Border on top of everything
-        .scaleEffect(showEntrance ? 1.0 : 0.96)
-        .opacity(showEntrance ? 1.0 : 0)
+        // Note: Window-level fade animation is handled by CommandBarWindowController
+        // Removed SwiftUI-level entrance animation to prevent double animation
     }
 
     // Content ABOVE input (session status)

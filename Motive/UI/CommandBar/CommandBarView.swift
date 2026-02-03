@@ -114,7 +114,6 @@ struct CommandBarView: View {
 
     @State var inputText: String = ""
     @State var mode: CommandBarMode = .idle
-    @State var showEntrance: Bool = false
     @State var selectedCommandIndex: Int = 0
     @State var selectedHistoryIndex: Int = 0
     @State var historySessions: [Session] = []

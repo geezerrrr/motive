@@ -15,24 +15,26 @@ final class CommandBarWindowController {
     private let containerView: NSView
     private var resignKeyObserver: Any?
     private var resignActiveObserver: Any?
-    private var frameObserver: NSObjectProtocol?
     private var currentHeight: CGFloat = CommandBarWindowController.heights["idle"] ?? 100
+    
+    /// Whether the window has been shown at least once (for lazy initialization)
+    private var hasBeenShown = false
     
     /// When true, the window will not hide on resign key (used during delete confirmation)
     var suppressAutoHide: Bool = false
     
+    /// Whether the window is currently visible
+    var isVisible: Bool { window.isVisible }
+    
     // Height constants matching CommandBarMode
-    // Layout: [status bar ~50] + input(52) + [list] + footer(40) + padding
-    // Note: command/history heights are for session mode (max height);
-    // non-session mode is 50px less (no status bar)
     static let heights: [String: CGFloat] = [
-        "idle": 100,      // input + footer + padding
+        "idle": 100,
         "input": 100,
-        "command": 450,   // Same as history for consistency
-        "history": 450,   // status(50) + input + footer + list(280) + padding (max case)
-        "projects": 450,  // Same as history
-        "fileCompletion": 450, // File/directory completion list
-        "running": 160,   // status + input + footer + padding
+        "command": 450,
+        "history": 450,
+        "projects": 450,
+        "fileCompletion": 450,
+        "running": 160,
         "completed": 160,
         "error": 160
     ]
@@ -46,18 +48,19 @@ final class CommandBarWindowController {
         containerView = NSView(frame: NSRect(x: 0, y: 0, width: 600, height: currentHeight))
         containerView.wantsLayer = true
         
+        // Initialize window off-screen to prevent first-frame flash at (0,0)
         let panel = KeyablePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 100),
+            contentRect: NSRect(x: -10000, y: -10000, width: 600, height: 100),
             styleMask: [.titled, .fullSizeContentView],
             backing: .buffered,
-            defer: false
+            defer: true  // Defer creation until needed
         )
         panel.isFloatingPanel = true
         panel.level = .screenSaver
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true  // Use native window shadow
+        panel.hasShadow = true
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
         panel.standardWindowButton(.closeButton)?.isHidden = true
@@ -71,6 +74,10 @@ final class CommandBarWindowController {
         panel.contentView?.wantsLayer = true
         panel.contentView?.layer?.cornerRadius = AuroraRadius.xl
         panel.contentView?.layer?.masksToBounds = true
+        
+        // Start hidden with 0 alpha
+        panel.alphaValue = 0
+        
         window = panel
         
         containerView.addSubview(hostingView)
@@ -81,10 +88,14 @@ final class CommandBarWindowController {
             hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
         
+        setupObservers()
+    }
+    
+    private func setupObservers() {
         // Hide when window loses key status (unless suppressed)
         resignKeyObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
-            object: panel,
+            object: window,
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
@@ -93,7 +104,7 @@ final class CommandBarWindowController {
             }
         }
         
-        // Also hide when app loses active status (e.g., clicking menu bar, switching apps)
+        // Also hide when app loses active status
         resignActiveObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didResignActiveNotification,
             object: nil,
@@ -113,53 +124,71 @@ final class CommandBarWindowController {
         if let observer = resignActiveObserver {
             NotificationCenter.default.removeObserver(observer)
         }
-        if let observer = frameObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
     }
 
     func show() {
+        // 1. Position window BEFORE showing (invisible)
+        positionWindowAtCenter()
+        
+        // 2. Activate app
         NSApp.activate(ignoringOtherApps: true)
-        prepositionWindowForMouseScreen()
+        
+        // 3. Show window with fade-in animation
         window.orderFrontRegardless()
         window.makeKey()
-
-        // Re-center after window joins active space
-        DispatchQueue.main.async { [weak self] in
-            self?.centerWindow()
-            self?.focusFirstResponder()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self?.centerWindow()
-            }
+        
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.15
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            window.animator().alphaValue = 1
         }
+        
+        // 4. Focus input field after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            self?.focusFirstResponder()
+        }
+        
+        hasBeenShown = true
     }
 
     func hide() {
-        // Resign first responder to prevent cursor from lingering
+        // Skip if already hidden
+        guard window.isVisible else { return }
+        
+        // Resign first responder immediately
         window.makeFirstResponder(nil)
-        window.orderOut(nil)
+        
+        // Fade out then order out
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.1
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            window.animator().alphaValue = 0
+        }, completionHandler: { [weak self] in
+            self?.window.orderOut(nil)
+        })
     }
     
     /// Update window height with smooth animation
     /// Window expands DOWNWARD - top edge (input position) stays fixed
     func updateHeight(to newHeight: CGFloat, animated: Bool = true) {
+        guard newHeight != currentHeight else { return }
+        
         let currentFrame = window.frame
         let heightDelta = newHeight - currentFrame.height
         
         var newFrame = currentFrame
         newFrame.size.height = newHeight
-        // Keep TOP edge fixed (input stays in place), expand downward
-        // In macOS coordinates, origin is bottom-left, so we subtract heightDelta from y
+        // Keep TOP edge fixed, expand downward
         newFrame.origin.y -= heightDelta
         
-        if animated {
+        if animated && window.isVisible {
             NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.2
+                context.duration = 0.15
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 window.animator().setFrame(newFrame, display: true)
             }
         } else {
-            window.setFrame(newFrame, display: true)
+            window.setFrame(newFrame, display: window.isVisible)
         }
         
         currentHeight = newHeight
@@ -181,36 +210,25 @@ final class CommandBarWindowController {
     func getWindow() -> NSWindow {
         window
     }
-
-    private func centerWindow() {
-        let screen = screenForMouse() ?? window.screen ?? NSScreen.main
-        guard let screen else { return }
-        let screenFrame = screen.frame
-        
-        let height = max(96, currentHeight)
-        let windowSize = NSSize(width: 600, height: height)
-        let x = screenFrame.midX - windowSize.width / 2
-        
-        // Calculate TOP edge position (fixed point where input appears)
-        // Input should appear at ~55% from bottom of screen
-        let topEdgeY = screenFrame.minY + screenFrame.height * 0.55 + 100  // 100 = idle height
-        
-        // Window origin is bottom-left, so: originY = topEdgeY - height
-        let y = topEdgeY - height
-        
-        window.setFrame(NSRect(x: x, y: y, width: windowSize.width, height: windowSize.height), display: true)
+    
+    /// Reposition window to center of current screen (for multi-monitor support)
+    func recenter() {
+        positionWindowAtCenter()
     }
 
-    private func prepositionWindowForMouseScreen() {
+    private func positionWindowAtCenter() {
         guard let screen = screenForMouse() ?? window.screen ?? NSScreen.main else { return }
         let screenFrame = screen.frame
-
+        
         let height = max(96, currentHeight)
         let windowSize = NSSize(width: 600, height: height)
         let x = screenFrame.midX - windowSize.width / 2
+        
+        // Position input at ~55% from bottom of screen
         let topEdgeY = screenFrame.minY + screenFrame.height * 0.55 + 100
         let y = topEdgeY - height
-
+        
+        // Set frame without display (we're not visible yet or already positioned)
         window.setFrame(NSRect(x: x, y: y, width: windowSize.width, height: windowSize.height), display: false)
     }
 
@@ -231,4 +249,3 @@ final class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 }
-

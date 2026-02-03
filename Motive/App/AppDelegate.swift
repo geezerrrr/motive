@@ -416,7 +416,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func toggleCommandBar() {
         guard let appState else { return }
         
-        if let window = appState.commandBarWindowRef, window.isVisible {
+        if appState.isCommandBarVisible {
             appState.hideCommandBar()
         } else {
             appState.showCommandBar()

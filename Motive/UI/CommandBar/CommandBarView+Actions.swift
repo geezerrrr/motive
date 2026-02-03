@@ -10,10 +10,9 @@ import SwiftUI
 
 extension CommandBarView {
     func handleOnAppear() {
-        withAnimation(.auroraSpring) {
-            showEntrance = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Window-level animation is handled by CommandBarWindowController
+        // Just focus the input field
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             isInputFocused = true
         }
     }

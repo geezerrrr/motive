@@ -252,16 +252,7 @@ extension AppState {
             .environmentObject(configManager)
             .environment(\.modelContext, modelContext)
         commandBarController = CommandBarWindowController(rootView: rootView)
-
-        // Pre-warm the window to avoid first-show delay
-        // Show briefly off-screen then hide
-        if let controller = commandBarController {
-            let window = controller.getWindow()
-            window.setFrameOrigin(NSPoint(x: -10000, y: -10000))
-            window.orderFrontRegardless()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                window.orderOut(nil)
-            }
-        }
+        // No pre-warm needed - window uses defer:true and alpha:0
+        // First show will be slightly slower but avoids visual glitches
     }
 }

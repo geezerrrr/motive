@@ -324,7 +324,10 @@ final class ConfigManager: ObservableObject {
         get { Provider(rawValue: providerRawValue) ?? .claude }
         set { 
             providerRawValue = newValue.rawValue
-            objectWillChange.send()
+            // Defer to next run loop to avoid reentrant layout warnings
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
+            }
         }
     }
 
