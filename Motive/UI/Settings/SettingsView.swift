@@ -34,8 +34,8 @@ struct SettingsView: View {
                     selectedTab.contentView
                         .padding(.horizontal, 28)
                         .padding(.vertical, 24)
-                } else if selectedTab == .advanced || selectedTab == .permissions {
-                    // Advanced and Permissions need scroll
+                } else if selectedTab == .advanced || selectedTab == .permissions || selectedTab == .persona {
+                    // Advanced, Permissions and Persona need scroll
                     ScrollView {
                         VStack {
                             selectedTab.contentView
@@ -68,6 +68,7 @@ struct SettingsView: View {
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case persona
     case model
     case skills
     case permissions
@@ -79,6 +80,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: return L10n.Settings.general
+        case .persona: return L10n.Settings.persona
         case .model: return L10n.Settings.aiProvider
         case .skills: return L10n.Settings.skills
         case .permissions: return L10n.Settings.permissions
@@ -90,6 +92,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .general: return "gearshape.fill"
+        case .persona: return "person.fill"
         case .model: return "cpu.fill"
         case .skills: return "sparkles"
         case .permissions: return "lock.shield.fill"
@@ -109,6 +112,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general:
             GeneralSettingsView()
+        case .persona:
+            PersonaSettingsView()
         case .model:
             ModelConfigView()
         case .skills:

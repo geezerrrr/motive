@@ -22,6 +22,7 @@ enum L10n {
     static let error = "common.error".localized
     static let warning = "common.warning".localized
     static let ok = "common.ok".localized
+    static let unsavedChanges = "common.unsaved_changes".localized
     
     // MARK: - Command Bar
     enum CommandBar {
@@ -160,6 +161,33 @@ enum L10n {
         static let browserStatusDisabled = "settings.browser.status.disabled".localized
         static let browserNotSet = "settings.browser.not_set".localized
 
+        // Persona
+        static let persona = "settings.tab.persona".localized
+        static let personaSubtitle = "settings.tab.persona.subtitle".localized
+        static let agentIdentity = "settings.persona.agent_identity".localized
+        static let workspaceFiles = "settings.persona.workspace_files".localized
+        static let personaName = "settings.persona.name".localized
+        static let personaNameDesc = "settings.persona.name.desc".localized
+        static let personaEmoji = "settings.persona.emoji".localized
+        static let personaEmojiDesc = "settings.persona.emoji.desc".localized
+        static let personaCreature = "settings.persona.creature".localized
+        static let personaCreatureDesc = "settings.persona.creature.desc".localized
+        static let personaVibe = "settings.persona.vibe".localized
+        static let personaVibeDesc = "settings.persona.vibe.desc".localized
+        static let openWorkspace = "settings.persona.open_workspace".localized
+        static let openWorkspaceDesc = "settings.persona.open_workspace.desc".localized
+        static let openInFinder = "settings.persona.open_in_finder".localized
+        static let editSoulMd = "settings.persona.edit_soul".localized
+        static let editSoulMdDesc = "settings.persona.edit_soul.desc".localized
+        static let editUserMd = "settings.persona.edit_user".localized
+        static let editUserMdDesc = "settings.persona.edit_user.desc".localized
+        static let edit = "settings.persona.edit".localized
+        static let saveAndApply = "settings.persona.save_and_apply".localized
+        static let openEmojiPicker = "settings.persona.open_emoji_picker".localized
+        static let personaTabIdentity = "settings.persona.tab.identity".localized
+        static let personaTabSoul = "settings.persona.tab.soul".localized
+        static let personaTabUser = "settings.persona.tab.user".localized
+        
         // Skills
         static let skillsSystem = "settings.skills.system".localized
         static let skillsEnable = "settings.skills.enable".localized

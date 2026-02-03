@@ -15,6 +15,7 @@
 "common.error" = "Error";
 "common.warning" = "Warning";
 "common.ok" = "OK";
+"common.unsaved_changes" = "Unsaved changes";
 
 // MARK: - Command Bar
 "commandbar.placeholder" = "What should I do?";
@@ -149,6 +150,33 @@
 "settings.browser.status.not_found" = "Build required - run Scripts/browser-use-sidecar/build.sh";
 "settings.browser.status.disabled" = "Browser automation is disabled";
 "settings.browser.not_set" = "Not set";
+
+// Persona
+"settings.tab.persona" = "Persona";
+"settings.tab.persona.subtitle" = "Agent identity and workspace files";
+"settings.persona.agent_identity" = "Agent Identity";
+"settings.persona.workspace_files" = "Workspace Files";
+"settings.persona.name" = "Name";
+"settings.persona.name.desc" = "What should I call myself?";
+"settings.persona.emoji" = "Emoji";
+"settings.persona.emoji.desc" = "Status bar icon";
+"settings.persona.creature" = "Creature";
+"settings.persona.creature.desc" = "What kind of being am I?";
+"settings.persona.vibe" = "Vibe";
+"settings.persona.vibe.desc" = "How do I come across?";
+"settings.persona.open_workspace" = "Workspace";
+"settings.persona.open_workspace.desc" = "~/.motive/";
+"settings.persona.open_in_finder" = "Open in Finder";
+"settings.persona.edit_soul" = "Soul";
+"settings.persona.edit_soul.desc" = "Core personality and values";
+"settings.persona.edit_user" = "User Profile";
+"settings.persona.edit_user.desc" = "Information about you";
+"settings.persona.edit" = "Edit";
+"settings.persona.save_and_apply" = "Save & Apply";
+"settings.persona.open_emoji_picker" = "Open Emoji Picker";
+"settings.persona.tab.identity" = "Identity";
+"settings.persona.tab.soul" = "Soul";
+"settings.persona.tab.user" = "User";
 
 // Skills
 "settings.skills.system" = "Skills System";

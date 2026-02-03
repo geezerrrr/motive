@@ -40,13 +40,13 @@ extension ConfigManager {
     }
     
     /// Generate opencode.json config file
-    /// Path: ~/Library/Application Support/Motive/opencode/opencode.json
+    /// Path: ~/.motive/config/opencode.json
     ///
     /// IMPORTANT: This must ALWAYS be generated to set permission: "allow"
     /// Without this, OpenCode CLI blocks waiting for permission prompts that never show in GUI
     func generateOpenCodeConfig() {
-        guard let appSupport = binaryStorageDirectory else { return }
-        let configDir = appSupport.appendingPathComponent("config")
+        // Config now goes to workspace directory (~/.motive/config/)
+        let configDir = workspaceDirectory.appendingPathComponent("config")
         let configPath = configDir.appendingPathComponent("opencode.json")
         
         // Ensure directory exists
@@ -56,7 +56,8 @@ extension ConfigManager {
         let providerName = provider.openCodeProviderName
         
         let baseURLValue = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        let mcpDir = appSupport.appendingPathComponent("mcp")
+        // MCP scripts stay in workspace for user access
+        let mcpDir = workspaceDirectory.appendingPathComponent("mcp")
         let mcpScripts = McpScriptManager.ensureScripts(in: mcpDir)
         let nodePath = resolveNodePath()
         if let nodePath {
@@ -265,11 +266,11 @@ Never attempt to prompt via CLI or rely on terminal prompts - they will not work
             
             // Store config path for environment variable
             openCodeConfigPath = configPath.path
-            openCodeConfigDir = appSupport.path
+            openCodeConfigDir = workspaceDirectory.path
             
             // Write SKILL.md files for OpenCode to discover MCP tools
             // OpenCode looks for skills at $OPENCODE_CONFIG_DIR/skills/<name>/SKILL.md
-            SkillManager.shared.writeSkillFiles(to: appSupport)
+            SkillManager.shared.writeSkillFiles(to: workspaceDirectory)
         } catch {
             Log.config(" ERROR - Failed to write OpenCode config: \(error)")
         }

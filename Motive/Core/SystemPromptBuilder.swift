@@ -25,6 +25,13 @@ final class SystemPromptBuilder {
         
         sections.append(buildIdentity())
         sections.append(buildEnvironment(cwd: workingDirectory))
+        
+        // Add persona context from workspace files
+        let personaSection = buildPersonaContext()
+        if !personaSection.isEmpty {
+            sections.append(personaSection)
+        }
+        
         sections.append(buildCommunicationRules())
         sections.append(buildSkillsList())
         sections.append(buildFileOperationRules())
@@ -45,9 +52,17 @@ final class SystemPromptBuilder {
     // MARK: - Sections
     
     private func buildIdentity() -> String {
-        """
+        // Load identity from workspace if available
+        let identity = WorkspaceManager.shared.loadIdentity()
+        let name = identity?.displayName ?? "Motive"
+        let creature = identity?.creature ?? "personal AI assistant"
+        let vibe = identity?.vibe ?? "helpful and efficient"
+        
+        return """
         <identity>
-        You are Motive, a personal AI assistant for macOS.
+        You are \(name), a \(creature) for macOS.
+        
+        Your vibe: \(vibe)
         
         ## Your Strengths
         - Autonomous task execution in the background
@@ -66,6 +81,41 @@ final class SystemPromptBuilder {
         - **Decision needed** → Use AskUserQuestion MCP tool (shows modal dialog)
         </identity>
         """
+    }
+    
+    private func buildPersonaContext() -> String {
+        let files = WorkspaceManager.shared.loadBootstrapFiles()
+        guard !files.isEmpty else { return "" }
+        
+        let workspacePath = WorkspaceManager.defaultWorkspaceURL.path
+        
+        var lines: [String] = ["<persona-context>"]
+        
+        // CRITICAL: Tell AI where persona files are located
+        lines.append("## Motive Workspace")
+        lines.append("Your persona configuration files are located at: \(workspacePath)/")
+        lines.append("")
+        lines.append("IMPORTANT: When modifying persona files (SOUL.md, USER.md, IDENTITY.md, AGENTS.md),")
+        lines.append("ALWAYS use the full path under \(workspacePath)/, NOT files in the current project directory.")
+        lines.append("")
+        
+        // Special handling for SOUL.md (like OpenClaw)
+        if files.contains(where: { $0.name == "SOUL.md" }) {
+            lines.append("If SOUL.md is present, embody its persona and tone.")
+            lines.append("")
+        }
+        
+        for file in files {
+            // Skip IDENTITY.md (already parsed for buildIdentity) and BOOTSTRAP.md (user instructions only)
+            if file.name == "IDENTITY.md" || file.name == "BOOTSTRAP.md" { continue }
+            
+            lines.append("## \(file.name) (\(workspacePath)/\(file.name))")
+            lines.append(file.content)
+            lines.append("")
+        }
+        
+        lines.append("</persona-context>")
+        return lines.joined(separator: "\n")
     }
     
     private func buildEnvironment(cwd: String?) -> String {

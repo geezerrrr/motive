@@ -15,6 +15,7 @@
 "common.error" = "错误";
 "common.warning" = "警告";
 "common.ok" = "好";
+"common.unsaved_changes" = "有未保存的更改";
 
 // MARK: - Command Bar
 "commandbar.placeholder" = "你想让我做什么？";
@@ -149,6 +150,33 @@
 "settings.browser.status.not_found" = "需要构建 - 运行 Scripts/browser-use-sidecar/build.sh";
 "settings.browser.status.disabled" = "浏览器自动化已禁用";
 "settings.browser.not_set" = "未设置";
+
+// Persona
+"settings.tab.persona" = "人格";
+"settings.tab.persona.subtitle" = "AI 身份和工作区文件";
+"settings.persona.agent_identity" = "AI 身份";
+"settings.persona.workspace_files" = "工作区文件";
+"settings.persona.name" = "名称";
+"settings.persona.name.desc" = "你希望我怎么称呼自己？";
+"settings.persona.emoji" = "表情";
+"settings.persona.emoji.desc" = "状态栏图标";
+"settings.persona.creature" = "物种";
+"settings.persona.creature.desc" = "我是什么样的存在？";
+"settings.persona.vibe" = "气质";
+"settings.persona.vibe.desc" = "我给人什么感觉？";
+"settings.persona.open_workspace" = "工作区";
+"settings.persona.open_workspace.desc" = "~/.motive/";
+"settings.persona.open_in_finder" = "在访达中打开";
+"settings.persona.edit_soul" = "灵魂";
+"settings.persona.edit_soul.desc" = "核心人格和价值观";
+"settings.persona.edit_user" = "用户档案";
+"settings.persona.edit_user.desc" = "关于你的信息";
+"settings.persona.edit" = "编辑";
+"settings.persona.save_and_apply" = "保存并应用";
+"settings.persona.open_emoji_picker" = "打开表情选择器";
+"settings.persona.tab.identity" = "身份";
+"settings.persona.tab.soul" = "灵魂";
+"settings.persona.tab.user" = "档案";
 
 // Skills
 "settings.skills.system" = "技能系统";

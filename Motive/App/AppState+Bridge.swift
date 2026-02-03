@@ -96,6 +96,8 @@ extension AppState {
             if let error = errorText {
                 lastErrorMessage = error
                 sessionStatus = .failed
+                menuBarState = .idle
+                currentToolName = nil
                 if let session = currentSession {
                     session.status = "failed"
                 }
@@ -306,6 +308,11 @@ extension AppState {
     private func detectError(in text: String, rawJson: String) -> String? {
         let lowerText = text.lowercased()
         let lowerJson = rawJson.lowercased()
+
+        // Check for OpenCode not configured (binary not found or bridge not initialized)
+        if lowerText.contains("opencode not configured") || lowerText.contains("not configured") {
+            return text
+        }
 
         // Check for API authentication errors
         if lowerText.contains("authentication") || lowerText.contains("unauthorized") ||

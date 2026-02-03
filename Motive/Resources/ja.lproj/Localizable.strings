@@ -15,6 +15,7 @@
 "common.error" = "エラー";
 "common.warning" = "警告";
 "common.ok" = "OK";
+"common.unsaved_changes" = "未保存の変更";
 
 // MARK: - Command Bar
 "commandbar.placeholder" = "何をしましょうか？";
@@ -149,6 +150,33 @@
 "settings.browser.status.not_found" = "ビルドが必要 - Scripts/browser-use-sidecar/build.sh を実行";
 "settings.browser.status.disabled" = "ブラウザ自動化は無効です";
 "settings.browser.not_set" = "未設定";
+
+// Persona
+"settings.tab.persona" = "ペルソナ";
+"settings.tab.persona.subtitle" = "エージェントの個性とワークスペースファイル";
+"settings.persona.agent_identity" = "エージェントの個性";
+"settings.persona.workspace_files" = "ワークスペースファイル";
+"settings.persona.name" = "名前";
+"settings.persona.name.desc" = "どう呼ばれたいですか？";
+"settings.persona.emoji" = "絵文字";
+"settings.persona.emoji.desc" = "ステータスバーのアイコン";
+"settings.persona.creature" = "生き物";
+"settings.persona.creature.desc" = "どんな存在ですか？";
+"settings.persona.vibe" = "雰囲気";
+"settings.persona.vibe.desc" = "どんな印象を与えますか？";
+"settings.persona.open_workspace" = "ワークスペース";
+"settings.persona.open_workspace.desc" = "~/.motive/";
+"settings.persona.open_in_finder" = "Finderで開く";
+"settings.persona.edit_soul" = "ソウル";
+"settings.persona.edit_soul.desc" = "性格と価値観";
+"settings.persona.edit_user" = "ユーザープロフィール";
+"settings.persona.edit_user.desc" = "あなたの情報";
+"settings.persona.edit" = "編集";
+"settings.persona.save_and_apply" = "保存して適用";
+"settings.persona.open_emoji_picker" = "絵文字を選択";
+"settings.persona.tab.identity" = "身元";
+"settings.persona.tab.soul" = "魂";
+"settings.persona.tab.user" = "情報";
 
 // Skills
 "settings.skills.system" = "スキルシステム";

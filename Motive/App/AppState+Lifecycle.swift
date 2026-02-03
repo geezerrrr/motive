@@ -20,6 +20,15 @@ extension AppState {
         guard !hasStarted else { return }
         hasStarted = true
 
+        // Ensure workspace exists (creates bootstrap files for fresh install)
+        Task { @MainActor in
+            do {
+                try await WorkspaceManager.shared.ensureWorkspace()
+            } catch {
+                Log.config("Failed to ensure workspace: \(error)")
+            }
+        }
+        
         // Ensure default project directory exists
         configManager.ensureDefaultProjectDirectory()
         configManager.ensureCurrentProjectInRecents()

@@ -149,15 +149,27 @@ struct MessageBubble: View {
     
     // MARK: - Assistant Bubble (Dark with amber accent)
     
+    /// Get agent identity for display
+    private var agentIdentity: AgentIdentity? {
+        WorkspaceManager.shared.loadIdentity()
+    }
+    
     private var assistantBubble: some View {
         VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
-            // Avatar row
+            // Avatar row - use identity if configured
             HStack(spacing: AuroraSpacing.space2) {
-                Image(systemName: "sparkle")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color.Aurora.primary)
+                if let identity = agentIdentity, identity.hasValues(), let emoji = identity.emoji {
+                    // Use configured emoji
+                    Text(emoji)
+                        .font(.system(size: 12))
+                } else {
+                    // Default sparkle icon
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Color.Aurora.primary)
+                }
                 
-                Text(L10n.Drawer.assistant)
+                Text(agentIdentity?.displayName ?? L10n.Drawer.assistant)
                     .font(.Aurora.micro.weight(.semibold))
                     .foregroundColor(Color.Aurora.textSecondary)
             }

@@ -2,14 +2,18 @@ import Foundation
 
 @MainActor
 extension ConfigManager {
-    // MARK: - Binary Storage Directory
+    // MARK: - Directory Management
     
-    /// Get the directory for storing the signed binary
-    /// Tries Application Support first, falls back to temp directory
-    var binaryStorageDirectory: URL? {
+    /// User workspace directory (~/.motive/)
+    var workspaceDirectory: URL {
+        WorkspaceManager.defaultWorkspaceURL
+    }
+    
+    /// App support directory for runtime files (~/Library/Application Support/Motive/)
+    var appSupportDirectory: URL? {
         let fileManager = FileManager.default
         
-        // Try Application Support first
+        // Try Application Support
         if let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
             let motiveDir = appSupport.appendingPathComponent("Motive")
             
@@ -37,14 +41,24 @@ extension ConfigManager {
         return tempDir
     }
     
+    /// Runtime directory for node_modules, browser-use, etc.
+    var runtimeDirectory: URL? {
+        appSupportDirectory?.appendingPathComponent("runtime")
+    }
+    
+    /// Binary storage directory (kept in Application Support for signing)
+    var binaryStorageDirectory: URL? {
+        appSupportDirectory
+    }
+    
     /// Path to the signed opencode binary
     private var signedBinaryPath: URL? {
         binaryStorageDirectory?.appendingPathComponent("opencode")
     }
     
-    /// Directory containing managed skills
+    /// Directory containing managed skills (now in workspace)
     var skillsManagedDirectoryURL: URL? {
-        binaryStorageDirectory?.appendingPathComponent("skills")
+        workspaceDirectory.appendingPathComponent("skills")
     }
     
     // MARK: - Binary Management
@@ -181,8 +195,10 @@ extension ConfigManager {
             return (nvmPath, nil)
         }
         
-        // 3. Try global installations
+        // 3. Try global and common installations
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
         let globalPaths = [
+            "\(homeDir)/.opencode/bin/opencode",  // OpenCode self-install location
             "/usr/local/bin/opencode",
             "/opt/homebrew/bin/opencode"
         ]
