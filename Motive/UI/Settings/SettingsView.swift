@@ -176,6 +176,7 @@ private struct CompactTabButton: View {
                 Image(systemName: tab.icon)
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(iconColor)
+                    .frame(width: 24, height: 24)
                 
                 Text(tab.title)
                     .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
