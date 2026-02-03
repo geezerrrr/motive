@@ -136,12 +136,14 @@ extension CommandBarView {
                 Text(runningStatusTitle)
                     .font(.Aurora.caption.weight(.semibold))
                     .foregroundColor(Color.Aurora.textPrimary)
+                    .auroraShimmer(isDark: isDark)
 
                 Text(runningStatusDetail)
                     .font(.Aurora.caption)
                     .foregroundColor(Color.Aurora.textMuted)
                     .lineLimit(1)
                     .truncationMode(.middle)
+                    .auroraShimmer(isDark: isDark)
             }
 
             Spacer()
@@ -191,12 +193,9 @@ extension CommandBarView {
         if let toolName = appState.currentToolName {
             let simpleName = toolName.simplifiedToolName
             
-            // Try to get input detail from last matching tool message
-            if let lastToolMsg = appState.messages.last(where: { $0.type == .tool && $0.toolName == toolName }) {
-                if let input = lastToolMsg.toolInput, !input.isEmpty {
-                    // Format: "Bash: ls -la" or "Read: /path/to/file"
-                    return "\(simpleName): \(input)"
-                }
+            // Use currentToolInput directly (set when tool_call is received)
+            if let input = appState.currentToolInput, !input.isEmpty {
+                return "\(simpleName): \(input)"
             }
             
             return simpleName

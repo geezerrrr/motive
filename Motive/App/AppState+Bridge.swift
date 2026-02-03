@@ -48,11 +48,13 @@ extension AppState {
         case .thought:
             menuBarState = .reasoning
             currentToolName = nil
+            currentToolInput = nil
             // Update CloudKit for remote commands
             updateRemoteCommandStatus(toolName: "Thinking...")
         case .call, .tool:
             menuBarState = .executing
             currentToolName = event.toolName ?? "Processing"
+            currentToolInput = event.toolInput  // Store tool input immediately
 
             // Intercept AskUserQuestion tool calls
             if isAskUserQuestionTool(event.toolName) {
@@ -72,6 +74,7 @@ extension AppState {
             menuBarState = .idle
             sessionStatus = .completed
             currentToolName = nil
+            currentToolInput = nil
             // Update session status
             if let session = currentSession {
                 session.status = "completed"

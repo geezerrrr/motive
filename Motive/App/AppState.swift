@@ -31,6 +31,7 @@ final class AppState: ObservableObject {
     @Published var sessionStatus: SessionStatus = .idle
     @Published var lastErrorMessage: String?
     @Published var currentToolName: String?
+    @Published var currentToolInput: String?  // Current tool's input (e.g., command, file path)
     @Published var commandBarResetTrigger: Int = 0  // Increment to trigger reset
     @Published var sessionListRefreshTrigger: Int = 0  // Increment to refresh session list
 
