@@ -84,3 +84,6 @@ fastlane/test_output
 .vscode/
 Scripts/browser-use-sidecar/.venv/
 dist/
+.cursor/
+.sourcekit-lsp/
+buildServer.json
