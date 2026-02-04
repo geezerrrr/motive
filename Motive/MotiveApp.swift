@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AppKit
 
 @main
 struct MotiveApp: App {
@@ -21,6 +22,8 @@ struct MotiveApp: App {
         
         // Use local-only storage in Application Support/Motive/
         // Our CloudKit usage is separate (CKRecord for remote commands)
+        // Schema Version: 1.0 - Session (id, intent, createdAt, openCodeSessionId, status, projectPath, logs)
+        //                     - LogEntry (id, rawJson, kind, createdAt)
         let schema = Schema([Session.self, LogEntry.self])
         let storeURL = Self.storeURL()
         
@@ -43,7 +46,10 @@ struct MotiveApp: App {
             do {
                 container = try ModelContainer(for: schema, configurations: [modelConfiguration])
             } catch {
-                fatalError("Could not create ModelContainer after reset: \(error)")
+                // Show error dialog and exit gracefully instead of crashing
+                Self.showFatalErrorAndExit(error: error)
+                // This line won't execute but is needed for compiler
+                container = try! ModelContainer(for: schema, configurations: [modelConfiguration])
             }
         }
         
@@ -77,6 +83,17 @@ struct MotiveApp: App {
             try? FileManager.default.removeItem(at: url)
         }
         print("[Motive] Deleted corrupted database files at \(storeURL.path)")
+    }
+    
+    /// Show a fatal error dialog and exit the application gracefully
+    private static func showFatalErrorAndExit(error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "Database Error"
+        alert.informativeText = "Motive could not initialize its database and cannot continue.\n\nError: \(error.localizedDescription)\n\nPlease try reinstalling the application or contact support."
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: "Quit")
+        alert.runModal()
+        NSApplication.shared.terminate(nil)
     }
  
     var body: some Scene {

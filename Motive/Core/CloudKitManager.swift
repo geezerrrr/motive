@@ -19,7 +19,7 @@ final class CloudKitManager {
     var onPermissionResponse: ((String, String) -> Void)?  // (requestId, response)
     
     private var subscriptionId: String?
-    private var pollTimer: Timer?
+    private var pollTask: Task<Void, Never>?
     private weak var appState: AppState?
     
     /// Whether CloudKit is enabled (checked at startup)
@@ -55,8 +55,8 @@ final class CloudKitManager {
     
     /// Stop listening for remote commands
     func stopListening() {
-        pollTimer?.invalidate()
-        pollTimer = nil
+        pollTask?.cancel()
+        pollTask = nil
         Log.debug("CloudKitManager: Stopped listening")
     }
     
@@ -165,8 +165,10 @@ final class CloudKitManager {
     
     private func startPolling() {
         // Poll every 5 seconds as backup for push notifications
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(5))
+                guard !Task.isCancelled else { break }
                 await self?.pollForPendingCommands()
             }
         }

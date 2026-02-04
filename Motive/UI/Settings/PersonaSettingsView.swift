@@ -86,7 +86,7 @@ struct PersonaSettingsView: View {
                     tab: tab,
                     isSelected: selectedTab == tab
                 ) {
-                    withAnimation(.easeOut(duration: 0.15)) {
+                    withAnimation(.auroraFast) {
                         selectedTab = tab
                     }
                 }
@@ -260,7 +260,8 @@ struct PersonaSettingsView: View {
                     Button {
                         // Focus the text field first, then open picker
                         isEmojiFocused = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(100))
                             NSApp.orderFrontCharacterPalette(nil)
                         }
                     } label: {

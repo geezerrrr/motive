@@ -12,13 +12,13 @@ import SwiftUI
 
 @MainActor
 final class AppState: ObservableObject {
-    enum MenuBarState: String {
+    enum MenuBarState: String, Sendable {
         case idle
         case reasoning
         case executing
     }
 
-    enum SessionStatus: String {
+    enum SessionStatus: String, Sendable {
         case idle
         case running
         case completed
@@ -47,12 +47,13 @@ final class AppState: ObservableObject {
     var statusBarController: StatusBarController?
     var drawerWindowController: DrawerWindowController?
     var quickConfirmController: QuickConfirmWindowController?
-    var cancellables = Set<AnyCancellable>()
     var hasStarted = false
 
     // CloudKit for remote commands from iOS
     lazy var cloudKitManager: CloudKitManager = CloudKitManager()
     var currentRemoteCommandId: String?
+    
+    var cancellables = Set<AnyCancellable>()
 
     var configManagerRef: ConfigManager { configManager }
     var commandBarWindowRef: NSWindow? { commandBarController?.getWindow() }

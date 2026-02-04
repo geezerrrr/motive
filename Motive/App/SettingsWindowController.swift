@@ -53,7 +53,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             NSApp.activate(ignoringOtherApps: true)
             
             // Double-check focus after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak existingWindow] in
+            Task { @MainActor [weak existingWindow] in
+                try? await Task.sleep(for: .milliseconds(50))
                 existingWindow?.makeKeyAndOrderFront(nil)
             }
             return
@@ -111,7 +112,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
         
         // Ensure focus is maintained after activation settles
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak newWindow] in
+        Task { @MainActor [weak newWindow] in
+            try? await Task.sleep(for: .milliseconds(100))
             guard let window = newWindow, window.isVisible else { return }
             window.makeKeyAndOrderFront(nil)
         }

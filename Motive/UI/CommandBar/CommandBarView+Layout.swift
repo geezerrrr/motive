@@ -158,6 +158,8 @@ extension CommandBarView {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Stop")
+            .accessibilityHint("Interrupts the current task")
 
             // Open drawer button
             Button(action: {
@@ -172,6 +174,8 @@ extension CommandBarView {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Open conversation")
+            .accessibilityHint("Opens the conversation drawer")
         }
         .padding(.horizontal, AuroraSpacing.space5)
         .padding(.vertical, AuroraSpacing.space3)
@@ -356,6 +360,8 @@ extension CommandBarView {
                     onEscape: handleEscape
                 )
                 .focused($isInputFocused)
+                .accessibilityLabel("Command input")
+                .accessibilityHint("Type a command or question, then press Return to submit")
             }
 
             // Tab hint when autocomplete is available
@@ -409,6 +415,8 @@ extension CommandBarView {
                     .foregroundColor(Color.Aurora.warning)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("API key required")
+            .accessibilityHint("Opens settings to configure API key")
         } else if case .error = mode {
             Button(action: { mode = .idle }) {
                 Image(systemName: "arrow.clockwise")
@@ -416,6 +424,8 @@ extension CommandBarView {
                     .foregroundColor(Color.Aurora.error)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Retry")
+            .accessibilityHint("Clears the error and allows you to try again")
         } else {
             let canSend = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             let isCommandInput = inputText.hasPrefix("/")
@@ -426,6 +436,8 @@ extension CommandBarView {
                         .foregroundColor(Color.Aurora.primary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Submit")
+                .accessibilityHint("Sends your command to the AI assistant")
             } else {
                 EmptyView()
             }

@@ -12,7 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     weak var appState: AppState?
     private var globalMonitor: Any?
     private var localMonitor: Any?
-    private var permissionCheckTimer: Timer?
+    private var permissionCheckTask: Task<Void, Never>?
     private var hotkeyObserver: NSObjectProtocol?
     private var onboardingController: OnboardingWindowController?
     
@@ -77,7 +77,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appState?.start()
         
         // Retry status bar creation after launch (safety)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
             self?.appState?.ensureStatusBar()
         }
         
@@ -88,14 +89,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestAccessibilityAndRegisterHotkey()
         
         // Hide command bar initially - user can invoke via hotkey
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
             self?.appState?.hideCommandBar()
         }
     }
     
     func applicationWillTerminate(_ notification: Notification) {
         unregisterHotkey()
-        permissionCheckTimer?.invalidate()
+        permissionCheckTask?.cancel()
         if let observer = hotkeyObserver {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -180,7 +182,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func showAccessibilityGuide() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
             let hotkeyStr = self?.appState?.configManagerRef.hotkey ?? "⌥Space"
             let alert = NSAlert()
             alert.messageText = "Enable Accessibility for Hotkey"
@@ -205,14 +208,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func startPermissionCheckTimer() {
-        permissionCheckTimer?.invalidate()
-        permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+        permissionCheckTask?.cancel()
+        permissionCheckTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
                 if AccessibilityHelper.hasPermission {
-                    self?.permissionCheckTimer?.invalidate()
-                    self?.permissionCheckTimer = nil
                     self?.registerHotkey()
+                    break
                 }
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }

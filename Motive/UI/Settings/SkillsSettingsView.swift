@@ -98,7 +98,8 @@ struct SkillsSettingsView: View {
         .onChange(of: viewModel.needsRestart) { _, needsRestart in
             if needsRestart {
                 // Small delay to let UI update first
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(300))
                     appState.restartAgent()
                     viewModel.clearRestartNeeded()
                 }

@@ -443,8 +443,7 @@ extension AppState {
             messages.append(message)
         }
 
-        // Force SwiftUI to update (NSHostingView may not auto-refresh)
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
 
         if let session = currentSession {
             let entry = LogEntry(rawJson: event.rawJson, kind: event.kind.rawValue)

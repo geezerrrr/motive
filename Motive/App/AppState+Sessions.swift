@@ -129,8 +129,7 @@ extension AppState {
                 messages.append(message)
             }
         }
-
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
     }
 
     /// Start a new empty session (for "New Chat" button)
@@ -143,8 +142,7 @@ extension AppState {
 
         // Clear OpenCodeBridge session ID for fresh start
         Task { await bridge.setSessionId(nil) }
-
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
     }
 
     /// Clear current session messages without deleting
@@ -156,7 +154,7 @@ extension AppState {
         currentToolName = nil
 
         Task { await bridge.setSessionId(nil) }
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
     }
 
     /// Delete a session from storage
@@ -173,7 +171,7 @@ extension AppState {
         
         // Trigger list refresh so CommandBarView updates
         sessionListRefreshTrigger += 1
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
     }
 
     /// Delete a session by id (robust against stale references)
@@ -193,7 +191,7 @@ extension AppState {
             
             // Trigger list refresh so CommandBarView updates
             sessionListRefreshTrigger += 1
-            objectWillChange.send()
+            // @Observable handles change tracking automatically
         }
     }
 
@@ -211,9 +209,7 @@ extension AppState {
 
         // Set the new directory
         let success = configManager.setProjectDirectory(path)
-
-        // Notify UI to update
-        objectWillChange.send()
+        // @Observable handles change tracking automatically
 
         return success
     }
@@ -236,7 +232,8 @@ extension AppState {
                 self.switchProjectDirectory(url.path)
             }
             // Reshow command bar after picker closes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
                 self.showCommandBar()
             }
         }

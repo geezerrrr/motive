@@ -7,14 +7,14 @@
 
 import Foundation
 
-enum SkillSource: String, Codable {
+enum SkillSource: String, Codable, Sendable {
     case bundled
     case managed
     case workspace
     case extra
 }
 
-struct SkillFrontmatter: Codable, Equatable {
+struct SkillFrontmatter: Codable, Equatable, Sendable {
     var name: String = ""
     var description: String = ""
     var metadataRaw: String?
@@ -24,14 +24,14 @@ struct SkillFrontmatter: Codable, Equatable {
     var allowedTools: [String]?
 }
 
-struct SkillRequirements: Codable, Equatable {
+struct SkillRequirements: Codable, Equatable, Sendable {
     var bins: [String] = []
     var anyBins: [String] = []
     var env: [String] = []
     var config: [String] = []
 }
 
-struct SkillMetadata: Codable, Equatable {
+struct SkillMetadata: Codable, Equatable, Sendable {
     var always: Bool = false
     var os: [String] = []
     var primaryEnv: String?
@@ -50,7 +50,7 @@ struct SkillMetadata: Codable, Equatable {
 
 // MARK: - Install Spec (OpenClaw compatible)
 
-enum InstallKind: String, Codable, Equatable {
+enum InstallKind: String, Codable, Equatable, Sendable {
     case brew
     case node
     case go
@@ -59,7 +59,7 @@ enum InstallKind: String, Codable, Equatable {
     case download
 }
 
-struct SkillInstallSpec: Codable, Equatable {
+struct SkillInstallSpec: Codable, Equatable, Sendable {
     var id: String?
     var kind: InstallKind
     var label: String?
@@ -77,13 +77,13 @@ struct SkillInstallSpec: Codable, Equatable {
     var targetDir: String?    // download
 }
 
-enum SkillWiring: Equatable {
+enum SkillWiring: Equatable, Sendable {
     case mcp(SkillMcpSpec)
     case bin(SkillToolSpec)
     case none
 }
 
-struct SkillMcpSpec: Codable, Equatable {
+struct SkillMcpSpec: Codable, Equatable, Sendable {
     var type: String?
     var command: [String]
     var environment: [String: String] = [:]
@@ -91,17 +91,17 @@ struct SkillMcpSpec: Codable, Equatable {
     var enabled: Bool?
 }
 
-struct SkillToolSpec: Codable, Equatable {
+struct SkillToolSpec: Codable, Equatable, Sendable {
     var command: String
     var args: [String] = []
 }
 
-struct SkillEligibility: Equatable {
+struct SkillEligibility: Equatable, Sendable {
     var isEligible: Bool
     var reasons: [String]
 }
 
-struct SkillEntry: Equatable, Identifiable {
+struct SkillEntry: Equatable, Identifiable, Sendable {
     var id: String { name }
     var name: String
     var description: String
@@ -115,19 +115,19 @@ struct SkillEntry: Equatable, Identifiable {
 
 // MARK: - Config
 
-struct SkillsConfig: Codable, Equatable {
+struct SkillsConfig: Codable, Equatable, Sendable {
     var load: SkillsLoadConfig = .init()
     var allowBundled: [String] = []
     var entries: [String: SkillEntryConfig] = [:]
 }
 
-struct SkillsLoadConfig: Codable, Equatable {
+struct SkillsLoadConfig: Codable, Equatable, Sendable {
     var extraDirs: [String] = []
     var watch: Bool = true
     var watchDebounceMs: Int = 250
 }
 
-struct SkillEntryConfig: Codable, Equatable {
+struct SkillEntryConfig: Codable, Equatable, Sendable {
     var enabled: Bool?
     var env: [String: String] = [:]
     var apiKey: String?

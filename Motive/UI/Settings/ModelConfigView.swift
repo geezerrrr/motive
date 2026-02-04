@@ -188,7 +188,7 @@ struct ModelConfigView: View {
                 .buttonStyle(.plain)
             }
         }
-        .animation(.easeOut(duration: 0.2), value: showSavedFeedback)
+        .animation(.auroraFast, value: showSavedFeedback)
     }
     
     // MARK: - Provider Picker
@@ -201,7 +201,7 @@ struct ModelConfigView: View {
                         provider: provider,
                         isSelected: configManager.provider == provider
                     ) {
-                        withAnimation(.easeOut(duration: 0.15)) {
+                        withAnimation(.auroraFast) {
                             configManager.provider = provider
                         }
                     }
@@ -234,7 +234,8 @@ struct ModelConfigView: View {
     private func saveAndRestart() {
         appState.restartAgent()
         showSavedFeedback = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
             withAnimation {
                 showSavedFeedback = false
             }

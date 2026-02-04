@@ -143,7 +143,7 @@ struct CompactTabBar: View {
                     tab: tab,
                     isSelected: selectedTab == tab
                 ) {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(.auroraFast) {
                         selectedTab = tab
                     }
                 }
@@ -337,7 +337,7 @@ struct CollapsibleSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header (clickable)
             Button {
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(.auroraFast) {
                     isExpanded.toggle()
                 }
             } label: {

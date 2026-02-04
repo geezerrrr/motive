@@ -459,7 +459,7 @@ struct AuroraAccessibilityStep: View {
     let onSkip: () -> Void
     
     @State private var hasPermission: Bool = false
-    @State private var checkTimer: Timer?
+    @State private var checkTask: Task<Void, Never>?
     @Environment(\.colorScheme) private var colorScheme
     
     private var isDark: Bool { colorScheme == .dark }
@@ -574,7 +574,7 @@ struct AuroraAccessibilityStep: View {
             startPermissionCheck()
         }
         .onDisappear {
-            checkTimer?.invalidate()
+            checkTask?.cancel()
         }
     }
     
@@ -583,8 +583,12 @@ struct AuroraAccessibilityStep: View {
     }
     
     private func startPermissionCheck() {
-        checkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            Task { @MainActor in checkPermission() }
+        checkTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { break }
+                checkPermission()
+            }
         }
     }
     

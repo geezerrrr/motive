@@ -144,7 +144,8 @@ final class CommandBarWindowController {
         }
         
         // 4. Focus input field after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(50))
             self?.focusFirstResponder()
         }
         

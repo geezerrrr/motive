@@ -367,6 +367,7 @@ struct ThinkingIndicator: View {
 
 struct AuroraLoadingDots: View {
     @State private var animationPhase: Int = 0
+    @State private var animationTask: Task<Void, Never>?
     
     var body: some View {
         HStack(spacing: 3) {
@@ -379,11 +380,18 @@ struct AuroraLoadingDots: View {
             }
         }
         .onAppear {
-            Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    animationPhase = (animationPhase + 1) % 3
+            animationTask = Task { @MainActor in
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(400))
+                    guard !Task.isCancelled else { break }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        animationPhase = (animationPhase + 1) % 3
+                    }
                 }
             }
+        }
+        .onDisappear {
+            animationTask?.cancel()
         }
     }
 }

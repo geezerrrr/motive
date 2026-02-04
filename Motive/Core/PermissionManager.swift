@@ -8,14 +8,15 @@ import Network
 // create, delete, rename, move, modify, overwrite, readBinary, execute
 
 /// Permission request type
-enum PermissionRequestType: String, Codable {
+enum PermissionRequestType: String, Codable, Sendable {
     case file
     case question
     case tool
 }
 
 /// Permission request from OpenCode CLI or MCP server
-struct PermissionRequest: Identifiable, Codable {
+/// Note: @unchecked Sendable because toolInput is [String: Any] which isn't Sendable
+struct PermissionRequest: Identifiable, Codable, @unchecked Sendable {
     let id: String
     let taskId: String
     let type: PermissionRequestType
@@ -38,7 +39,7 @@ struct PermissionRequest: Identifiable, Codable {
     var toolName: String?
     var toolInput: [String: Any]?
     
-    struct QuestionOption: Codable {
+    struct QuestionOption: Codable, Sendable {
         let label: String
         var value: String?
         var description: String?
@@ -152,7 +153,7 @@ struct PermissionRequest: Identifiable, Codable {
 }
 
 /// Permission response
-struct PermissionResponse {
+struct PermissionResponse: Sendable {
     let requestId: String
     let taskId: String
     let decision: Decision
@@ -160,7 +161,7 @@ struct PermissionResponse {
     var customText: String?
     var message: String?
     
-    enum Decision: String {
+    enum Decision: String, Sendable {
         case allow
         case deny
     }
@@ -451,7 +452,11 @@ class PermissionAPIServer: @unchecked Sendable {
             // Call handler synchronously, passing data directly (no async boundary)
             handlerRef(data) { allowed in
                 Log.permission(" PermissionAPIServer got response: allowed=\(allowed)")
-                let responseData = try! JSONSerialization.data(withJSONObject: ["allowed": allowed])
+                guard let responseData = try? JSONSerialization.data(withJSONObject: ["allowed": allowed]) else {
+                    Log.error("Failed to serialize permission response")
+                    completion(Data())
+                    return
+                }
                 Log.permission(" PermissionAPIServer sending HTTP response: \(String(data: responseData, encoding: .utf8) ?? "")")
                 completion(responseData)
             }
@@ -497,7 +502,11 @@ class QuestionAPIServer: @unchecked Sendable {
                 if let customText = response.customText {
                     responseDict["customText"] = customText
                 }
-                let responseData = try! JSONSerialization.data(withJSONObject: responseDict)
+                guard let responseData = try? JSONSerialization.data(withJSONObject: responseDict) else {
+                    Log.error("Failed to serialize question response")
+                    completion(Data())
+                    return
+                }
                 Log.permission(" QuestionAPIServer sending HTTP response: \(String(data: responseData, encoding: .utf8) ?? "")")
                 completion(responseData)
             }

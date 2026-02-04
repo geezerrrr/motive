@@ -8,6 +8,24 @@
 import Foundation
 import Darwin
 
+/// Errors that can occur during PTY process operations
+enum PTYError: Error, LocalizedError {
+    case notSpawned
+    case spawnFailed(errno: Int32)
+    case alreadyRunning
+    
+    var errorDescription: String? {
+        switch self {
+        case .notSpawned:
+            return "PTY process has not been spawned"
+        case .spawnFailed(let errno):
+            return "Failed to spawn PTY process: \(String(cString: strerror(errno)))"
+        case .alreadyRunning:
+            return "PTY process is already running"
+        }
+    }
+}
+
 final class PTYProcess: @unchecked Sendable {
     private var masterFd: Int32 = -1
     private(set) var pid: pid_t = 0
@@ -64,11 +82,20 @@ final class PTYProcess: @unchecked Sendable {
     }
     
     /// Get async line sequence from PTY output
-    var lines: AsyncLineSequence<FileHandle.AsyncBytes> {
+    /// - Throws: PTYError.notSpawned if spawn() has not been called
+    func getLines() throws -> AsyncLineSequence<FileHandle.AsyncBytes> {
         guard let fh = fileHandle else {
-            fatalError("PTY not spawned")
+            throw PTYError.notSpawned
         }
         return fh.bytes.lines
+    }
+    
+    /// Get async line sequence from PTY output (legacy computed property for compatibility)
+    /// Note: Prefer using getLines() which properly throws errors
+    var lines: AsyncLineSequence<FileHandle.AsyncBytes> {
+        get throws {
+            try getLines()
+        }
     }
     
     /// Write string to PTY stdin

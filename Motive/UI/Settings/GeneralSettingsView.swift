@@ -96,7 +96,8 @@ struct GeneralSettingsView: View {
             Log.error("Failed to restart: \(error)")
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
             NSApplication.shared.terminate(nil)
         }
     }
@@ -225,7 +226,8 @@ final class HotkeyRecorderButton: NSButton {
             return event
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(5))
             self?.stopRecording()
         }
     }

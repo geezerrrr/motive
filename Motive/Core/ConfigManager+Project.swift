@@ -157,7 +157,7 @@ extension ConfigManager {
 
 // MARK: - Recent Project Model
 
-struct RecentProject: Codable, Identifiable, Equatable {
+struct RecentProject: Codable, Identifiable, Equatable, Sendable {
     var id: String { path }
     let path: String
     let name: String

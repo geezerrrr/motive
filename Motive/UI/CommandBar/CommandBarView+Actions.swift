@@ -12,7 +12,8 @@ extension CommandBarView {
     func handleOnAppear() {
         // Window-level animation is handled by CommandBarWindowController
         // Just focus the input field
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
             isInputFocused = true
         }
     }
@@ -22,7 +23,8 @@ extension CommandBarView {
         let deleteId = filteredHistorySessions[selectedHistoryIndex].id
         removeHistorySession(id: deleteId, preferredIndex: selectedHistoryIndex)
         appState.deleteSession(id: deleteId)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
             refreshHistorySessions(preferredIndex: selectedHistoryIndex)
         }
     }
@@ -57,20 +59,20 @@ extension CommandBarView {
             alert.beginSheetModal(for: window) { response in
                 if response == .alertFirstButtonReturn {
                     // Delete the session and refresh list/selection immediately
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         removeHistorySession(id: deleteId, preferredIndex: preferredIndex)
                         appStateRef.deleteSession(id: deleteId)
                         // Sync with persisted state after deletion
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            refreshHistorySessions(preferredIndex: selectedHistoryIndex)
-                        }
+                        try? await Task.sleep(for: .milliseconds(50))
+                        refreshHistorySessions(preferredIndex: selectedHistoryIndex)
                     }
                 }
 
                 // Reset state and restore focus
                 appStateRef.setCommandBarAutoHideSuppressed(false)
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(50))
                     appStateRef.refocusCommandBar()
                 }
             }
@@ -238,7 +240,8 @@ extension CommandBarView {
         }
 
         // Keep input focused in all modes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
             isInputFocused = true
         }
     }
@@ -422,7 +425,8 @@ extension CommandBarView {
         applyCommandBarHeight()
 
         // Refocus input
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
             isInputFocused = true
         }
     }
@@ -512,7 +516,8 @@ extension CommandBarView {
         let deleteId = filteredHistorySessions[index].id
         removeHistorySession(id: deleteId, preferredIndex: index)
         appState.deleteSession(id: deleteId)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
             refreshHistorySessions(preferredIndex: selectedHistoryIndex)
         }
     }

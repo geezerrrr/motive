@@ -311,8 +311,8 @@ final class ConfigManager: ObservableObject {
         }
     }
     
-    // Published status for UI
-    @Published var binaryStatus: BinaryStatus = .notConfigured
+    // Status for UI
+    var binaryStatus: BinaryStatus = .notConfigured
     
     enum BinaryStatus: Equatable {
         case notConfigured
@@ -324,10 +324,7 @@ final class ConfigManager: ObservableObject {
         get { Provider(rawValue: providerRawValue) ?? .claude }
         set { 
             providerRawValue = newValue.rawValue
-            // Defer to next run loop to avoid reentrant layout warnings
-            DispatchQueue.main.async { [weak self] in
-                self?.objectWillChange.send()
-            }
+            // @Observable handles change tracking automatically
         }
     }
 

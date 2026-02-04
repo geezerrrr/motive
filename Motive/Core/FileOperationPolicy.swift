@@ -11,7 +11,7 @@ import Foundation
 
 /// Granular classification of file operations
 /// Used across the app for permission requests and policy evaluation
-enum FileOperation: String, CaseIterable, Codable, Hashable {
+enum FileOperation: String, CaseIterable, Codable, Hashable, Sendable {
     case create      // Create a new file
     case delete      // Delete an existing file
     case modify      // Modify file content (partial edits)

@@ -60,7 +60,7 @@ final class StatusBarController {
     private let statusItem: NSStatusItem
     private let menu: NSMenu
     private weak var delegate: StatusBarControllerDelegate?
-    private var animationTimer: Timer?
+    private var animationTask: Task<Void, Never>?
     private var animationDots = 0
     private var notificationPanel: NSPanel?
     private var notificationDismissTask: Task<Void, Never>?
@@ -164,7 +164,8 @@ final class StatusBarController {
         updateDisplay(state: .completed)
         showNotification(type: .success)
         // Auto-revert to idle after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2))
             self?.updateDisplay(state: .idle)
         }
     }
@@ -173,7 +174,8 @@ final class StatusBarController {
         updateDisplay(state: .error)
         showNotification(type: .error)
         // Auto-revert to idle after 3 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(3))
             self?.updateDisplay(state: .idle)
         }
     }
@@ -248,16 +250,16 @@ final class StatusBarController {
         guard let button = statusItem.button else { return }
         
         // Stop any existing animation
-        animationTimer?.invalidate()
-        animationTimer = nil
+        animationTask?.cancel()
+        animationTask = nil
         
         // Configure icon based on state
         switch state {
         case .idle:
             // Use custom logo for idle state
-            if let logoImage = NSImage(named: "status-bar-icon") {
+            if let logoImage = NSImage(named: "status-bar-icon"),
+               let resizedLogo = logoImage.copy() as? NSImage {
                 logoImage.isTemplate = true
-                let resizedLogo = logoImage.copy() as! NSImage
                 resizedLogo.size = NSSize(width: 18, height: 18)
                 button.image = resizedLogo
             } else {
@@ -304,15 +306,16 @@ final class StatusBarController {
         let cleanText = baseText.replacingOccurrences(of: "…", with: "")
         animationDots = 0
         
-        // Start shimmer animation using attributed string
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self, weak button] _ in
-            guard let self, let button else { return }
-            
-            // Increment phase
-            self.animationDots = (self.animationDots + 1) % 40  // 40 frames, ~1.2s per cycle
-            
-            Task { @MainActor in
+        // Start shimmer animation using Task-based loop
+        animationTask = Task { @MainActor [weak self, weak button] in
+            while !Task.isCancelled {
+                guard let self, let button else { break }
+                
+                // Increment phase
+                self.animationDots = (self.animationDots + 1) % 40  // 40 frames, ~1.2s per cycle
                 self.updateShimmerTitle(cleanText, button: button, phase: self.animationDots)
+                
+                try? await Task.sleep(for: .milliseconds(30))
             }
         }
     }
