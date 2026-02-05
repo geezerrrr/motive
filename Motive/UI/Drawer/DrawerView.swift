@@ -29,7 +29,7 @@ struct DrawerView: View {
 
     var body: some View {
         ZStack {
-            // Aurora background
+            // Premium glass background
             drawerBackground
             
             VStack(spacing: 0) {
@@ -40,21 +40,7 @@ struct DrawerView: View {
                     .padding(.bottom, AuroraSpacing.space3)
                 
                 // Subtle divider with fade edges
-                Rectangle()
-                    .fill(Color.Aurora.border)
-                    .frame(height: 1)
-                    .mask(
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0),
-                                .init(color: .black, location: 0.1),
-                                .init(color: .black, location: 0.9),
-                                .init(color: .clear, location: 1)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                Divider()
                 
                 // Error banner (if any)
                 if let error = appState.lastErrorMessage {
@@ -151,7 +137,7 @@ struct DrawerView: View {
         ZStack {
             // Use same approach as CommandBar: VisualEffectView with cornerRadius
             VisualEffectView(
-                material: .menu,
+                material: .hudWindow,
                 blendingMode: .behindWindow,
                 state: .active,
                 cornerRadius: AuroraRadius.xl,
@@ -160,14 +146,14 @@ struct DrawerView: View {
             
             // Semi-transparent overlay for consistent appearance
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .fill(Color.Aurora.background.opacity(0.85))
+                .fill(Color.Aurora.background.opacity(0.92))
         }
     }
     
     // MARK: - Header with Session Dropdown
     
     private var conversationHeader: some View {
-        HStack(spacing: AuroraSpacing.space3) {
+        HStack(spacing: 10) {
             // Session dropdown button
             Button(action: { 
                 loadSessions()
@@ -175,13 +161,13 @@ struct DrawerView: View {
                     showSessionPicker.toggle()
                 }
             }) {
-                HStack(spacing: AuroraSpacing.space2) {
+                HStack(spacing: 6) {
                     Image(systemName: "bubble.left.and.bubble.right")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color.Aurora.textSecondary)
                     
                     Text(currentSessionTitle)
-                        .font(.Aurora.bodySmall.weight(.medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color.Aurora.textPrimary)
                         .lineLimit(1)
                     
@@ -190,11 +176,11 @@ struct DrawerView: View {
                         .foregroundColor(Color.Aurora.textMuted)
                         .rotationEffect(.degrees(showSessionPicker ? 180 : 0))
                 }
-                .padding(.horizontal, AuroraSpacing.space2)
-                .padding(.vertical, AuroraSpacing.space1)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                        .fill(showSessionPicker ? Color.Aurora.surface : Color.clear)
+                        .fill(showSessionPicker ? Color.Aurora.surfaceElevated : Color.Aurora.surface.opacity(0.5))
                 )
             }
             .buttonStyle(.plain)
@@ -213,15 +199,16 @@ struct DrawerView: View {
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(Color.Aurora.textSecondary)
                     .frame(width: 28, height: 28)
-                    .background(Color.Aurora.surface)
+                    .background(Color.Aurora.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                            .stroke(Color.Aurora.border, lineWidth: 0.5)
+                            .stroke(Color.Aurora.border, lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)
             .help(L10n.Drawer.newChat)
+            .accessibilityLabel(L10n.Drawer.newChat)
             
             // Close button
             Button(action: { appState.hideDrawer() }) {
@@ -229,15 +216,16 @@ struct DrawerView: View {
                     .font(.system(size: 11, weight: .bold))
                     .foregroundColor(Color.Aurora.textMuted)
                     .frame(width: 28, height: 28)
-                    .background(Color.Aurora.surface)
+                    .background(Color.Aurora.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                            .stroke(Color.Aurora.border, lineWidth: 0.5)
+                            .stroke(Color.Aurora.border, lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)
             .help(L10n.Drawer.close)
+            .accessibilityLabel(L10n.Drawer.close)
         }
     }
     
@@ -294,12 +282,12 @@ struct DrawerView: View {
             .frame(width: 280)
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .fill(Color.Aurora.backgroundDeep)
-                    .shadow(color: Color.black.opacity(0.2), radius: 12, y: 4)
+                    .fill(Color.Aurora.surface)
+                    .shadow(color: Color.black.opacity(0.2), radius: 12, y: 6)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .stroke(Color.Aurora.border, lineWidth: 0.5)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
             )
             .padding(.top, 52) // Below header
             .padding(.leading, AuroraSpacing.space4)
@@ -343,10 +331,10 @@ struct DrawerView: View {
         .padding(AuroraSpacing.space3)
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                .fill(Color.Aurora.error.opacity(0.1))
+                .fill(Color.Aurora.error.opacity(0.08))
                 .overlay(
                     RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                        .stroke(Color.Aurora.error.opacity(0.2), lineWidth: 0.5)
+                        .stroke(Color.Aurora.error.opacity(0.2), lineWidth: 1)
                 )
         )
         .padding(.horizontal, AuroraSpacing.space4)
@@ -361,18 +349,12 @@ struct DrawerView: View {
             
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: Color.Aurora.auroraGradientColors.map { $0.opacity(0.15) },
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(Color.Aurora.surface)
                     .frame(width: 80, height: 80)
                 
                 Image(systemName: "sparkles")
                     .font(.system(size: 32, weight: .light))
-                    .foregroundStyle(Color.Aurora.auroraGradient)
+                    .foregroundColor(Color.Aurora.primary)
             }
             
             VStack(spacing: AuroraSpacing.space2) {
@@ -478,11 +460,9 @@ struct DrawerView: View {
             }
             .padding(.horizontal, AuroraSpacing.space4)
             .padding(.vertical, AuroraSpacing.space2)
-            .background(Color.Aurora.backgroundDeep.opacity(0.3))
+            .background(Color.Aurora.surface.opacity(0.6))
             
-            Rectangle()
-                .fill(Color.Aurora.border)
-                .frame(height: 1)
+            Divider()
             
             HStack(spacing: AuroraSpacing.space3) {
                 HStack(spacing: AuroraSpacing.space2) {
@@ -509,6 +489,7 @@ struct DrawerView: View {
                                 .clipShape(Circle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(L10n.Drawer.stop)
                     } else {
                         // Send button when not running
                         Button(action: handleInputSubmit) {
@@ -518,24 +499,25 @@ struct DrawerView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .accessibilityLabel(L10n.CommandBar.submit)
                     }
                 }
                 .padding(.horizontal, AuroraSpacing.space3)
                 .padding(.vertical, AuroraSpacing.space2)
-                .background(Color.Aurora.surface.opacity(isRunning ? 0.5 : 1))
+                .background(Color.Aurora.surface.opacity(isRunning ? 0.6 : 1))
                 .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
                         .stroke(
                             isInputFocused && !isRunning ? Color.Aurora.borderFocus : Color.Aurora.border,
-                            lineWidth: isInputFocused && !isRunning ? 1.5 : 0.5
+                            lineWidth: isInputFocused && !isRunning ? 1.5 : 1
                         )
                 )
                 .animation(.auroraFast, value: isInputFocused)
             }
             .padding(.horizontal, AuroraSpacing.space4)
             .padding(.vertical, AuroraSpacing.space3)
-            .background(Color.Aurora.backgroundDeep.opacity(0.5))
+            .background(Color.Aurora.surface.opacity(0.7))
         }
     }
     
@@ -563,12 +545,12 @@ struct DrawerView: View {
             .frame(width: 360)
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .fill(Color.Aurora.backgroundDeep)
+                    .fill(Color.Aurora.surface)
                     .shadow(color: Color.black.opacity(0.2), radius: 12, y: -4)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .stroke(Color.Aurora.border, lineWidth: 0.5)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
             )
             .padding(.bottom, 80) // Position above input area
         }
@@ -742,6 +724,7 @@ private struct SessionPickerItem: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(L10n.CommandBar.delete)
                 .transition(.opacity)
             }
         }

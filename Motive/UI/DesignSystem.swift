@@ -2,7 +2,7 @@
 //  DesignSystem.swift
 //  Motive
 //
-//  Aurora Design System - A sophisticated, gradient-infused dark-first experience
+//  Aurora Design System - Premium macOS-native visual language
 //
 
 import AppKit
@@ -12,127 +12,117 @@ import SwiftUI
 
 extension Color {
     enum Aurora {
-        // MARK: - Background Colors (Notion Style - 温暖优雅)
+        // MARK: - Background Colors (Graphite)
         
-        /// Base canvas - deepest background (#191919)
+        /// Base canvas - deepest background
         static var backgroundDeep: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "191919") : NSColor(hex: "FAFAFA")
+                appearance.isDark ? NSColor(hex: "151515") : NSColor(hex: "F5F5F5")
             })
         }
         
-        /// Main background (#202020)
+        /// Main background
         static var background: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "202020") : NSColor(hex: "F5F5F5")
+                appearance.isDark ? NSColor(hex: "1B1B1B") : NSColor(hex: "F8F8F8")
             })
         }
         
-        /// Cards, inputs (#2B2B2B)
+        /// Cards, inputs
         static var surface: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "2B2B2B") : NSColor(hex: "FFFFFF")
+                appearance.isDark ? NSColor(hex: "232323") : NSColor(hex: "FFFFFF")
             })
         }
         
-        /// Hover states (#363636)
+        /// Hover/raised surface
         static var surfaceElevated: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "363636") : NSColor(hex: "F0F0F0")
+                appearance.isDark ? NSColor(hex: "2B2B2B") : NSColor(hex: "F0F0F0")
             })
         }
         
-        // MARK: - Accent Colors (Notion Style - 柔和灰)
+        // MARK: - Accent Colors (Graphite)
         
-        /// Accent start - Light Gray (#ABABAB)
-        static let accentStart = Color(hex: "ABABAB")
+        /// Accent start - Light Graphite
+        static let accentStart = Color(hex: "B0B0B0")
         
-        /// Accent middle - Medium Gray (#8B8B8B)
+        /// Accent middle - Graphite
         static let accentMid = Color(hex: "8B8B8B")
         
-        /// Accent end - Dark Gray (#6B6B6B)
-        static let accentEnd = Color(hex: "6B6B6B")
+        /// Accent end - Deep Graphite
+        static let accentEnd = Color(hex: "6E6E6E")
         
-        /// Primary accent color (Medium Gray)
+        /// Primary accent color
         static let accent = Color(hex: "8B8B8B")
         
-        // MARK: - Primary Colors (Amber 琥珀金 - 主题亮色)
+        // MARK: - Primary Colors (Graphite)
         
-        /// Primary color - Amber (#F59E0B)
-        static let primary = Color(hex: "F59E0B")
+        /// Primary color - Graphite
+        static let primary = Color(hex: "8B8B8B")
         
-        /// Primary light - for hover (#FBBF24)
-        static let primaryLight = Color(hex: "FBBF24")
+        /// Primary light - for hover
+        static let primaryLight = Color(hex: "A3A3A3")
         
-        /// Primary dark - for pressed (#D97706)
-        static let primaryDark = Color(hex: "D97706")
+        /// Primary dark - for pressed
+        static let primaryDark = Color(hex: "737373")
         
-        // MARK: - Semantic Colors
+        // MARK: - Semantic Colors (System-aligned)
         
-        /// Success - Emerald (#10B981)
-        static let success = Color(hex: "10B981")
+        /// Success
+        static let success = Color(nsColor: .systemGreen)
         
-        /// Warning - Amber (#F59E0B)
-        static let warning = Color(hex: "F59E0B")
+        /// Warning
+        static let warning = Color(nsColor: .systemOrange)
         
-        /// Error - Red (#EF4444)
-        static let error = Color(hex: "EF4444")
+        /// Error
+        static let error = Color(nsColor: .systemRed)
         
-        /// Info - Blue (#3B82F6)
-        static let info = Color(hex: "3B82F6")
+        /// Info
+        static let info = Color(nsColor: .systemBlue)
         
-        // MARK: - Text Colors (Notion Style)
+        // MARK: - Text Colors (System semantic)
         
-        /// Primary text - soft white (#EBEBEB / #1A1A1A)
+        /// Primary text
         static var textPrimary: Color {
-            Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "EBEBEB") : NSColor(hex: "1A1A1A")
-            })
+            Color(nsColor: .labelColor)
         }
         
-        /// Secondary text (#9B9B9B / #5A5A5A)
+        /// Secondary text
         static var textSecondary: Color {
-            Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "9B9B9B") : NSColor(hex: "5A5A5A")
-            })
+            Color(nsColor: .secondaryLabelColor)
         }
         
-        /// Muted text (#6B6B6B / #8A8A8A)
+        /// Muted text
         static var textMuted: Color {
-            Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "6B6B6B") : NSColor(hex: "8A8A8A")
-            })
+            Color(nsColor: .tertiaryLabelColor)
         }
         
-        /// Disabled text (#4A4A4A / #BABABA)
+        /// Disabled text
         static var textDisabled: Color {
-            Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark ? NSColor(hex: "4A4A4A") : NSColor(hex: "BABABA")
-            })
+            Color(nsColor: .quaternaryLabelColor)
         }
         
-        // MARK: - Border Colors (Notion Style)
+        // MARK: - Border Colors
         
         /// Default border - subtle
         static var border: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark
-                    ? NSColor.white.withAlphaComponent(0.06)
-                    : NSColor.black.withAlphaComponent(0.06)
+                let base = NSColor.separatorColor
+                return base.withAlphaComponent(appearance.isDark ? 0.4 : 0.6)
             })
         }
         
         /// Hover border
         static var borderHover: Color {
             Color(nsColor: NSColor(name: nil) { appearance in
-                appearance.isDark
-                    ? NSColor.white.withAlphaComponent(0.10)
-                    : NSColor.black.withAlphaComponent(0.10)
+                let base = NSColor.separatorColor
+                return base.withAlphaComponent(appearance.isDark ? 0.55 : 0.8)
             })
         }
         
-        /// Focus border (Amber accent for visibility)
-        static let borderFocus = Color(hex: "F59E0B").opacity(0.6)
+        /// Focus border (Brand accent for visibility)
+        static let borderFocus = Color(hex: "8B8B8B").opacity(0.6)
         
         // MARK: - Gradient Helpers
         
@@ -321,22 +311,22 @@ extension Animation {
 extension View {
     /// Large ambient glow shadow
     func auroraShadowLarge() -> some View {
-        self.shadow(color: Color.Aurora.accentStart.opacity(0.15), radius: 40, x: 0, y: 20)
+        self.shadow(color: Color.black.opacity(0.18), radius: 24, x: 0, y: 12)
     }
     
     /// Medium shadow for cards
     func auroraShadowMedium() -> some View {
-        self.shadow(color: Color.black.opacity(0.25), radius: 20, x: 0, y: 10)
+        self.shadow(color: Color.black.opacity(0.2), radius: 16, x: 0, y: 8)
     }
     
     /// Small shadow for buttons
     func auroraShadowSmall() -> some View {
-        self.shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+        self.shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
     }
     
     /// Glow effect with aurora colors
     func auroraGlow(intensity: Double = 0.3) -> some View {
-        self.shadow(color: Color.Aurora.accentMid.opacity(intensity), radius: 20, x: 0, y: 0)
+        self.shadow(color: Color.Aurora.accent.opacity(intensity * 0.2), radius: 12, x: 0, y: 0)
     }
     
     // Legacy shadows
@@ -368,36 +358,22 @@ struct AuroraGradientBorder: View {
 struct AuroraBackground: View {
     var cornerRadius: CGFloat = AuroraRadius.lg
     var showGradientBorder: Bool = true
-    var borderOpacity: Double = 0.6
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
+    var borderOpacity: Double = 0.4
     
     var body: some View {
         ZStack {
             // Solid background
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Color.Aurora.background)
+                .fill(Color.Aurora.surface)
             
             // Subtle gradient overlay for depth
-            if isDark {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.Aurora.accentMid.opacity(0.03),
-                                Color.clear,
-                                Color.Aurora.accentStart.opacity(0.02)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
+            EmptyView()
             
             // Gradient border
             if showGradientBorder {
-                AuroraGradientBorder(cornerRadius: cornerRadius, opacity: borderOpacity)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
+                    .opacity(borderOpacity)
             }
         }
     }
@@ -430,13 +406,8 @@ struct GlassBackground: View {
     
     var body: some View {
         ZStack {
-            VisualEffectView(material: .popover, blendingMode: .behindWindow, state: .active)
-            
-            if colorScheme == .dark {
-                Color.Aurora.background.opacity(opacity)
-            } else {
-                Color.white.opacity(0.9)
-            }
+            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, state: .active)
+            Color.Aurora.background.opacity(opacity)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(
@@ -453,12 +424,11 @@ struct DarkGlassBackground: View {
     var body: some View {
         ZStack {
             VisualEffectView(
-                material: colorScheme == .dark ? .sidebar : .popover,
+                material: colorScheme == .dark ? .sidebar : .hudWindow,
                 blendingMode: .behindWindow,
                 state: .active
             )
-            
-            Color.Aurora.backgroundDeep.opacity(0.95)
+            Color.Aurora.backgroundDeep.opacity(0.9)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(
@@ -480,7 +450,7 @@ struct AuroraStatusIndicator: View {
             // Outer glow for active states
             if state != .idle {
                 Circle()
-                    .fill(stateColor.opacity(0.3))
+                    .fill(stateColor.opacity(0.2))
                     .frame(width: 14, height: 14)
                     .scaleEffect(isPulsing ? 1.5 : 1.0)
                     .opacity(isPulsing ? 0 : 0.5)
@@ -488,17 +458,7 @@ struct AuroraStatusIndicator: View {
             
             // Main indicator
             Circle()
-                .fill(
-                    state == .idle
-                        ? AnyShapeStyle(stateColor)
-                        : AnyShapeStyle(
-                            LinearGradient(
-                                colors: Color.Aurora.auroraGradientColors,
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                )
+                .fill(AnyShapeStyle(stateColor))
                 .frame(width: 8, height: 8)
         }
         .onAppear {
@@ -521,8 +481,8 @@ struct AuroraStatusIndicator: View {
     private var stateColor: Color {
         switch state {
         case .idle: return Color.Aurora.textMuted
-        case .reasoning: return Color.Aurora.accentMid
-        case .executing: return Color.Aurora.accentStart
+        case .reasoning: return Color.Aurora.primary
+        case .executing: return Color.Aurora.primaryLight
         }
     }
 }
@@ -597,12 +557,8 @@ struct AuroraButtonStyle: ButtonStyle {
     private func background(isPressed: Bool) -> some View {
         switch style {
         case .primary:
-            LinearGradient(
-                colors: Color.Aurora.auroraGradientColors,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .opacity(isPressed ? 0.8 : 1.0)
+            Color.Aurora.primary
+                .opacity(isPressed ? 0.85 : 1.0)
         case .secondary:
             Color.Aurora.surface
                 .opacity(isPressed ? 0.8 : 1.0)
@@ -643,8 +599,7 @@ struct AuroraStyledTextField: View {
     private var isDark: Bool { colorScheme == .dark }
     
     private var backgroundColor: Color {
-        isDark ? Color(red: 0x19/255.0, green: 0x19/255.0, blue: 0x19/255.0) 
-               : Color(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0)
+        isDark ? Color.Aurora.backgroundDeep : Color.Aurora.surface
     }
     
     var body: some View {

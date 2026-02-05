@@ -20,11 +20,15 @@ extension CommandBarView {
         VStack(spacing: 0) {
             if showsAboveContent {
                 aboveInputContent
-                Divider().background(Color.Aurora.border)
+                Rectangle()
+                    .fill(Color.Aurora.border.opacity(0.5))
+                    .frame(height: 0.5)
             }
             inputAreaView
             if showsBelowContent {
-                Divider().background(Color.Aurora.border)
+                Rectangle()
+                    .fill(Color.Aurora.border.opacity(0.5))
+                    .frame(height: 0.5)
                 belowInputContent
             } else {
                 // Only use spacer when no list content
@@ -32,10 +36,10 @@ extension CommandBarView {
             }
             footerView
         }
-        .frame(width: 600, height: currentHeight)
+        .frame(width: 620, height: currentHeight)
         .background(commandBarBackground)
         .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous))
-        .overlay(borderOverlay)  // Border on top of everything
+        .overlay(borderOverlay)
         // Note: Window-level fade animation is handled by CommandBarWindowController
         // Removed SwiftUI-level entrance animation to prevent double animation
     }
@@ -334,13 +338,13 @@ extension CommandBarView {
                 if let completion = autocompleteCompletion {
                     HStack(spacing: 0) {
                         // Invisible spacer for the typed text width
-                        Text(inputText)
-                            .font(.system(size: 18, weight: .regular))
+                Text(inputText)
+                    .font(.system(size: 16, weight: .regular))
                             .opacity(0)
 
                         // Gray completion hint
-                        Text(completion)
-                            .font(.system(size: 18, weight: .regular))
+                Text(completion)
+                    .font(.system(size: 16, weight: .regular))
                             .foregroundColor(Color.Aurora.textMuted)
                     }
                 }
@@ -373,18 +377,18 @@ extension CommandBarView {
                     .padding(.vertical, AuroraSpacing.space1)
                     .background(
                         RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                            .fill(Color.Aurora.surface)
+                            .fill(Color.Aurora.surfaceElevated)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                            .stroke(Color.Aurora.border, lineWidth: 0.5)
+                            .stroke(Color.Aurora.border.opacity(0.6), lineWidth: 1)
                     )
             }
 
             // Action button
             actionButton
         }
-        .frame(height: 52)
+        .frame(height: 50)
         .padding(.horizontal, AuroraSpacing.space5)
     }
 
@@ -460,7 +464,12 @@ extension CommandBarView {
         }
         .frame(height: 40)
         .padding(.horizontal, AuroraSpacing.space5)
-        .background(Color.Aurora.backgroundDeep.opacity(isDark ? 0.5 : 0.3))
+        .background(Color.clear)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.Aurora.border.opacity(0.5))
+                .frame(height: 0.5)
+        }
     }
 
     @ViewBuilder
@@ -481,7 +490,11 @@ extension CommandBarView {
         .padding(.vertical, AuroraSpacing.space1)
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                .fill(Color.Aurora.surface.opacity(0.5))
+                .fill(Color.Aurora.surfaceElevated)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
+                .stroke(Color.Aurora.border.opacity(0.6), lineWidth: 1)
         )
         .onTapGesture {
             // Quick access to /project command
@@ -545,17 +558,16 @@ extension CommandBarView {
         switch mode {
         case .running:
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .strokeBorder(Color.Aurora.border.opacity(0.8), lineWidth: 1.0)
-                .modifier(PulsingBorderModifier())
+                .strokeBorder(Color.Aurora.primary.opacity(0.45), lineWidth: 0.5)
         case .completed:
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .strokeBorder(Color.Aurora.accent.opacity(0.5), lineWidth: 1.0)
+                .strokeBorder(Color.Aurora.border.opacity(0.5), lineWidth: 0.5)
         case .error:
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .strokeBorder(Color.Aurora.error.opacity(0.6), lineWidth: 1.0)
+                .strokeBorder(Color.Aurora.error.opacity(0.5), lineWidth: 0.5)
         default:
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .strokeBorder(Color.Aurora.accent.opacity(0.4), lineWidth: 1.0)
+                .strokeBorder(Color.Aurora.border.opacity(0.5), lineWidth: 0.5)
         }
     }
 
@@ -564,15 +576,12 @@ extension CommandBarView {
     var commandBarBackground: some View {
         ZStack {
             VisualEffectView(
-                material: .menu,
+                material: .hudWindow,
                 blendingMode: .behindWindow,
-                state: .active,
-                cornerRadius: AuroraRadius.xl,
-                masksToBounds: true
+                state: .active
             )
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .fill(Color.Aurora.background.opacity(0.85))
+                .fill(Color.Aurora.background.opacity(0.9))
         }
-        .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous))
     }
 }

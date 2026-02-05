@@ -41,9 +41,7 @@ struct PersonaSettingsView: View {
     @State private var isSaving = false
     @State private var hasChanges = false
     @FocusState private var isEmojiFocused: Bool
-    @Environment(\.colorScheme) private var colorScheme
     
-    private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -205,8 +203,14 @@ struct PersonaSettingsView: View {
                         .padding(.vertical, 8)
                 }
                 .frame(width: width)
-                .background(Color.Aurora.surfaceElevated)
-                .cornerRadius(6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color.Aurora.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
+                )
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -253,8 +257,14 @@ struct PersonaSettingsView: View {
                     }
                     .font(.system(size: 20))
                     .frame(width: 44, height: 36)
-                    .background(Color.Aurora.surfaceElevated)
-                    .cornerRadius(6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color.Aurora.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
+                )
                     
                     // Emoji picker button
                     Button {
@@ -271,8 +281,14 @@ struct PersonaSettingsView: View {
                     }
                     .buttonStyle(.plain)
                     .frame(width: 28, height: 28)
-                    .background(Color.Aurora.surfaceElevated)
-                    .cornerRadius(6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color.Aurora.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
+                )
                     .help(L10n.Settings.openEmojiPicker)
                 }
             }
@@ -506,9 +522,6 @@ private struct PersonaTabButton: View {
     let action: () -> Void
     
     @State private var isHovering = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
     
     var body: some View {
         Button(action: action) {
@@ -541,9 +554,9 @@ private struct PersonaTabButton: View {
     
     private var backgroundColor: Color {
         if isSelected {
-            return Color.Aurora.primary.opacity(isDark ? 0.12 : 0.08)
+            return Color.Aurora.primary.opacity(0.12)
         } else if isHovering {
-            return isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.03)
+            return Color.Aurora.surfaceElevated
         }
         return Color.clear
     }

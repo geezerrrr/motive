@@ -10,26 +10,23 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @EnvironmentObject private var configManager: ConfigManager
-    @Environment(\.colorScheme) private var colorScheme
-    
     @State private var showRestartAlert = false
-    
-    private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             // Startup Section
             SettingSection(L10n.Settings.startup) {
-                SettingRow(L10n.Settings.launchAtLogin, showDivider: false) {
+                SettingRow(L10n.Settings.launchAtLogin, description: L10n.Settings.launchAtLoginDesc, showDivider: false) {
                     Toggle("", isOn: $configManager.launchAtLogin)
                         .toggleStyle(.switch)
                         .tint(Color.Aurora.primary)
+                        .controlSize(.small)
                 }
             }
             
             // Appearance Section
             SettingSection(L10n.Settings.appearance) {
-                SettingRow(L10n.Settings.theme) {
+                SettingRow(L10n.Settings.theme, description: L10n.Settings.themeDesc) {
                     menuPicker(
                         selection: Binding(
                             get: { configManager.appearanceMode },
@@ -40,7 +37,7 @@ struct GeneralSettingsView: View {
                     )
                 }
                 
-                SettingRow(L10n.Settings.language, showDivider: false) {
+                SettingRow(L10n.Settings.language, description: L10n.Settings.languageDesc, showDivider: false) {
                     menuPicker(
                         selection: Binding(
                             get: { configManager.language },
@@ -60,7 +57,7 @@ struct GeneralSettingsView: View {
             
             // Keyboard Section
             SettingSection(L10n.Settings.keyboard) {
-                SettingRow(L10n.Settings.globalHotkey, showDivider: false) {
+                SettingRow(L10n.Settings.globalHotkey, description: L10n.Settings.globalHotkeyDesc, showDivider: false) {
                     HotkeyRecorderView(hotkey: $configManager.hotkey)
                         .frame(width: 140, height: 32)
                 }
@@ -126,15 +123,20 @@ struct GeneralSettingsView: View {
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(Color.Aurora.textSecondary)
             }
-            .frame(width: 140, alignment: .trailing)
+            .frame(width: 160, alignment: .trailing)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.04))
+                    .fill(Color.Aurora.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(Color.Aurora.border, lineWidth: 1)
             )
         }
         .menuStyle(.borderlessButton)
+        .controlSize(.small)
         .fixedSize()
     }
 }

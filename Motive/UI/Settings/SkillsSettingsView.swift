@@ -13,15 +13,12 @@ struct SkillsSettingsView: View {
     @EnvironmentObject private var configManager: ConfigManager
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = SkillsSettingsViewModel()
-    @Environment(\.colorScheme) private var colorScheme
-    
     @State private var searchText: String = ""
     @State private var selectedSkillId: String?
     @State private var markdownContent: String = ""
     @State private var markdownError: String? = nil
     @State private var isMarkdownLoading: Bool = false
     
-    private var isDark: Bool { colorScheme == .dark }
     
     /// Filtered skills based on search
     private var filteredSkills: [SkillStatusEntry] {
@@ -117,6 +114,7 @@ struct SkillsSettingsView: View {
                     .toggleStyle(.switch)
                     .tint(Color.Aurora.primary)
                     .scaleEffect(0.85)
+                    .controlSize(.small)
                     .onChange(of: configManager.skillsSystemEnabled) { _, _ in
                         viewModel.refresh()
                     }
@@ -143,7 +141,7 @@ struct SkillsSettingsView: View {
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                    .fill(Color.Aurora.surface)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -168,11 +166,16 @@ struct SkillsSettingsView: View {
                 .frame(width: 28, height: 28)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                        .fill(Color.Aurora.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(Color.Aurora.border, lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
             .disabled(viewModel.isLoading)
+            .accessibilityLabel("Refresh skills")
         }
         .padding(.bottom, 12)
     }
@@ -349,9 +352,6 @@ private struct SkillListItem: View {
     let onToggle: (Bool) -> Void
     
     @State private var isHovering = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
     
     /// Determine the display status based on dependency and enabled state
     private var listStatus: SkillListStatus {
@@ -405,9 +405,9 @@ private struct SkillListItem: View {
     
     private var backgroundColor: Color {
         if isSelected {
-            return isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)
+            return Color.Aurora.primary.opacity(0.12)
         } else if isHovering {
-            return isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.03)
+            return Color.Aurora.surfaceElevated
         }
         return Color.clear
     }
@@ -430,9 +430,6 @@ private struct SkillDetail: View {
     @State private var apiKeyInput: String = ""
     @State private var isEditingKey: Bool = false
     @State private var showApiKey: Bool = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
     
     private var primaryEnvName: String? {
         status.entry.metadata?.primaryEnv
@@ -534,7 +531,7 @@ private struct SkillDetail: View {
                             .padding(.vertical, 2)
                             .background(
                                 RoundedRectangle(cornerRadius: 3)
-                                    .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                                    .fill(Color.Aurora.surfaceElevated)
                             )
                     }
                 }
@@ -628,7 +625,7 @@ private struct SkillDetail: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.02))
+                            .fill(Color.Aurora.surface)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
@@ -640,15 +637,9 @@ private struct SkillDetail: View {
                     } label: {
                         Text("Save")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                    .fill(Color.Aurora.primary)
-                            )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.Aurora.primary)
                     .disabled(apiKeyInput.isEmpty)
                     
                     if isEditingKey {
@@ -661,7 +652,7 @@ private struct SkillDetail: View {
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(Color.Aurora.textMuted)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.bordered)
                     }
                 }
             } else {
@@ -688,7 +679,7 @@ private struct SkillDetail: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(isDark ? Color.white.opacity(0.02) : Color.black.opacity(0.01))
+                .fill(Color.Aurora.surface)
         )
     }
     
@@ -721,7 +712,7 @@ private struct SkillDetail: View {
                         .padding(.vertical, 6)
                         .background(
                             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                                .fill(Color.Aurora.surface)
                         )
                     }
                     .buttonStyle(.plain)
@@ -771,6 +762,7 @@ private struct SkillDetail: View {
                     ))
                     .toggleStyle(.switch)
                     .tint(Color.Aurora.primary)
+                    .controlSize(.small)
                     .disabled(!isReady)  // Can't enable blocked skills
                 }
             }
@@ -803,7 +795,7 @@ private struct SkillDetail: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isDark ? Color.white.opacity(0.02) : Color.black.opacity(0.01))
+                    .fill(Color.Aurora.surface)
             )
         }
     }

@@ -64,7 +64,7 @@ struct SessionListItem: View {
         case "running":
             return AnyShapeStyle(Color.Aurora.primary)
         case "completed":
-            return AnyShapeStyle(Color.Aurora.accent)
+            return AnyShapeStyle(Color.Aurora.success)
         case "failed":
             return AnyShapeStyle(Color.Aurora.error)
         default:
@@ -99,7 +99,7 @@ struct MessageBubble: View {
                 Spacer(minLength: 60)
             }
             
-            VStack(alignment: message.type == .user ? .trailing : .leading, spacing: 0) {
+        VStack(alignment: message.type == .user ? .trailing : .leading, spacing: 0) {
                 ZStack(alignment: message.type == .user ? .topTrailing : .topLeading) {
                     // Message content
                     Group {
@@ -156,17 +156,14 @@ struct MessageBubble: View {
     
     private var assistantBubble: some View {
         VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
-            // Avatar row - use identity if configured
             HStack(spacing: AuroraSpacing.space2) {
                 if let identity = agentIdentity, identity.hasValues(), let emoji = identity.emoji {
-                    // Use configured emoji
                     Text(emoji)
                         .font(.system(size: 12))
                 } else {
-                    // Default sparkle icon
-                    Image(systemName: "sparkle")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color.Aurora.primary)
+                    Circle()
+                        .fill(Color.Aurora.primary)
+                        .frame(width: 6, height: 6)
                 }
                 
                 Text(agentIdentity?.displayName ?? L10n.Drawer.assistant)
@@ -174,36 +171,25 @@ struct MessageBubble: View {
                     .foregroundColor(Color.Aurora.textSecondary)
             }
             
-            // Render markdown content
             Markdown(message.content)
                 .markdownTextStyle {
-                    FontSize(14)
+                    FontSize(13)
                     ForegroundColor(Color.Aurora.textPrimary)
                 }
                 .markdownBlockStyle(\.codeBlock) { configuration in
                     configuration.label
                         .padding(8)
-                        .background(Color.Aurora.backgroundDeep)
+                        .background(Color.Aurora.backgroundDeep.opacity(0.6))
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .textSelection(.enabled)
         }
         .padding(AuroraSpacing.space3)
-        .background(Color.Aurora.primaryDark.opacity(0.06))
+        .background(Color.Aurora.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
         .overlay(
-            // Left accent border - amber
-            HStack {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.Aurora.primary)
-                    .frame(width: 3)
-                Spacer()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
-        )
-        .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                .stroke(Color.Aurora.border, lineWidth: 0.5)
+                .stroke(Color.Aurora.border, lineWidth: 1)
         )
     }
     
@@ -214,7 +200,7 @@ struct MessageBubble: View {
             HStack(spacing: AuroraSpacing.space2) {
                 Image(systemName: toolIcon)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color.Aurora.accent)
+                    .foregroundColor(Color.Aurora.textSecondary)
                 
                 Text(message.toolName?.simplifiedToolName ?? L10n.Drawer.tool)
                     .font(.Aurora.caption.weight(.medium))
@@ -229,6 +215,7 @@ struct MessageBubble: View {
                             .foregroundColor(Color.Aurora.textMuted)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(isOutputExpanded ? "Hide output" : "Show output")
                 }
             }
             
@@ -263,7 +250,7 @@ struct MessageBubble: View {
                 .padding(.top, AuroraSpacing.space1)
                 .background(
                     RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                        .fill(Color.Aurora.surface.opacity(0.4))
+                        .fill(Color.Aurora.surface.opacity(0.7))
                 )
             }
         }
@@ -271,11 +258,11 @@ struct MessageBubble: View {
         .padding(.vertical, AuroraSpacing.space2)
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .fill(Color.Aurora.accent.opacity(0.08))
+                .fill(Color.Aurora.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .stroke(Color.Aurora.accent.opacity(0.15), lineWidth: 0.5)
+                .stroke(Color.Aurora.border, lineWidth: 1)
         )
     }
     
@@ -300,12 +287,12 @@ struct MessageBubble: View {
     private var timestampBadge: some View {
         Text(message.timestamp, style: .time)
             .font(.system(size: 9, weight: .medium, design: .monospaced))
-            .foregroundColor(.white)
+            .foregroundColor(Color.Aurora.textSecondary)
             .padding(.horizontal, AuroraSpacing.space2)
             .padding(.vertical, AuroraSpacing.space1)
             .background(
                 Capsule()
-                    .fill(Color.black.opacity(0.75))
+                    .fill(Color.Aurora.surfaceElevated)
             )
             .offset(
                 x: message.type == .user ? -8 : 8,
@@ -354,11 +341,11 @@ struct ThinkingIndicator: View {
         .padding(.vertical, AuroraSpacing.space2)
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .fill(Color.Aurora.surface)
+                .fill(Color.Aurora.surfaceElevated)
         )
         .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .stroke(Color.Aurora.border, lineWidth: 0.5)
+                .stroke(Color.Aurora.border, lineWidth: 1)
         )
     }
 }
@@ -453,7 +440,7 @@ struct SessionStatusBadge: View {
     private var foregroundColor: Color {
         switch status {
         case .idle: return Color.Aurora.textMuted
-        case .running: return Color.Aurora.primary  // Amber for active state
+        case .running: return Color.Aurora.primary
         case .completed: return Color.Aurora.success
         case .failed: return Color.Aurora.error
         case .interrupted: return Color.Aurora.warning

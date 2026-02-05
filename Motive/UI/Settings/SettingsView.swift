@@ -2,8 +2,8 @@
 //  SettingsView.swift
 //  Motive
 //
-//  Redesigned Settings Window
-//  Compact tab bar + unified layout system
+//  Settings Window
+//  Premium macOS-native layout with sidebar navigation
 //
 
 import SwiftUI
@@ -12,55 +12,30 @@ import SwiftUI
 
 struct SettingsView: View {
     var initialTab: SettingsTab = .general
-    @State private var selectedTab: SettingsTab = .general
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
-    
+    @State private var selectedTab: SettingsTab? = .general
     init(initialTab: SettingsTab = .general) {
         self.initialTab = initialTab
         _selectedTab = State(initialValue: initialTab)
     }
     
+    private var activeTab: SettingsTab {
+        selectedTab ?? .general
+    }
+    
     var body: some View {
-        VStack(spacing: 0) {
-            // Compact Tab Bar
-            CompactTabBar(selectedTab: $selectedTab)
-            
-            // Content area - centered with max width
-            Group {
-                if selectedTab == .skills {
-                    // Skills uses full width
-                    selectedTab.contentView
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 24)
-                } else if selectedTab == .advanced || selectedTab == .permissions || selectedTab == .persona {
-                    // Advanced, Permissions and Persona need scroll
-                    ScrollView {
-                        VStack {
-                            selectedTab.contentView
-                                .frame(maxWidth: 520)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 24)
-                    }
-                } else {
-                    // Other tabs: no scroll, vertically centered
-                    VStack {
-                        selectedTab.contentView
-                            .frame(maxWidth: 520)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 20)
-                }
+        NavigationSplitView {
+            List(SettingsTab.allCases, selection: $selectedTab) { tab in
+                Label(tab.title, systemImage: tab.icon)
+                    .tag(tab)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.Aurora.background)
+            .listStyle(.sidebar)
+            .frame(minWidth: 220)
+        } detail: {
+            SettingsDetailView(tab: activeTab)
         }
-        .frame(width: selectedTab.windowSize.width, height: selectedTab.windowSize.height)
-        .background(Color.Aurora.backgroundDeep)
+        .navigationSplitViewStyle(.balanced)
+        .frame(width: activeTab.windowSize.width, height: activeTab.windowSize.height)
+        .background(Color.Aurora.background)
     }
 }
 
@@ -88,6 +63,18 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .about: return L10n.Settings.about
         }
     }
+
+    var subtitle: String {
+        switch self {
+        case .general: return L10n.Settings.generalSubtitle
+        case .persona: return L10n.Settings.personaSubtitle
+        case .model: return L10n.Settings.aiProviderSubtitle
+        case .skills: return L10n.Settings.skillsSubtitle
+        case .permissions: return L10n.Settings.permissionsSubtitle
+        case .advanced: return L10n.Settings.advancedSubtitle
+        case .about: return L10n.Settings.aboutSubtitle
+        }
+    }
     
     var icon: String {
         switch self {
@@ -103,8 +90,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     
     /// Fixed window size for all tabs
     var windowSize: CGSize {
-        // Use consistent size for all tabs
-        CGSize(width: 720, height: 560)
+        CGSize(width: 920, height: 640)
     }
     
     @ViewBuilder
@@ -128,96 +114,50 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Compact Tab Bar
+// MARK: - Settings Detail
 
-struct CompactTabBar: View {
-    @Binding var selectedTab: SettingsTab
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
-    
+private struct SettingsDetailView: View {
+    let tab: SettingsTab
+
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(SettingsTab.allCases) { tab in
-                CompactTabButton(
-                    tab: tab,
-                    isSelected: selectedTab == tab
-                ) {
-                    withAnimation(.auroraFast) {
-                        selectedTab = tab
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(Color.Aurora.primary)
+                Text(tab.title)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(Color.Aurora.textPrimary)
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 24)
+
+            Text(tab.subtitle)
+                .font(.system(size: 13))
+                .foregroundColor(Color.Aurora.textSecondary)
+                .padding(.horizontal, 28)
+
+            Divider()
+                .padding(.horizontal, 28)
+
+            Group {
+                if tab == .skills || tab == .advanced {
+                    tab.contentView
+                        .padding(.horizontal, 28)
+                        .padding(.bottom, 24)
+                } else {
+                    ScrollView {
+                        tab.contentView
+                            .frame(maxWidth: 560)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 28)
+                            .padding(.bottom, 24)
                     }
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.03))
-        )
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity)
-        .background(Color.Aurora.backgroundDeep)
-    }
-}
-
-// MARK: - Compact Tab Button
-
-private struct CompactTabButton: View {
-    let tab: SettingsTab
-    let isSelected: Bool
-    let action: () -> Void
-    
-    @State private var isHovering = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private var isDark: Bool { colorScheme == .dark }
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(iconColor)
-                    .frame(width: 24, height: 24)
-                
-                Text(tab.title)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(textColor)
-            }
-            .frame(width: 64, height: 52)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(backgroundColor)
-            )
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
-    }
-    
-    private var iconColor: Color {
-        if isSelected {
-            return Color.Aurora.primary
-        }
-        return isHovering ? Color.Aurora.textPrimary : Color.Aurora.textSecondary
-    }
-    
-    private var textColor: Color {
-        if isSelected {
-            return Color.Aurora.textPrimary
-        }
-        return Color.Aurora.textSecondary
-    }
-    
-    private var backgroundColor: Color {
-        if isSelected {
-            return Color.Aurora.primary.opacity(isDark ? 0.15 : 0.12)
-        } else if isHovering {
-            return isDark ? Color.white.opacity(0.06) : Color.black.opacity(0.04)
-        }
-        return Color.clear
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color.Aurora.background)
     }
 }
 
@@ -227,9 +167,6 @@ struct SettingSection<Content: View>: View {
     let title: String
     let content: Content
     
-    @Environment(\.colorScheme) private var colorScheme
-    private var isDark: Bool { colorScheme == .dark }
-    
     init(_ title: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
@@ -237,15 +174,13 @@ struct SettingSection<Content: View>: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Section title
             Text(title)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color.Aurora.textMuted)
+                .foregroundColor(Color.Aurora.textSecondary)
                 .textCase(.uppercase)
-                .tracking(0.5)
-                .padding(.leading, 4)
-            
-            // Content card with rows
+                .tracking(0.6)
+                .padding(.leading, 2)
+
             VStack(spacing: 0) {
                 content
             }
@@ -268,9 +203,6 @@ struct SettingRow<Content: View>: View {
     var description: String? = nil
     let content: Content
     var showDivider: Bool = true
-    
-    @Environment(\.colorScheme) private var colorScheme
-    private var isDark: Bool { colorScheme == .dark }
     
     init(_ label: String, description: String? = nil, showDivider: Bool = true, @ViewBuilder content: () -> Content) {
         self.label = label
@@ -323,8 +255,6 @@ struct CollapsibleSection<Content: View>: View {
     let content: Content
     
     @State private var isExpanded: Bool = true
-    @Environment(\.colorScheme) private var colorScheme
-    private var isDark: Bool { colorScheme == .dark }
     
     init(_ title: String, icon: String? = nil, expanded: Bool = true, @ViewBuilder content: () -> Content) {
         self.title = title
@@ -345,12 +275,12 @@ struct CollapsibleSection<Content: View>: View {
                     if let icon {
                         Image(systemName: icon)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.Aurora.auroraGradient)
+                            .foregroundColor(Color.Aurora.primary)
                     }
                     
                     Text(title)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color.Aurora.textMuted)
+                        .foregroundColor(Color.Aurora.textSecondary)
                         .textCase(.uppercase)
                         .tracking(0.5)
                     

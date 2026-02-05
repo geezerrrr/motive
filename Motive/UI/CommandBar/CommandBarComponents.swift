@@ -19,7 +19,7 @@ struct CommandListItem: View {
             HStack(spacing: AuroraSpacing.space3) {
                 Image(systemName: command.icon)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? Color.Aurora.accent : Color.Aurora.textSecondary)
+                    .foregroundColor(isSelected ? Color.Aurora.primary : Color.Aurora.textSecondary)
                     .frame(width: 24)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -52,18 +52,7 @@ struct CommandListItem: View {
             .padding(.vertical, AuroraSpacing.space2)
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                    .fill(isSelected ? Color.Aurora.accent.opacity(0.1) : (isHovering ? Color.Aurora.surfaceElevated : Color.clear))
-            )
-            .overlay(
-                HStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.Aurora.auroraGradient)
-                            .frame(width: 3)
-                    }
-                    Spacer()
-                }
-                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                    .fill(isSelected ? Color.Aurora.primary.opacity(0.12) : (isHovering ? Color.Aurora.surfaceElevated : Color.clear))
             )
         }
         .buttonStyle(.plain)
@@ -86,7 +75,7 @@ struct ProjectListItem: View {
             HStack(spacing: AuroraSpacing.space3) {
                 Image(systemName: icon)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? Color.Aurora.accent : Color.Aurora.textSecondary)
+                    .foregroundColor(isSelected ? Color.Aurora.primary : Color.Aurora.textSecondary)
                     .frame(width: 24)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -98,12 +87,12 @@ struct ProjectListItem: View {
                         if isCurrent {
                             Text("current")
                                 .font(.Aurora.micro)
-                                .foregroundColor(Color.Aurora.accent)
+                                .foregroundColor(Color.Aurora.primary)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(
                                     Capsule()
-                                        .fill(Color.Aurora.accent.opacity(0.15))
+                                        .fill(Color.Aurora.primary.opacity(0.15))
                                 )
                         }
                     }
@@ -128,18 +117,7 @@ struct ProjectListItem: View {
             .padding(.vertical, AuroraSpacing.space2)
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                    .fill(isSelected ? Color.Aurora.accent.opacity(0.1) : (isHovering ? Color.Aurora.surfaceElevated : Color.clear))
-            )
-            .overlay(
-                HStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.Aurora.auroraGradient)
-                            .frame(width: 3)
-                    }
-                    Spacer()
-                }
-                .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                    .fill(isSelected ? Color.Aurora.primary.opacity(0.12) : (isHovering ? Color.Aurora.surfaceElevated : Color.clear))
             )
         }
         .buttonStyle(.plain)
@@ -161,9 +139,9 @@ struct AuroraActionPill: View {
 
         var gradientColors: [Color] {
             switch self {
-            case .primary: return Color.Aurora.auroraGradientColors
-            case .warning: return [Color.Aurora.warning, Color.Aurora.warning.opacity(0.8)]
-            case .error: return [Color.Aurora.error, Color.Aurora.error.opacity(0.8)]
+            case .primary: return [Color.Aurora.primary, Color.Aurora.primaryDark]
+            case .warning: return [Color.Aurora.warning, Color.Aurora.warning.opacity(0.9)]
+            case .error: return [Color.Aurora.error, Color.Aurora.error.opacity(0.9)]
             }
         }
     }
@@ -181,15 +159,9 @@ struct AuroraActionPill: View {
             }
             .padding(.horizontal, AuroraSpacing.space4)
             .frame(height: 36)
-            .background(
-                LinearGradient(
-                    colors: style.gradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .background(style.gradientColors.first ?? Color.Aurora.primary)
             .clipShape(Capsule())
-            .shadow(color: style.gradientColors.first?.opacity(0.3) ?? Color.clear, radius: isHovering ? 12 : 6, y: 3)
+            .shadow(color: Color.black.opacity(0.2), radius: isHovering ? 10 : 6, y: 3)
             .scaleEffect(isPressed ? 0.96 : 1.0)
         }
         .buttonStyle(.plain)
@@ -228,11 +200,11 @@ struct AuroraShortcutBadge: View {
                 .padding(.vertical, 3)
                 .background(
                     RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                        .fill(Color.Aurora.surface)
+                        .fill(Color.Aurora.surfaceElevated)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                        .stroke(Color.Aurora.border, lineWidth: 0.5)
+                        .stroke(Color.Aurora.border.opacity(0.6), lineWidth: 1)
                 )
             }
 
@@ -249,7 +221,7 @@ struct AuroraPulsingDot: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color.Aurora.primary.opacity(0.4))
+                .fill(Color.Aurora.primary.opacity(0.25))
                 .frame(width: 12, height: 12)
                 .scaleEffect(isPulsing ? 1.5 : 1)
                 .opacity(isPulsing ? 0 : 0.6)

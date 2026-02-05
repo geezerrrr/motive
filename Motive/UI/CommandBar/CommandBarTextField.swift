@@ -22,7 +22,7 @@ struct CommandBarTextField: NSViewRepresentable {
         textField.delegate = context.coordinator
         textField.isBordered = false
         textField.drawsBackground = false
-        textField.font = NSFont.systemFont(ofSize: 18, weight: .regular)
+        textField.font = NSFont.systemFont(ofSize: 16, weight: .regular)
         textField.textColor = NSColor(Color.Aurora.textPrimary)
         textField.focusRingType = .none
         textField.cell?.truncatesLastVisibleLine = true

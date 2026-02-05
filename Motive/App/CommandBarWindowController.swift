@@ -16,6 +16,9 @@ final class CommandBarWindowController {
     private var resignKeyObserver: Any?
     private var resignActiveObserver: Any?
     private var currentHeight: CGFloat = CommandBarWindowController.heights["idle"] ?? 100
+
+    // Must match SwiftUI CommandBarView width
+    private static let panelWidth: CGFloat = 620
     
     /// Whether the window has been shown at least once (for lazy initialization)
     private var hasBeenShown = false
@@ -45,24 +48,25 @@ final class CommandBarWindowController {
         hostingView.wantsLayer = true
         hostingView.layer?.masksToBounds = false
         
-        containerView = NSView(frame: NSRect(x: 0, y: 0, width: 600, height: currentHeight))
+        containerView = NSView(frame: NSRect(x: 0, y: 0, width: Self.panelWidth, height: currentHeight))
         containerView.wantsLayer = true
         
         // Initialize window off-screen to prevent first-frame flash at (0,0)
         let panel = KeyablePanel(
-            contentRect: NSRect(x: -10000, y: -10000, width: 600, height: 100),
+            contentRect: NSRect(x: -10000, y: -10000, width: Self.panelWidth, height: 100),
             styleMask: [.titled, .fullSizeContentView],
             backing: .buffered,
             defer: true  // Defer creation until needed
         )
         panel.isFloatingPanel = true
-        panel.level = .screenSaver
+        panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = true  // Native window shadow - follows contentView's rounded corners
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
+        // Hide standard window buttons (we use .titled for shadow but don't show the chrome)
         panel.standardWindowButton(.closeButton)?.isHidden = true
         panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
         panel.standardWindowButton(.zoomButton)?.isHidden = true
@@ -72,6 +76,7 @@ final class CommandBarWindowController {
         panel.worksWhenModal = true
         panel.contentView = containerView
         panel.contentView?.wantsLayer = true
+        // Round the contentView layer - macOS native shadow will follow this shape
         panel.contentView?.layer?.cornerRadius = AuroraRadius.xl
         panel.contentView?.layer?.masksToBounds = true
         
@@ -136,6 +141,7 @@ final class CommandBarWindowController {
         // 3. Show window with fade-in animation
         window.orderFrontRegardless()
         window.makeKey()
+        window.invalidateShadow()
         
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.15
@@ -191,6 +197,7 @@ final class CommandBarWindowController {
         } else {
             window.setFrame(newFrame, display: window.isVisible)
         }
+        window.invalidateShadow()
         
         currentHeight = newHeight
     }
@@ -222,7 +229,7 @@ final class CommandBarWindowController {
         let screenFrame = screen.frame
         
         let height = max(96, currentHeight)
-        let windowSize = NSSize(width: 600, height: height)
+        let windowSize = NSSize(width: Self.panelWidth, height: height)
         let x = screenFrame.midX - windowSize.width / 2
         
         // Position input at ~55% from bottom of screen

@@ -11,7 +11,6 @@ import UniformTypeIdentifiers
 struct AdvancedSettingsView: View {
     @EnvironmentObject private var configManager: ConfigManager
     @EnvironmentObject private var appState: AppState
-    @Environment(\.colorScheme) private var colorScheme
     
     @State private var showFileImporter = false
     @State private var isImporting = false
@@ -20,7 +19,6 @@ struct AdvancedSettingsView: View {
     @State private var showBrowserAgentAPIKey: Bool = false
     @State private var browserAgentBaseUrlInput: String = ""
     
-    private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
         ScrollView {
@@ -62,15 +60,9 @@ struct AdvancedSettingsView: View {
                                     Text(isImporting ? L10n.Settings.importing : L10n.Settings.selectBinary)
                                         .font(.system(size: 12, weight: .medium))
                                 }
-                                .foregroundColor(Color.Aurora.textPrimary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 7)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .fill(isDark ? Color.white.opacity(0.08) : Color.black.opacity(0.05))
-                                )
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderedProminent)
+                            .tint(Color.Aurora.primary)
                             .disabled(isImporting)
                             
                             Button {
@@ -82,15 +74,8 @@ struct AdvancedSettingsView: View {
                                     Text(L10n.Settings.autoDetect)
                                         .font(.system(size: 12, weight: .medium))
                                 }
-                                .foregroundColor(Color.Aurora.textSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 7)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
-                                )
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.bordered)
                             .disabled(isImporting)
                         }
                     }
@@ -127,10 +112,11 @@ struct AdvancedSettingsView: View {
                 
                 // Browser Automation Section
                 CollapsibleSection(L10n.Settings.browserTitle, icon: "globe") {
-                    SettingRow(L10n.Settings.browserEnable) {
+                    SettingRow(L10n.Settings.browserEnable, description: L10n.Settings.browserEnableDesc) {
                         Toggle("", isOn: $configManager.browserUseEnabled)
                             .toggleStyle(.switch)
                             .tint(Color.Aurora.primary)
+                            .controlSize(.small)
                             .onChange(of: configManager.browserUseEnabled) { _, _ in
                                 SkillManager.shared.reloadSkills()
                                 appState.restartAgent()
@@ -138,17 +124,18 @@ struct AdvancedSettingsView: View {
                     }
                     
                     if configManager.browserUseEnabled {
-                        SettingRow(L10n.Settings.browserShowWindow) {
+                        SettingRow(L10n.Settings.browserShowWindow, description: L10n.Settings.browserShowWindowDesc) {
                             Toggle("", isOn: $configManager.browserUseHeadedMode)
                                 .toggleStyle(.switch)
                                 .tint(Color.Aurora.primary)
+                                .controlSize(.small)
                                 .onChange(of: configManager.browserUseHeadedMode) { _, _ in
                                     SkillManager.shared.reloadSkills()
                                     appState.restartAgent()
                                 }
                         }
                         
-                        SettingRow(L10n.Settings.browserAgentProvider) {
+                        SettingRow(L10n.Settings.browserAgentProvider, description: L10n.Settings.browserAgentProviderDesc) {
                             Picker("", selection: Binding(
                                 get: { configManager.browserAgentProvider },
                                 set: { newValue in
@@ -165,10 +152,11 @@ struct AdvancedSettingsView: View {
                                 }
                             }
                             .pickerStyle(.menu)
-                            .frame(width: 160)
+                            .frame(width: 180)
+                            .controlSize(.small)
                         }
                         
-                        SettingRow(configManager.browserAgentProvider.envKeyName) {
+                        SettingRow(configManager.browserAgentProvider.envKeyName, description: L10n.Settings.browserApiKeyDesc) {
                             // API Key field with eye toggle inside
                             ZStack(alignment: .trailing) {
                                 Group {
@@ -183,6 +171,7 @@ struct AdvancedSettingsView: View {
                                 .padding(.leading, 10)
                                 .padding(.trailing, 32)
                                 .padding(.vertical, 6)
+                                .controlSize(.small)
                                 .onChange(of: browserAgentAPIKeyInput) { _, newValue in
                                     configManager.browserAgentAPIKey = newValue
                                     syncBrowserAgentConfig()
@@ -205,7 +194,7 @@ struct AdvancedSettingsView: View {
                             .frame(width: 180)
                             .background(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.02))
+                                    .fill(Color.Aurora.surface)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -214,16 +203,17 @@ struct AdvancedSettingsView: View {
                         }
                         
                         if configManager.browserAgentProvider.supportsBaseUrl {
-                            SettingRow(L10n.Settings.browserBaseUrl) {
+                            SettingRow(L10n.Settings.browserBaseUrl, description: L10n.Settings.browserBaseUrlDesc) {
                                 TextField("https://api.example.com", text: $browserAgentBaseUrlInput)
                                     .textFieldStyle(.plain)
                                     .font(.system(size: 12, design: .monospaced))
                                     .frame(width: 160)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
+                                    .controlSize(.small)
                                     .background(
                                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                            .fill(isDark ? Color.white.opacity(0.04) : Color.black.opacity(0.02))
+                                            .fill(Color.Aurora.surface)
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -250,10 +240,11 @@ struct AdvancedSettingsView: View {
                 
                 // Debug Section
                 CollapsibleSection(L10n.Settings.diagnostics, icon: "ladybug.fill") {
-                    SettingRow(L10n.Settings.debugMode, showDivider: false) {
+                    SettingRow(L10n.Settings.debugMode, description: L10n.Settings.debugModeDesc, showDivider: false) {
                         Toggle("", isOn: $configManager.debugMode)
                             .toggleStyle(.switch)
                             .tint(Color.Aurora.primary)
+                            .controlSize(.small)
                     }
                 }
             }
