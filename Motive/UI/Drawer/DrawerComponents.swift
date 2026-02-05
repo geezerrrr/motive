@@ -138,12 +138,9 @@ struct MessageBubble: View {
             .foregroundColor(Color.Aurora.textPrimary)
             .padding(.horizontal, AuroraSpacing.space4)
             .padding(.vertical, AuroraSpacing.space3)
-            .background(Color.Aurora.surface)
+            .background(Color.Aurora.surfaceElevated)
             .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .stroke(Color.Aurora.border, lineWidth: 1)
-            )
+            .shadow(color: Color.black.opacity(0.04), radius: 3, y: 1)
             .textSelection(.enabled)
     }
     
@@ -185,12 +182,9 @@ struct MessageBubble: View {
                 .textSelection(.enabled)
         }
         .padding(AuroraSpacing.space3)
-        .background(Color.Aurora.surfaceElevated)
+        .background(Color.Aurora.surface)
         .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                .stroke(Color.Aurora.border, lineWidth: 1)
-        )
+        .shadow(color: Color.black.opacity(0.03), radius: 2, y: 1)
     }
     
     // MARK: - Tool Bubble (Compact inline)
@@ -258,11 +252,11 @@ struct MessageBubble: View {
         .padding(.vertical, AuroraSpacing.space2)
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .fill(Color.Aurora.surface)
+                .fill(Color.Aurora.surface.opacity(0.8))
         )
         .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .stroke(Color.Aurora.border, lineWidth: 1)
+                .strokeBorder(Color.Aurora.border.opacity(0.3), lineWidth: 0.5)
         )
     }
     
@@ -342,10 +336,6 @@ struct ThinkingIndicator: View {
         .background(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
                 .fill(Color.Aurora.surfaceElevated)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .stroke(Color.Aurora.border, lineWidth: 1)
         )
     }
 }

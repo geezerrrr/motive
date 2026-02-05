@@ -83,7 +83,7 @@ struct DrawerView: View {
         // No clipShape/shadow here - handled at window layer (like CommandBar)
         .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.xl, style: .continuous)
-                .strokeBorder(Color.Aurora.border, lineWidth: 1)
+                .strokeBorder(Color.Aurora.border.opacity(0.5), lineWidth: 0.5)
         )
         .onAppear {
             withAnimation(.auroraSpring.delay(0.1)) {
@@ -201,10 +201,6 @@ struct DrawerView: View {
                     .frame(width: 28, height: 28)
                     .background(Color.Aurora.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                            .stroke(Color.Aurora.border, lineWidth: 1)
-                    )
             }
             .buttonStyle(.plain)
             .help(L10n.Drawer.newChat)
@@ -218,10 +214,6 @@ struct DrawerView: View {
                     .frame(width: 28, height: 28)
                     .background(Color.Aurora.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                            .stroke(Color.Aurora.border, lineWidth: 1)
-                    )
             }
             .buttonStyle(.plain)
             .help(L10n.Drawer.close)
@@ -283,11 +275,11 @@ struct DrawerView: View {
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
                     .fill(Color.Aurora.surface)
-                    .shadow(color: Color.black.opacity(0.2), radius: 12, y: 6)
+                    .shadow(color: Color.black.opacity(0.15), radius: 16, y: 8)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .stroke(Color.Aurora.border, lineWidth: 1)
+                    .strokeBorder(Color.Aurora.border.opacity(0.4), lineWidth: 0.5)
             )
             .padding(.top, 52) // Below header
             .padding(.leading, AuroraSpacing.space4)
@@ -508,9 +500,9 @@ struct DrawerView: View {
                 .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                        .stroke(
-                            isInputFocused && !isRunning ? Color.Aurora.borderFocus : Color.Aurora.border,
-                            lineWidth: isInputFocused && !isRunning ? 1.5 : 1
+                        .strokeBorder(
+                            isInputFocused && !isRunning ? Color.Aurora.borderFocus.opacity(0.8) : Color.Aurora.border.opacity(0.5),
+                            lineWidth: isInputFocused && !isRunning ? 1 : 0.5
                         )
                 )
                 .animation(.auroraFast, value: isInputFocused)
@@ -546,11 +538,11 @@ struct DrawerView: View {
             .background(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
                     .fill(Color.Aurora.surface)
-                    .shadow(color: Color.black.opacity(0.2), radius: 12, y: -4)
+                    .shadow(color: Color.black.opacity(0.15), radius: 16, y: -6)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AuroraRadius.md, style: .continuous)
-                    .stroke(Color.Aurora.border, lineWidth: 1)
+                    .strokeBorder(Color.Aurora.border.opacity(0.4), lineWidth: 0.5)
             )
             .padding(.bottom, 80) // Position above input area
         }
