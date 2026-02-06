@@ -8,7 +8,7 @@
 <p align="center">A personal AI agent for macOS. Turns intent into completed work, running from your menu bar.</p>
 
 <p align="center">
-  <a href="https://github.com/geezerrrr/motive/releases"><img src="https://img.shields.io/badge/release-v0.6.0-blue?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/geezerrrr/motive/releases"><img src="https://img.shields.io/badge/release-v0.7.0-blue?style=flat-square" alt="Release"></a>
   <a href="https://github.com/geezerrrr/motive/stargazers"><img src="https://img.shields.io/github/stars/geezerrrr/motive?style=flat-square" alt="Stars"></a>
   <img src="https://img.shields.io/badge/platform-macOS%2015+-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/swift-6.0-orange?style=flat-square" alt="Swift">
