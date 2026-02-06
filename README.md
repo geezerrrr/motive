@@ -149,7 +149,7 @@ Anything an AI coding agent can do: refactor code, generate files, run scripts, 
 - [ ] **Task resume** — Interrupt and resume long-running tasks, preserving state across app restarts
 
 ### Planned
-- [ ] **Personal Profile** — Store personal context (name, preferences, work style) for more relevant AI responses
+- [x] **Personal Profile** — Store personal context (name, preferences, work style) for more relevant AI responses
 - [ ] **Memory & RAG** — Long-term memory with retrieval-augmented generation for context-aware assistance
 - [ ] **Task templates** — Save and reuse common task patterns with customizable parameters
 
