@@ -49,6 +49,9 @@ final class SkillManager {
     /// Reference to ConfigManager for checking feature toggles
     private var configManager: ConfigManager?
     
+    /// Filename for user-editable rules within a skill directory
+    static let userRulesFilename = "RULES.md"
+    
     private init() {
         loadBuiltInSkills()
     }
@@ -85,8 +88,12 @@ final class SkillManager {
     
     // MARK: - SKILL.md File Generation
     
-    /// Write SKILL.md files to the skills directory for OpenCode to discover
+    /// Write SKILL.md files to the skills directory for OpenCode to discover.
     /// OpenCode looks for skills at $OPENCODE_CONFIG_DIR/skills/<name>/SKILL.md
+    ///
+    /// For capability skills (like browser-automation), the final SKILL.md is composed of:
+    ///   1. Hardcoded technical instructions (command syntax, polling loop) — always overwritten
+    ///   2. User-editable rules from RULES.md — write-if-missing, never overwritten
     func writeSkillFiles(to baseDirectory: URL) {
         let skillsDir = baseDirectory.appendingPathComponent("skills")
         
@@ -99,14 +106,49 @@ final class SkillManager {
             do {
                 try FileManager.default.createDirectory(at: skillDir, withIntermediateDirectories: true)
                 
-                let skillMdContent = generateSkillMd(for: skill)
-                try skillMdContent.write(to: skillMdPath, atomically: true, encoding: .utf8)
+                // For capability skills, merge hardcoded content with user-editable rules
+                let skillMdContent: String
+                if skill.type == .capability {
+                    // Ensure user RULES.md exists (write-if-missing)
+                    ensureUserRulesFile(for: skill, in: skillDir)
+                    // Merge: hardcoded technical content + user rules
+                    let userRules = loadUserRules(from: skillDir)
+                    skillMdContent = generateCapabilitySkillMd(for: skill, userRules: userRules)
+                } else {
+                    skillMdContent = generateSkillMd(for: skill)
+                }
                 
+                try skillMdContent.write(to: skillMdPath, atomically: true, encoding: .utf8)
                 Log.debug("Written SKILL.md for '\(skill.id)' at: \(skillMdPath.path)")
             } catch {
                 Log.debug("Failed to write SKILL.md for '\(skill.id)': \(error)")
             }
         }
+    }
+    
+    /// Ensure user-editable RULES.md exists for a capability skill (write-if-missing pattern)
+    private func ensureUserRulesFile(for skill: Skill, in skillDir: URL) {
+        let rulesPath = skillDir.appendingPathComponent(Self.userRulesFilename)
+        guard !FileManager.default.fileExists(atPath: rulesPath.path) else { return }
+        
+        // Write default rules template based on skill ID
+        let defaultContent = defaultUserRules(for: skill.id)
+        do {
+            try defaultContent.write(to: rulesPath, atomically: true, encoding: .utf8)
+            Log.debug("Created default RULES.md for '\(skill.id)'")
+        } catch {
+            Log.debug("Failed to create RULES.md for '\(skill.id)': \(error)")
+        }
+    }
+    
+    /// Load user-editable rules from RULES.md
+    private func loadUserRules(from skillDir: URL) -> String? {
+        let rulesPath = skillDir.appendingPathComponent(Self.userRulesFilename)
+        guard let content = try? String(contentsOf: rulesPath, encoding: .utf8),
+              !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        return content
     }
     
     /// Generate SKILL.md content following official AgentSkills spec
@@ -121,6 +163,50 @@ description: \(skill.description)
 
 \(skill.content)
 """
+    }
+    
+    /// Generate SKILL.md for capability skills: hardcoded technical content + user rules section
+    private func generateCapabilitySkillMd(for skill: Skill, userRules: String?) -> String {
+        var md = """
+---
+name: \(skill.id)
+description: \(skill.description)
+---
+
+# \(skill.name)
+
+\(skill.content)
+"""
+        
+        // Append user-defined rules if present
+        if let userRules, !userRules.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            md += """
+            
+            
+            ## Custom Rules
+            
+            The following rules are user-defined (edit RULES.md in ~/.motive/skills/\(skill.id)/ to customize):
+            
+            \(userRules)
+            """
+        }
+        
+        return md
+    }
+    
+    /// Default user rules template for each capability skill
+    private func defaultUserRules(for skillId: String) -> String {
+        switch skillId {
+        case "browser-automation":
+            return Self.defaultBrowserAutomationRules
+        default:
+            return """
+            # Custom Rules
+            
+            Add your custom rules and preferences for this skill here.
+            This file is yours to edit — it will not be overwritten by Motive.
+            """
+        }
     }
     
     /// Generate combined system prompt from all skills
@@ -472,7 +558,7 @@ description: \(skill.description)
             
             ```bash
             # Shopping
-            browser-use-sidecar \(headedFlag)agent_task "去淘宝搜索卫生纸并挑选一款加入购物车"
+            browser-use-sidecar \(headedFlag)agent_task "Search for tissue paper on Taobao and pick one to add to cart"
             
             # Search
             browser-use-sidecar \(headedFlag)agent_task "Search Google for iPhone 16 reviews"
@@ -495,7 +581,7 @@ description: \(skill.description)
             
             ```bash
             # Step 1: Start task
-            browser-use-sidecar \(headedFlag)agent_task "去淘宝买卫生纸"
+            browser-use-sidecar \(headedFlag)agent_task "your task"
             # Returns: {"status": "running", ...}
             
             # Step 2: POLL status (repeat until NOT "running")
@@ -506,7 +592,7 @@ description: \(skill.description)
             # If "completed" or "error", done
             
             # Step 3: Handle need_input (if status is "need_input")
-            # Response example: {"status": "need_input", "question": "选择哪款?", "options": ["A", "B"]}
+            # Response example: {"status": "need_input", "question": "Which one?", "options": ["A", "B"]}
             # -> Use AskUserQuestion to show options to user
             # -> After user picks "A":
             browser-use-sidecar agent_continue "A"
@@ -534,9 +620,53 @@ description: \(skill.description)
             - `agent_status` - Check task progress (MUST call repeatedly while running)
             - `agent_continue "choice"` - Continue after user input
             - `close` - Close browser when done
+            
+            ## Safety (Non-negotiable)
+            
+            - Never complete a payment (enter passwords, confirm transactions).
+            - Never submit an order without explicit user approval.
+            - If login expires, CAPTCHA appears, or anything unexpected — notify user immediately.
             """,
             type: .capability,
             enabled: enabled
         )
     }
+    
+    // MARK: - Default User Rules Templates
+    
+    /// Default user-editable rules for browser-automation skill.
+    /// Written to ~/.motive/skills/browser-automation/RULES.md on first run (write-if-missing).
+    /// Users can freely edit this file — it will never be overwritten by Motive.
+    static let defaultBrowserAutomationRules = """
+    # Browser Automation - Custom Rules
+    
+    # This file contains your personal rules and preferences for browser automation.
+    # Edit freely — Motive will never overwrite this file.
+    # These rules are merged into the browser automation skill prompt automatically.
+    
+    ## Shopping Workflow
+    
+    When handling purchase or shopping tasks:
+    
+    ### 1. Clarify Intent
+    - If the request is ambiguous, ask once for: category, budget range, brand preference.
+    - If intent is already specific (e.g. "buy AirPods Pro"), skip straight to search.
+    
+    ### 2. Search
+    - Launch browser agent to search. Let it browse autonomously — don't interrupt the user.
+    
+    ### 3. Confirm Selection
+    - When candidates are found, present full details for user confirmation:
+      brand, price, specs/SKU options, ratings if available.
+    - Never choose a product on the user's behalf, even if preferences are known.
+    
+    ### 4. Add to Cart
+    - After user confirms, add to cart. This is the default action.
+    - Never proceed to checkout or payment automatically.
+    
+    ### 5. Notify
+    - Once all items are in cart, summarize: item names, quantities, prices.
+    - Offer options: "Checkout now" / "Continue shopping" / "Done for now".
+    - Only navigate to checkout if user explicitly chooses to.
+    """
 }

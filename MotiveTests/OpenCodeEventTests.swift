@@ -103,6 +103,7 @@ struct OpenCodeEventTests {
         let event = OpenCodeEvent(rawJson: json)
         
         #expect(event.kind == .finish)
+        #expect(event.isSecondaryFinish == false)
     }
     
     @Test("parses step_finish with end_turn reason")
@@ -114,6 +115,7 @@ struct OpenCodeEventTests {
         let event = OpenCodeEvent(rawJson: json)
         
         #expect(event.kind == .finish)
+        #expect(event.isSecondaryFinish == false)
     }
     
     // MARK: - Error Parsing
@@ -163,9 +165,10 @@ struct OpenCodeEventTests {
         #expect(message != nil)
         #expect(message?.type == .assistant)
         #expect(message?.content == "Hello!")
+        #expect(message?.status == .completed)
     }
     
-    @Test("converts tool event to message")
+    @Test("converts tool event to message with running status")
     func convertToolToMessage() {
         let json = """
         {"type":"tool_call","part":{"tool":"Read","input":{"path":"/tmp/test.txt"}}}
@@ -177,6 +180,7 @@ struct OpenCodeEventTests {
         #expect(message != nil)
         #expect(message?.type == .tool)
         #expect(message?.toolName == "Read")
+        #expect(message?.status == .running)
     }
     
     @Test("skips thought events in message conversion")
@@ -189,5 +193,58 @@ struct OpenCodeEventTests {
         let message = event.toMessage()
         
         #expect(message == nil)
+    }
+
+    // MARK: - Tool Lifecycle Status
+
+    @Test("tool_call creates running message, tool_use creates completed message")
+    func toolLifecycleStatus() {
+        let callJson = """
+        {"type":"tool_call","part":{"tool":"Shell","input":{"command":"echo hi"}}}
+        """
+        let callEvent = OpenCodeEvent(rawJson: callJson)
+        let callMessage = callEvent.toMessage()
+        #expect(callMessage?.status == .running)
+
+        let useJson = """
+        {"type":"tool_use","part":{"tool":"Shell","state":{"input":{"command":"echo hi"},"output":"hi"}}}
+        """
+        let useEvent = OpenCodeEvent(rawJson: useJson)
+        let useMessage = useEvent.toMessage()
+        #expect(useMessage?.status == .completed)
+    }
+
+    // MARK: - TodoItem Parsing
+
+    @Test("parses todo items from dict")
+    func parseTodoItems() {
+        let dict: [String: Any] = [
+            "id": "task-1",
+            "content": "Implement feature X",
+            "status": "completed"
+        ]
+        let item = TodoItem(from: dict)
+
+        #expect(item != nil)
+        #expect(item?.id == "task-1")
+        #expect(item?.content == "Implement feature X")
+        #expect(item?.status == .completed)
+    }
+
+    @Test("rejects invalid todo item")
+    func rejectInvalidTodo() {
+        let dict: [String: Any] = [
+            "id": "task-1"
+            // Missing "content"
+        ]
+        let item = TodoItem(from: dict)
+        #expect(item == nil)
+    }
+
+    @Test("detects TodoWrite tool names")
+    func detectTodoWriteToolNames() {
+        #expect("TodoWrite".isTodoWriteTool == true)
+        #expect("Read".isTodoWriteTool == false)
+        #expect("Shell".isTodoWriteTool == false)
     }
 }

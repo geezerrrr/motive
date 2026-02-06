@@ -20,6 +20,8 @@ actor OpenCodeBridge {
     private var currentSessionId: String?
     private var readerTask: Task<Void, Never>?
     private let eventHandler: @Sendable (OpenCodeEvent) async -> Void
+    /// Tracks whether a primary finish (step_finish) was already received for the current task
+    private var hasReceivedPrimaryFinish = false
 
     init(eventHandler: @escaping @Sendable (OpenCodeEvent) async -> Void) {
         self.eventHandler = eventHandler
@@ -99,6 +101,9 @@ actor OpenCodeBridge {
         
         // Stop any existing process
         await stop()
+        
+        // Reset finish tracking for new task
+        hasReceivedPrimaryFinish = false
         
         // Build command: opencode run "message" --format json [--model provider/model] [--session sessionId]
         let binaryPath = configuration.binaryURL.path
@@ -222,13 +227,14 @@ actor OpenCodeBridge {
                 
                 guard let jsonLine else {
                     // Check for session.idle in non-JSON log lines
-                    // Format: INFO ... type=session.idle publishing
+                    // This is a secondary finish signal — only used if no step_finish was received
                     if trimmed.contains("type=session.idle") {
-                        Log.bridge("[pty] Detected session.idle - sending finish event")
+                        Log.bridge("[pty] Detected session.idle (secondary finish)")
                         let idleEvent = OpenCodeEvent(
                             kind: .finish,
                             rawJson: "",
-                            text: "Session idle"
+                            text: "Session idle",
+                            isSecondaryFinish: true
                         )
                         await eventHandler(idleEvent)
                     } else {
@@ -240,6 +246,11 @@ actor OpenCodeBridge {
                 Log.bridge("[pty] JSON: \(jsonLine)")
                 
                 let event = OpenCodeEvent(rawJson: jsonLine)
+                
+                // Track primary finish events
+                if event.kind == .finish && !event.isSecondaryFinish {
+                    hasReceivedPrimaryFinish = true
+                }
                 
                 // Capture session ID for follow-ups
                 if let sessionId = event.sessionId, currentSessionId == nil {
@@ -291,21 +302,29 @@ actor OpenCodeBridge {
         ptyProcess?.cleanup()
         ptyProcess = nil
         
-        // Send finish event
-        if exitCode == 0 || exitCode == 130 { // 130 = interrupted (SIGINT)
+        // Only send a finish event if no primary finish was received from step_finish.
+        // This avoids the triple "Completed" / "Session idle" / "Task completed" spam.
+        if !hasReceivedPrimaryFinish {
+            let text = (exitCode == 0 || exitCode == 130)
+                ? "Task completed"
+                : "Task completed with exit code: \(exitCode)"
             await eventHandler(
                 OpenCodeEvent(
                     kind: .finish,
                     rawJson: "",
-                    text: "Task completed"
+                    text: text,
+                    isSecondaryFinish: true
                 )
             )
         } else {
+            // Primary finish already handled — just update status silently
+            // Send a secondary finish so handle(event:) can do final cleanup
             await eventHandler(
                 OpenCodeEvent(
                     kind: .finish,
                     rawJson: "",
-                    text: "Task completed with exit code: \(exitCode)"
+                    text: "",
+                    isSecondaryFinish: true
                 )
             )
         }

@@ -486,16 +486,8 @@ extension CommandBarView {
                 .lineLimit(1)
                 .truncationMode(.middle)
         }
-        .padding(.horizontal, AuroraSpacing.space2)
+        .padding(.horizontal, AuroraSpacing.space1)
         .padding(.vertical, AuroraSpacing.space1)
-        .background(
-            RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                .fill(Color.Aurora.surfaceElevated)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: AuroraRadius.xs, style: .continuous)
-                .stroke(Color.Aurora.border.opacity(0.6), lineWidth: 1)
-        )
         .onTapGesture {
             // Quick access to /project command
             inputText = "/"

@@ -51,6 +51,7 @@ extension AppState {
             currentToolInput = nil
             // Update CloudKit for remote commands
             updateRemoteCommandStatus(toolName: "Thinking...")
+
         case .call, .tool:
             menuBarState = .executing
             currentToolName = event.toolName ?? "Processing"
@@ -66,15 +67,31 @@ extension AppState {
             }
             // Update CloudKit for remote commands
             updateRemoteCommandStatus(toolName: event.toolName)
+
         case .diff:
             menuBarState = .executing
             currentToolName = "Editing file"
             updateRemoteCommandStatus(toolName: "Editing file")
+
         case .finish:
+            // --- Finish deduplication ---
+            // Secondary finish events (session.idle, process exit) are silently absorbed
+            // when a primary finish (step_finish) has already been processed.
+            // This prevents the "Completed / Session idle / Task completed" triple-spam.
+            if event.isSecondaryFinish && sessionStatus == .completed {
+                // Already completed — just ensure cleanup, don't add another message
+                Log.debug("Ignoring secondary finish event (already completed)")
+                return
+            }
+
             menuBarState = .idle
             sessionStatus = .completed
             currentToolName = nil
             currentToolInput = nil
+
+            // Mark all running tool messages as completed (cleanup)
+            finalizeRunningMessages()
+
             // Update session status
             if let session = currentSession {
                 session.status = "completed"
@@ -87,12 +104,15 @@ extension AppState {
                 cloudKitManager.completeCommand(commandId: commandId, result: resultMessage)
                 currentRemoteCommandId = nil
             }
+
         case .assistant:
             menuBarState = .reasoning
             currentToolName = nil
+
         case .user:
             // User messages are added directly in submitIntent
             return
+
         case .unknown:
             // Check for various error patterns
             let errorText = detectError(in: event.text, rawJson: event.rawJson)
@@ -117,6 +137,29 @@ extension AppState {
         // Process event content (save session ID, add messages)
         processEventContent(event)
     }
+
+    // MARK: - Tool Lifecycle Helpers
+
+    /// When a step/task finishes, mark any still-running tool messages as completed.
+    private func finalizeRunningMessages() {
+        for i in messages.indices {
+            if messages[i].type == .tool && messages[i].status == .running {
+                messages[i] = ConversationMessage(
+                    id: messages[i].id,
+                    type: .tool,
+                    content: messages[i].content,
+                    timestamp: messages[i].timestamp,
+                    toolName: messages[i].toolName,
+                    toolInput: messages[i].toolInput,
+                    toolOutput: messages[i].toolOutput,
+                    toolCallId: messages[i].toolCallId,
+                    status: .completed
+                )
+            }
+        }
+    }
+
+    // MARK: - AskUserQuestion
 
     private func isAskUserQuestionTool(_ toolName: String?) -> Bool {
         guard let toolName else { return false }
@@ -371,6 +414,8 @@ extension AppState {
         return nil
     }
 
+    // MARK: - Event Content Processing
+
     private func processEventContent(_ event: OpenCodeEvent) {
         // Save OpenCode session ID to our session for resume capability
         if let sessionId = event.sessionId, let session = currentSession, session.openCodeSessionId == nil {
@@ -378,18 +423,53 @@ extension AppState {
             Log.debug("Saved OpenCode session ID to session: \(sessionId)")
         }
 
-        // Convert event to conversation message and add to list
-        guard let message = event.toMessage() else {
-            // Log the event but don't add to UI
-            if let session = currentSession {
-                let entry = LogEntry(rawJson: event.rawJson, kind: event.kind.rawValue)
-                modelContext?.insert(entry)
-                session.logs.append(entry)
-            }
+        // --- Tool event lifecycle logging ---
+        if event.kind == .tool || event.kind == .call {
+            let hasOutput = event.toolOutput != nil
+            let phase = hasOutput ? "result" : "call"
+            Log.debug("Tool event [\(phase)]: \(event.toolName ?? "?") callId=\(event.toolCallId ?? "nil") hasOutput=\(hasOutput)")
+        }
+
+        // --- TodoWrite interception ---
+        if event.kind == .tool, let toolName = event.toolName, toolName.isTodoWriteTool {
+            handleTodoWriteEvent(event)
+            logEvent(event)
             return
         }
 
-        // Merge consecutive assistant messages (streaming text)
+        // Convert event to conversation message and add to list
+        guard let message = event.toMessage() else {
+            logEvent(event)
+            return
+        }
+
+        // --- Finish event handling ---
+        // Secondary finish events with empty text are silent (just for state cleanup)
+        if message.type == .system && event.isSecondaryFinish {
+            if message.content.isEmpty {
+                // Silent cleanup finish — don't add any message
+                logEvent(event)
+                return
+            }
+            // Non-empty secondary finish (e.g., first finish was session.idle before step_finish)
+            // Only add if no completion message exists yet
+            let hasCompletionMessage = messages.contains { $0.type == .system && isCompletionText($0.content) }
+            if hasCompletionMessage {
+                logEvent(event)
+                return
+            }
+        }
+
+        // --- Primary finish: only add if no completion message already ---
+        if message.type == .system && isCompletionText(message.content) {
+            let hasCompletionMessage = messages.contains { $0.type == .system && isCompletionText($0.content) }
+            if hasCompletionMessage {
+                logEvent(event)
+                return
+            }
+        }
+
+        // --- Assistant message streaming merge ---
         if message.type == .assistant,
            let lastIndex = messages.lastIndex(where: { $0.type == .assistant }),
            lastIndex == messages.count - 1 {
@@ -402,49 +482,192 @@ extension AppState {
                 content: mergedContent,
                 timestamp: lastMessage.timestamp
             )
-        } else if message.type == .tool {
-            if let toolCallId = message.toolCallId,
-               let existingIndex = messages.lastIndex(where: { $0.type == .tool && $0.toolCallId == toolCallId }) {
-                let existing = messages[existingIndex]
-                let mergedContent = existing.content.isEmpty ? message.content : existing.content
-                messages[existingIndex] = ConversationMessage(
-                    id: existing.id,
-                    type: .tool,
-                    content: mergedContent,
-                    timestamp: existing.timestamp,
-                    toolName: existing.toolName ?? message.toolName,
-                    toolInput: existing.toolInput ?? message.toolInput,
-                    toolOutput: existing.toolOutput ?? message.toolOutput,
-                    toolCallId: existing.toolCallId ?? message.toolCallId,
-                    isStreaming: existing.isStreaming
-                )
-            } else if let lastIndex = messages.lastIndex(where: { $0.type == .tool }),
-                      lastIndex == messages.count - 1,
-                      messages[lastIndex].toolOutput == nil,
-                      message.toolOutput != nil,
-                      (message.toolName == "Result" || message.toolName == messages[lastIndex].toolName) {
-                let lastMessage = messages[lastIndex]
-                let mergedContent = lastMessage.content.isEmpty ? message.content : lastMessage.content
-                messages[lastIndex] = ConversationMessage(
-                    id: lastMessage.id,
-                    type: .tool,
-                    content: mergedContent,
-                    timestamp: lastMessage.timestamp,
-                    toolName: lastMessage.toolName,
-                    toolInput: lastMessage.toolInput,
-                    toolOutput: message.toolOutput,
-                    toolCallId: lastMessage.toolCallId ?? message.toolCallId,
-                    isStreaming: lastMessage.isStreaming
-                )
-            } else {
-                messages.append(message)
-            }
-        } else {
+        }
+        // --- Tool message lifecycle merge ---
+        else if message.type == .tool {
+            processToolMessage(message)
+        }
+        // --- Everything else: append ---
+        else {
             messages.append(message)
         }
 
         // @Observable handles change tracking automatically
+        logEvent(event)
+    }
 
+    /// Process tool messages with proper lifecycle: running → completed
+    private func processToolMessage(_ message: ConversationMessage) {
+        // Strategy 1: Merge by toolCallId (most reliable)
+        if let toolCallId = message.toolCallId,
+           let existingIndex = messages.lastIndex(where: { $0.type == .tool && $0.toolCallId == toolCallId }) {
+            let existing = messages[existingIndex]
+            let mergedContent = existing.content.isEmpty ? message.content : existing.content
+            // When result arrives, transition from .running → .completed
+            let mergedStatus: ConversationMessage.Status =
+                (message.toolOutput != nil) ? .completed : existing.status
+            Log.debug("Tool merge [callId]: \(existing.toolName ?? "?") \(existing.status.rawValue) → \(mergedStatus.rawValue)")
+            messages[existingIndex] = ConversationMessage(
+                id: existing.id,
+                type: .tool,
+                content: mergedContent,
+                timestamp: existing.timestamp,
+                toolName: existing.toolName ?? message.toolName,
+                toolInput: existing.toolInput ?? message.toolInput,
+                toolOutput: existing.toolOutput ?? message.toolOutput,
+                toolCallId: existing.toolCallId ?? message.toolCallId,
+                status: mergedStatus
+            )
+        }
+        // Strategy 2: Merge consecutive tool messages (fallback for missing toolCallId)
+        else if let lastIndex = messages.lastIndex(where: { $0.type == .tool }),
+                lastIndex == messages.count - 1,
+                messages[lastIndex].toolOutput == nil,
+                message.toolOutput != nil,
+                (message.toolName == "Result" || message.toolName == messages[lastIndex].toolName) {
+            let lastMessage = messages[lastIndex]
+            let mergedContent = lastMessage.content.isEmpty ? message.content : lastMessage.content
+            Log.debug("Tool merge [consecutive]: \(lastMessage.toolName ?? "?") → completed")
+            messages[lastIndex] = ConversationMessage(
+                id: lastMessage.id,
+                type: .tool,
+                content: mergedContent,
+                timestamp: lastMessage.timestamp,
+                toolName: lastMessage.toolName,
+                toolInput: lastMessage.toolInput,
+                toolOutput: message.toolOutput,
+                toolCallId: lastMessage.toolCallId ?? message.toolCallId,
+                status: .completed  // Result arrived → completed
+            )
+        }
+        // No merge target — append as new message
+        else {
+            Log.debug("Tool append [new]: \(message.toolName ?? "?") status=\(message.status.rawValue) hasOutput=\(message.toolOutput != nil)")
+            messages.append(message)
+        }
+    }
+
+    /// Check if text represents a completion message
+    private func isCompletionText(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower == "completed"
+            || lower == "session idle"
+            || lower == "task completed"
+            || lower.hasPrefix("task completed with exit code")
+    }
+
+    // MARK: - TodoWrite Handling
+
+    /// Intercept TodoWrite tool calls and create/update a dedicated todo message
+    private func handleTodoWriteEvent(_ event: OpenCodeEvent) {
+        // Parse todo items from the tool input
+        let todoItems = parseTodoItems(from: event)
+        guard !todoItems.isEmpty else {
+            // If we can't parse todos, fall back to normal tool display
+            if let message = event.toMessage() {
+                processToolMessage(message)
+            }
+            return
+        }
+
+        // Determine if we should merge with existing todo message
+        let merge = parseTodoMerge(from: event)
+
+        // Find existing todo message to update
+        if let existingIndex = messages.lastIndex(where: { $0.type == .todo }) {
+            let existing = messages[existingIndex]
+            let finalItems: [TodoItem]
+            if merge, let existingItems = existing.todoItems {
+                // Merge: update existing items by ID, add new ones
+                var itemMap: [String: TodoItem] = [:]
+                for item in existingItems {
+                    itemMap[item.id] = item
+                }
+                for item in todoItems {
+                    itemMap[item.id] = item
+                }
+                finalItems = Array(itemMap.values).sorted { $0.id < $1.id }
+            } else {
+                // Replace: new todo list
+                finalItems = todoItems
+            }
+
+            let summary = todoSummary(finalItems)
+            messages[existingIndex] = ConversationMessage(
+                id: existing.id,
+                type: .todo,
+                content: summary,
+                timestamp: existing.timestamp,
+                status: .completed,
+                todoItems: finalItems
+            )
+        } else {
+            // Create new todo message
+            let summary = todoSummary(todoItems)
+            let todoMessage = ConversationMessage(
+                type: .todo,
+                content: summary,
+                status: .completed,
+                todoItems: todoItems
+            )
+            messages.append(todoMessage)
+        }
+    }
+
+    /// Parse todo items from a TodoWrite event
+    private func parseTodoItems(from event: OpenCodeEvent) -> [TodoItem] {
+        // Try toolInputDict first (parsed from tool_call)
+        if let inputDict = event.toolInputDict {
+            return parseTodoItemsFromDict(inputDict)
+        }
+
+        // Try parsing from rawJson (fallback)
+        guard let data = event.rawJson.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let part = object["part"] as? [String: Any] else {
+            return []
+        }
+
+        // tool_call format
+        if let input = extractInputDict(from: part) {
+            return parseTodoItemsFromDict(input)
+        }
+
+        // tool_use format
+        if let state = part["state"] as? [String: Any],
+           let input = extractInputDict(from: state) {
+            return parseTodoItemsFromDict(input)
+        }
+
+        return []
+    }
+
+    /// Parse the "merge" flag from a TodoWrite event
+    private func parseTodoMerge(from event: OpenCodeEvent) -> Bool {
+        if let inputDict = event.toolInputDict {
+            return inputDict["merge"] as? Bool ?? false
+        }
+        return false
+    }
+
+    /// Parse todo items from a dictionary
+    private func parseTodoItemsFromDict(_ dict: [String: Any]) -> [TodoItem] {
+        guard let todosArray = dict["todos"] as? [[String: Any]] else {
+            return []
+        }
+        return todosArray.compactMap { TodoItem(from: $0) }
+    }
+
+    /// Generate a summary string for todo items
+    private func todoSummary(_ items: [TodoItem]) -> String {
+        let completed = items.filter { $0.status == .completed }.count
+        let total = items.count
+        return "\(completed)/\(total) tasks completed"
+    }
+
+    // MARK: - Log Persistence
+
+    private func logEvent(_ event: OpenCodeEvent) {
         if let session = currentSession {
             let entry = LogEntry(rawJson: event.rawJson, kind: event.kind.rawValue)
             modelContext?.insert(entry)

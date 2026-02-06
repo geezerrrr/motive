@@ -22,8 +22,48 @@ extension String {
         case "ListFiles", "Glob": return "List"
         case "SearchFiles", "Grep": return "Search"
         case "Shell", "Bash": return "Shell"
+        case "TodoWrite", "todo_write": return "Todo"
         default: return self
         }
+    }
+
+    /// Whether this tool name represents a TodoWrite operation
+    var isTodoWriteTool: Bool {
+        let normalized = self.lowercased().filter { $0.isLetter || $0.isNumber }
+        return normalized == "todowrite" || normalized.hasSuffix("todowrite")
+    }
+}
+
+// MARK: - Todo Item Model
+
+struct TodoItem: Identifiable, Sendable, Equatable {
+    let id: String
+    let content: String
+    let status: Status
+
+    enum Status: String, Sendable {
+        case pending
+        case inProgress = "in_progress"
+        case completed
+        case cancelled
+    }
+
+    /// Parse from dictionary (agent tool input format)
+    init?(from dict: [String: Any]) {
+        guard let id = dict["id"] as? String,
+              let content = dict["content"] as? String else {
+            return nil
+        }
+        self.id = id
+        self.content = content
+        let statusStr = dict["status"] as? String ?? "pending"
+        self.status = Status(rawValue: statusStr) ?? .pending
+    }
+
+    init(id: String, content: String, status: Status) {
+        self.id = id
+        self.content = content
+        self.status = status
     }
 }
 
@@ -35,8 +75,16 @@ struct ConversationMessage: Identifiable, Sendable {
         case assistant
         case tool
         case system
+        case todo       // Dedicated type for todo list display
     }
-    
+
+    enum Status: String, Sendable {
+        case pending    // Created, not yet started
+        case running    // In progress (tool executing, step processing)
+        case completed  // Finished successfully
+        case failed     // Finished with error
+    }
+
     let id: UUID
     let type: MessageType
     let content: String
@@ -45,8 +93,9 @@ struct ConversationMessage: Identifiable, Sendable {
     let toolInput: String?
     let toolOutput: String?
     let toolCallId: String?
-    let isStreaming: Bool
-    
+    let status: Status          // Lifecycle status (replaces isStreaming)
+    let todoItems: [TodoItem]?  // Parsed todo items for .todo type
+
     init(
         id: UUID = UUID(),
         type: MessageType,
@@ -56,7 +105,8 @@ struct ConversationMessage: Identifiable, Sendable {
         toolInput: String? = nil,
         toolOutput: String? = nil,
         toolCallId: String? = nil,
-        isStreaming: Bool = false
+        status: Status = .completed,
+        todoItems: [TodoItem]? = nil
     ) {
         self.id = id
         self.type = type
@@ -66,7 +116,8 @@ struct ConversationMessage: Identifiable, Sendable {
         self.toolInput = toolInput
         self.toolOutput = toolOutput
         self.toolCallId = toolCallId
-        self.isStreaming = isStreaming
+        self.status = status
+        self.todoItems = todoItems
     }
 }
 
@@ -90,12 +141,14 @@ struct OpenCodeEvent: Sendable, Identifiable {
     let text: String
     let toolName: String?
     let toolInput: String?
-    let toolInputDict: [String: Any]?  // Full tool input for AskUserQuestion parsing
+    let toolInputDict: [String: Any]?  // Full tool input for AskUserQuestion/TodoWrite parsing
     let toolOutput: String?
     let toolCallId: String?
     let sessionId: String?
+    /// Whether this is a secondary/redundant finish event (session.idle, process exit)
+    let isSecondaryFinish: Bool
 
-    init(id: UUID = UUID(), kind: Kind, rawJson: String, text: String, toolName: String? = nil, toolInput: String? = nil, toolInputDict: [String: Any]? = nil, toolOutput: String? = nil, toolCallId: String? = nil, sessionId: String? = nil) {
+    init(id: UUID = UUID(), kind: Kind, rawJson: String, text: String, toolName: String? = nil, toolInput: String? = nil, toolInputDict: [String: Any]? = nil, toolOutput: String? = nil, toolCallId: String? = nil, sessionId: String? = nil, isSecondaryFinish: Bool = false) {
         self.id = id
         self.kind = kind
         self.rawJson = rawJson
@@ -106,6 +159,7 @@ struct OpenCodeEvent: Sendable, Identifiable {
         self.toolOutput = toolOutput
         self.toolCallId = toolCallId
         self.sessionId = sessionId
+        self.isSecondaryFinish = isSecondaryFinish
     }
 
     /// Parse OpenCode CLI JSON output
@@ -169,15 +223,15 @@ struct OpenCodeEvent: Sendable, Identifiable {
                     inputStr = command
                 }
             }
-            let summary = OpenCodeEvent.summarizeToolOutput(toolName: toolName, toolInput: inputStr, toolOutput: outputStr)
-            self.init(kind: .tool, rawJson: rawJson, text: summary, toolName: toolName, toolInput: inputStr, toolInputDict: inputDict, toolOutput: outputStr, toolCallId: toolCallId, sessionId: sessionId)
+            let label = OpenCodeEvent.toolDisplayLabel(toolInput: inputStr)
+            self.init(kind: .tool, rawJson: rawJson, text: label, toolName: toolName, toolInput: inputStr, toolInputDict: inputDict, toolOutput: outputStr, toolCallId: toolCallId, sessionId: sessionId)
             
         case "tool_result":
             // Tool result: { type: "tool_result", part: { output: "..." } }
             let output = part?["output"] as? String ?? ""
-            let summary = OpenCodeEvent.summarizeToolOutput(toolName: "Result", toolInput: nil, toolOutput: output)
             let toolCallId = OpenCodeEvent.extractToolCallId(from: part)
-            self.init(kind: .tool, rawJson: rawJson, text: summary, toolName: "Result", toolOutput: output, toolCallId: toolCallId, sessionId: sessionId)
+            // text is empty — output is accessed via toolOutputSummary + expand
+            self.init(kind: .tool, rawJson: rawJson, text: "", toolName: "Result", toolOutput: output, toolCallId: toolCallId, sessionId: sessionId)
             
         case "step_start":
             // Step started
@@ -259,29 +313,12 @@ struct OpenCodeEvent: Sendable, Identifiable {
         return nil
     }
 
-    private static func summarizeToolOutput(toolName: String, toolInput: String?, toolOutput: String?) -> String {
-        if let toolInput = toolInput, !toolInput.isEmpty {
-            return toolInput
-        }
-        guard let toolOutput = toolOutput, !toolOutput.isEmpty else {
-            return ""
-        }
-        let trimmed = toolOutput.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { return "" }
-        // Prefer line-count summary when available
-        if let range = trimmed.range(of: "End of file - total ") {
-            let suffix = trimmed[range.upperBound...]
-            let countStr = suffix.prefix { $0.isNumber }
-            if let count = Int(countStr) {
-                return "Output · \(count) lines"
-            }
-        }
-        let lines = trimmed.split(separator: "\n", omittingEmptySubsequences: false)
-        if lines.count > 1 {
-            return "Output · \(lines.count) lines"
-        }
-        let firstLine = lines.first.map { String($0) } ?? ""
-        return "Output · \(firstLine)"
+    /// Extract a display label for the tool message `text` field.
+    /// This ONLY returns the tool input (path, command, etc.) — never raw output content.
+    /// Output summarization is handled separately by `toolOutputSummary`.
+    private static func toolDisplayLabel(toolInput: String?) -> String {
+        guard let toolInput = toolInput, !toolInput.isEmpty else { return "" }
+        return toolInput
     }
     
     /// Convert to ConversationMessage for UI display
@@ -299,22 +336,32 @@ struct OpenCodeEvent: Sendable, Identifiable {
         }
         
         let messageType: ConversationMessage.MessageType
+        let messageStatus: ConversationMessage.Status
+        
         switch kind {
         case .user:
             messageType = .user
+            messageStatus = .completed
         case .assistant:
             messageType = .assistant
+            messageStatus = .completed
         case .tool, .call:
+            // Tool calls without output are still running
+            // Tool calls with output (tool_use) are completed
             messageType = .tool
+            messageStatus = toolOutput != nil ? .completed : .running
         case .thought:
             return nil // Don't show thought events as messages
         case .diff:
             messageType = .tool
+            messageStatus = .completed
         case .finish:
             messageType = .system
+            messageStatus = .completed
         case .unknown:
             if text.isEmpty { return nil }
             messageType = .system
+            messageStatus = .completed
         }
         
         return ConversationMessage(
@@ -324,16 +371,21 @@ struct OpenCodeEvent: Sendable, Identifiable {
             toolName: toolName ?? (kind == .call ? "Command" : nil),
             toolInput: toolInput,
             toolOutput: toolOutput,
-            toolCallId: toolCallId
+            toolCallId: toolCallId,
+            status: messageStatus
         )
     }
 }
 
 extension ConversationMessage {
+    /// Uniform output summary — always "Output · N lines", never raw content.
+    /// Clicking "Show" in the UI reveals the actual output.
     var toolOutputSummary: String? {
         guard let toolOutput = toolOutput, !toolOutput.isEmpty else { return nil }
         let trimmed = toolOutput.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return nil }
+
+        // Prefer explicit line-count marker from OpenCode (e.g., Read tool)
         if let range = trimmed.range(of: "End of file - total ") {
             let suffix = trimmed[range.upperBound...]
             let countStr = suffix.prefix { $0.isNumber }
@@ -341,11 +393,10 @@ extension ConversationMessage {
                 return "Output · \(count) lines"
             }
         }
+
+        // Count actual lines — always show as "N lines"
         let lines = trimmed.split(separator: "\n", omittingEmptySubsequences: false)
-        if lines.count > 1 {
-            return "Output · \(lines.count) lines"
-        }
-        let firstLine = lines.first.map { String($0) } ?? ""
-        return "Output · \(firstLine)"
+        let lineCount = max(lines.count, 1)
+        return "Output · \(lineCount) \(lineCount == 1 ? "line" : "lines")"
     }
 }

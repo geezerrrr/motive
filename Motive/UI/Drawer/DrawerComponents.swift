@@ -112,6 +112,8 @@ struct MessageBubble: View {
                             toolBubble
                         case .system:
                             systemBubble
+                        case .todo:
+                            todoBubble
                         }
                     }
                     
@@ -187,14 +189,13 @@ struct MessageBubble: View {
         .shadow(color: Color.black.opacity(0.03), radius: 2, y: 1)
     }
     
-    // MARK: - Tool Bubble (Compact inline)
+    // MARK: - Tool Bubble (with lifecycle status indicator)
     
     private var toolBubble: some View {
         VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
             HStack(spacing: AuroraSpacing.space2) {
-                Image(systemName: toolIcon)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color.Aurora.textSecondary)
+                // Status-aware icon
+                toolStatusIcon
                 
                 Text(message.toolName?.simplifiedToolName ?? L10n.Drawer.tool)
                     .font(.Aurora.caption.weight(.medium))
@@ -213,21 +214,23 @@ struct MessageBubble: View {
                 }
             }
             
+            // Tool input label (path, command, description — never raw output)
             if let toolInput = message.toolInput, !toolInput.isEmpty {
                 Text(toolInput)
                     .font(.Aurora.monoSmall)
                     .foregroundColor(Color.Aurora.textMuted)
                     .lineLimit(1)
                     .truncationMode(.middle)
-            } else if !message.content.isEmpty && message.content != "…" {
-                Text(message.content)
-                    .font(.Aurora.monoSmall)
-                    .foregroundColor(Color.Aurora.textMuted)
-                    .lineLimit(2)
             }
             
+            // Uniform output summary: always "Output · N lines", click Show for details
             if let outputSummary = message.toolOutputSummary {
                 Text(outputSummary)
+                    .font(.Aurora.micro)
+                    .foregroundColor(Color.Aurora.textMuted)
+            } else if message.status == .running {
+                // Tool is still executing — show processing hint
+                Text("Processing…")
                     .font(.Aurora.micro)
                     .foregroundColor(Color.Aurora.textMuted)
             }
@@ -256,17 +259,48 @@ struct MessageBubble: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
-                .strokeBorder(Color.Aurora.border.opacity(0.3), lineWidth: 0.5)
+                .strokeBorder(toolBorderColor.opacity(0.3), lineWidth: 0.5)
         )
+    }
+    
+    /// Status-aware icon for tool bubble: spinner when running, checkmark when done
+    @ViewBuilder
+    private var toolStatusIcon: some View {
+        switch message.status {
+        case .running:
+            ToolRunningIndicator()
+        case .completed:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color.Aurora.success)
+        case .failed:
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color.Aurora.error)
+        case .pending:
+            Image(systemName: "circle")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color.Aurora.textMuted)
+        }
+    }
+    
+    /// Border color that reflects tool status
+    private var toolBorderColor: Color {
+        switch message.status {
+        case .running: return Color.Aurora.primary
+        case .completed: return Color.Aurora.border
+        case .failed: return Color.Aurora.error
+        case .pending: return Color.Aurora.border
+        }
     }
     
     // MARK: - System Bubble
     
     private var systemBubble: some View {
         HStack(spacing: AuroraSpacing.space2) {
-            Image(systemName: "info.circle")
+            Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 11))
-                .foregroundColor(Color.Aurora.textMuted)
+                .foregroundColor(Color.Aurora.success)
             
             Text(message.content)
                 .font(.Aurora.bodySmall)
@@ -274,6 +308,123 @@ struct MessageBubble: View {
         }
         .padding(.horizontal, AuroraSpacing.space3)
         .padding(.vertical, AuroraSpacing.space2)
+    }
+    
+    // MARK: - Todo Bubble
+    
+    private var todoBubble: some View {
+        VStack(alignment: .leading, spacing: AuroraSpacing.space2) {
+            // Header
+            HStack(spacing: AuroraSpacing.space2) {
+                Image(systemName: "checklist")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color.Aurora.primary)
+                
+                Text("Tasks")
+                    .font(.Aurora.caption.weight(.semibold))
+                    .foregroundColor(Color.Aurora.textSecondary)
+                
+                Spacer()
+                
+                // Progress summary
+                if let items = message.todoItems {
+                    let completed = items.filter { $0.status == .completed }.count
+                    Text("\(completed)/\(items.count)")
+                        .font(.Aurora.micro.weight(.medium))
+                        .foregroundColor(Color.Aurora.textMuted)
+                }
+            }
+            
+            // Todo items list
+            if let items = message.todoItems {
+                // Progress bar
+                todoProgressBar(items: items)
+                
+                VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
+                    ForEach(items) { item in
+                        todoItemRow(item)
+                    }
+                }
+            }
+        }
+        .padding(AuroraSpacing.space3)
+        .background(
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .fill(Color.Aurora.surface.opacity(0.8))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                .strokeBorder(Color.Aurora.primary.opacity(0.2), lineWidth: 0.5)
+        )
+    }
+    
+    /// Progress bar showing overall todo completion
+    private func todoProgressBar(items: [TodoItem]) -> some View {
+        let completed = Double(items.filter { $0.status == .completed }.count)
+        let total = Double(items.count)
+        let progress = total > 0 ? completed / total : 0
+        
+        return GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.Aurora.surface)
+                    .frame(height: 3)
+                
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(progress >= 1.0 ? Color.Aurora.success : Color.Aurora.primary)
+                    .frame(width: geometry.size.width * progress, height: 3)
+                    .animation(.auroraSpring, value: progress)
+            }
+        }
+        .frame(height: 3)
+    }
+    
+    /// Single todo item row with status icon
+    private func todoItemRow(_ item: TodoItem) -> some View {
+        HStack(spacing: AuroraSpacing.space2) {
+            todoStatusIcon(item.status)
+            
+            Text(item.content)
+                .font(.Aurora.caption)
+                .foregroundColor(todoTextColor(item.status))
+                .strikethrough(item.status == .completed || item.status == .cancelled,
+                               color: Color.Aurora.textMuted.opacity(0.5))
+                .lineLimit(2)
+        }
+        .padding(.vertical, 1)
+    }
+    
+    /// Icon for todo item status
+    @ViewBuilder
+    private func todoStatusIcon(_ status: TodoItem.Status) -> some View {
+        switch status {
+        case .pending:
+            Image(systemName: "circle")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.textMuted)
+        case .inProgress:
+            Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(Color.Aurora.primary)
+        case .completed:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.success)
+        case .cancelled:
+            Image(systemName: "xmark.circle")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.textMuted)
+        }
+    }
+    
+    /// Text color based on todo status
+    private func todoTextColor(_ status: TodoItem.Status) -> Color {
+        switch status {
+        case .pending: return Color.Aurora.textSecondary
+        case .inProgress: return Color.Aurora.textPrimary
+        case .completed: return Color.Aurora.textMuted
+        case .cancelled: return Color.Aurora.textMuted
+        }
     }
     
     // MARK: - Timestamp Badge
@@ -295,7 +446,7 @@ struct MessageBubble: View {
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
     }
     
-    // MARK: - Tool Icon
+    // MARK: - Tool Icon (legacy fallback)
     
     private var toolIcon: String {
         guard let toolName = message.toolName?.lowercased() else { return "terminal" }
@@ -310,6 +461,24 @@ struct MessageBubble: View {
         case "task", "agent": return "brain"
         default: return "wrench"
         }
+    }
+}
+
+// MARK: - Tool Running Indicator (small spinner for tool bubble)
+
+struct ToolRunningIndicator: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        Image(systemName: "arrow.trianglehead.2.counterclockwise")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(Color.Aurora.primary)
+            .rotationEffect(.degrees(isAnimating ? 360 : 0))
+            .onAppear {
+                withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                    isAnimating = true
+                }
+            }
     }
 }
 

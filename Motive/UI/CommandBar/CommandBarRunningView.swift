@@ -195,30 +195,56 @@ private struct ActivityLogItem: View {
     
     var body: some View {
         HStack(spacing: AuroraSpacing.space2) {
-            Image(systemName: iconForTool)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(Color.Aurora.accent)
+            // Status-aware icon
+            statusIcon
                 .frame(width: 16)
             
             Text(message.toolName?.simplifiedToolName ?? "Tool")
                 .font(.Aurora.caption.weight(.medium))
                 .foregroundColor(Color.Aurora.textSecondary)
             
-            let summary = message.toolInput?.isEmpty == false
-                ? message.toolInput!
-                : (message.toolOutputSummary ?? message.content)
-            if !summary.isEmpty && summary != "…" {
-                Text(summary)
+            // Show tool input (path/command), then output summary — never raw output
+            if let input = message.toolInput, !input.isEmpty {
+                Text(input)
                     .font(.Aurora.monoSmall)
                     .foregroundColor(Color.Aurora.textMuted)
                     .lineLimit(1)
                     .truncationMode(.middle)
+            }
+
+            if let outputSummary = message.toolOutputSummary {
+                Text(outputSummary)
+                    .font(.Aurora.micro)
+                    .foregroundColor(Color.Aurora.textMuted)
+                    .lineLimit(1)
             }
             
             Spacer()
         }
         .padding(.horizontal, AuroraSpacing.space5)
         .padding(.vertical, AuroraSpacing.space1)
+    }
+    
+    @ViewBuilder
+    private var statusIcon: some View {
+        switch message.status {
+        case .running:
+            Image(systemName: "arrow.trianglehead.2.counterclockwise")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.primary)
+        case .completed:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.success)
+        case .failed:
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.error)
+        case .pending:
+            Image(systemName: iconForTool)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.Aurora.accent)
+        }
     }
     
     private var iconForTool: String {
