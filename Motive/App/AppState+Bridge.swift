@@ -178,6 +178,10 @@ extension AppState {
                 runningSessionMessages[sid] = buffer
             }
         }
+
+        // Keep menubar status aligned with any globally running session,
+        // including when the active session is idle but background sessions are still running.
+        updateStatusBar()
     }
 
     // MARK: - Unified Event Processor

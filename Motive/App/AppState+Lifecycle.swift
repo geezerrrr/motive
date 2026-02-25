@@ -74,11 +74,12 @@ extension AppState {
     }
 
     func updateStatusBar() {
+        let resolved = resolvedStatusBarState()
         let isWaiting = pendingQuestionMessageId != nil
         let inputType = "Question"
         statusBarController?.update(
-            state: menuBarState,
-            toolName: currentToolName,
+            state: resolved.state,
+            toolName: resolved.toolName,
             isWaitingForInput: isWaiting,
             inputType: inputType
         )
@@ -88,18 +89,62 @@ extension AppState {
         // Debounce menu bar state updates to avoid "multiple times per frame" warning
         $menuBarState
             .debounce(for: .milliseconds(16), scheduler: RunLoop.main) // ~1 frame at 60fps
-            .sink { [weak self] state in
+            .sink { [weak self] _ in
                 guard let self else { return }
-                let isWaiting = self.pendingQuestionMessageId != nil
-                let inputType = "Question"
-                self.statusBarController?.update(
-                    state: state,
-                    toolName: self.currentToolName,
-                    isWaitingForInput: isWaiting,
-                    inputType: inputType
-                )
+                self.updateStatusBar()
             }
             .store(in: &cancellables)
+    }
+
+    /// Resolve the effective status bar presentation.
+    /// Priority:
+    /// 1) Current running session (foreground transient state)
+    /// 2) Any other running session (derived from buffered messages)
+    /// 3) Idle
+    private func resolvedStatusBarState() -> (state: MenuBarState, toolName: String?) {
+        if currentSession?.sessionStatus == .running {
+            if menuBarState != .idle {
+                return (menuBarState, currentToolName)
+            }
+            let activeBuffer = if let sid = currentSession?.openCodeSessionId {
+                runningSessionMessages[sid] ?? messages
+            } else {
+                messages
+            }
+            return derivedRunningState(from: activeBuffer) ?? (.executing, nil)
+        }
+
+        let running = runningSessions.values
+            .filter { $0.sessionStatus == .running }
+            .sorted { $0.createdAt > $1.createdAt }
+
+        for session in running {
+            guard let sid = session.openCodeSessionId,
+                  let buffer = runningSessionMessages[sid]
+            else {
+                return (.executing, nil)
+            }
+            if let derived = derivedRunningState(from: buffer) {
+                return derived
+            }
+            return (.executing, nil)
+        }
+
+        return (.idle, nil)
+    }
+
+    /// Best-effort stage inference for background running sessions from stored messages.
+    private func derivedRunningState(from buffer: [ConversationMessage]) -> (state: MenuBarState, toolName: String?)? {
+        if let runningTool = buffer.last(where: { $0.type == .tool && $0.status == .running }) {
+            return (.executing, runningTool.toolName?.simplifiedToolName)
+        }
+        if buffer.last(where: { $0.type == .reasoning }) != nil {
+            return (.reasoning, nil)
+        }
+        if buffer.last(where: { $0.type == .assistant }) != nil {
+            return (.responding, nil)
+        }
+        return nil
     }
 
     private func createCommandBarIfNeeded() {
