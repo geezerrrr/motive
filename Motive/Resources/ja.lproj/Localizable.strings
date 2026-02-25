@@ -103,6 +103,19 @@
 "settings.general.theme.system" = "システム";
 "settings.general.theme.light" = "ライト";
 "settings.general.theme.dark" = "ダーク";
+"settings.general.command_bar_position" = "位置";
+"settings.general.command_bar_position.desc" = "コマンドバーを表示する位置を選択";
+"settings.general.glass_effect" = "ガラス効果";
+"settings.general.glass_effect.desc" = "クリアまたはティントガラスを選択";
+"settings.general.glass_effect.clear" = "クリア";
+"settings.general.glass_effect.tinted" = "ティント";
+"settings.general.position.center" = "中央";
+"settings.general.position.top_leading" = "左上";
+"settings.general.position.top_middle" = "上中央";
+"settings.general.position.top_trailing" = "右上";
+"settings.general.position.bottom_leading" = "左下";
+"settings.general.position.bottom_middle" = "下中央";
+"settings.general.position.bottom_trailing" = "右下";
 
 // Language Settings
 "settings.general.language" = "言語";

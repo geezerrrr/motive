@@ -105,6 +105,17 @@
 "settings.general.theme.dark" = "Dark";
 "settings.general.command_bar_position" = "Position";
 "settings.general.command_bar_position.desc" = "Choose where the command bar appears on screen";
+"settings.general.glass_effect" = "Glass Effect";
+"settings.general.glass_effect.desc" = "Choose between clear or tinted glass";
+"settings.general.glass_effect.clear" = "Clear";
+"settings.general.glass_effect.tinted" = "Tinted";
+"settings.general.position.center" = "Center";
+"settings.general.position.top_leading" = "Top Left";
+"settings.general.position.top_middle" = "Top Middle";
+"settings.general.position.top_trailing" = "Top Right";
+"settings.general.position.bottom_leading" = "Bottom Left";
+"settings.general.position.bottom_middle" = "Bottom Middle";
+"settings.general.position.bottom_trailing" = "Bottom Right";
 
 // Language Settings
 "settings.general.language" = "Language";

@@ -224,8 +224,8 @@ final class ConfigManager: ObservableObject, SkillConfigProvider {
 
         var displayName: String {
             switch self {
-            case .clear: "Clear"
-            case .tinted: "Tinted"
+            case .clear: L10n.Settings.liquidGlassClear
+            case .tinted: L10n.Settings.liquidGlassTinted
             }
         }
     }
@@ -245,13 +245,13 @@ final class ConfigManager: ObservableObject, SkillConfigProvider {
 
         var displayName: String {
             switch self {
-            case .center: "Center"
-            case .topLeading: "Top Left"
-            case .topMiddle: "Top Middle"
-            case .topTrailing: "Top Right"
-            case .bottomLeading: "Bottom Left"
-            case .bottomMiddle: "Bottom Middle"
-            case .bottomTrailing: "Bottom Right"
+            case .center: L10n.Settings.positionCenter
+            case .topLeading: L10n.Settings.positionTopLeading
+            case .topMiddle: L10n.Settings.positionTopMiddle
+            case .topTrailing: L10n.Settings.positionTopTrailing
+            case .bottomLeading: L10n.Settings.positionBottomLeading
+            case .bottomMiddle: L10n.Settings.positionBottomMiddle
+            case .bottomTrailing: L10n.Settings.positionBottomTrailing
             }
         }
 

@@ -121,6 +121,17 @@ enum L10n {
         static let themeDark = "settings.general.theme.dark".localized
         static let commandBarPosition = "settings.general.command_bar_position".localized
         static let commandBarPositionDesc = "settings.general.command_bar_position.desc".localized
+        static let glassEffect = "settings.general.glass_effect".localized
+        static let glassEffectDesc = "settings.general.glass_effect.desc".localized
+        static let liquidGlassClear = "settings.general.glass_effect.clear".localized
+        static let liquidGlassTinted = "settings.general.glass_effect.tinted".localized
+        static let positionCenter = "settings.general.position.center".localized
+        static let positionTopLeading = "settings.general.position.top_leading".localized
+        static let positionTopMiddle = "settings.general.position.top_middle".localized
+        static let positionTopTrailing = "settings.general.position.top_trailing".localized
+        static let positionBottomLeading = "settings.general.position.bottom_leading".localized
+        static let positionBottomMiddle = "settings.general.position.bottom_middle".localized
+        static let positionBottomTrailing = "settings.general.position.bottom_trailing".localized
 
         // Language
         static let language = "settings.general.language".localized
