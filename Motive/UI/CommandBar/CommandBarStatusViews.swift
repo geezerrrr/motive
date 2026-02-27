@@ -15,17 +15,21 @@ extension CommandBarView {
             AuroraPulsingDot()
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(runningStatusTitle)
-                    .font(.Aurora.caption.weight(.semibold))
-                    .foregroundColor(Color.Aurora.textPrimary)
-                    .auroraShimmer(isDark: isDark)
+                MetallicShimmerText(
+                    text: runningStatusTitle,
+                    font: .Aurora.caption.weight(.semibold),
+                    baseColor: Color.Aurora.textSecondary,
+                    isActive: true
+                )
 
-                Text(runningStatusDetail)
-                    .font(.Aurora.caption)
-                    .foregroundColor(Color.Aurora.textMuted)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .auroraShimmer(isDark: isDark)
+                MetallicShimmerText(
+                    text: runningStatusDetail,
+                    font: .Aurora.caption,
+                    baseColor: Color.Aurora.textSecondary,
+                    isActive: true
+                )
+                .lineLimit(1)
+                .truncationMode(.middle)
             }
 
             Spacer()
@@ -70,6 +74,20 @@ extension CommandBarView {
 
     /// Detail for running status - current action (thinking or tool execution)
     private var runningStatusDetail: String {
+        if appState.currentSessionAgent == "plan",
+           let planPreview = appState.currentPlanPreviewText,
+           !planPreview.isEmpty
+        {
+            let latestLine = planPreview
+                .split(separator: "\n", omittingEmptySubsequences: true)
+                .last
+                .map(String.init)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if let latestLine, !latestLine.isEmpty {
+                return latestLine
+            }
+        }
+
         // When AI is thinking/reasoning
         if appState.menuBarState == .reasoning {
             return L10n.Drawer.thinking

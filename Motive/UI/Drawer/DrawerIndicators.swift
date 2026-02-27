@@ -87,12 +87,15 @@ struct AuroraLoadingDots: View {
 struct ShimmerText: View {
     let text: String
     var font: Font = .Aurora.micro.weight(.semibold)
-    @Environment(\.colorScheme) private var colorScheme
+    var baseColor: Color = .Aurora.textSecondary
 
     var body: some View {
-        Text(text)
-            .font(font)
-            .auroraShimmer(isDark: colorScheme == .dark)
+        MetallicShimmerText(
+            text: text,
+            font: font,
+            baseColor: baseColor,
+            isActive: true
+        )
     }
 }
 
@@ -142,7 +145,7 @@ struct TransientReasoningBubble: View {
                                 .id("reasoning-preview-anchor")
                                 .textSelection(.enabled)
                         }
-                        .frame(maxHeight: 58) // ~3 lines preview window
+                        .frame(maxHeight: 80) // ~4-5 lines preview window
                         .mask(
                             LinearGradient(
                                 stops: [

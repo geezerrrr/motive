@@ -407,6 +407,7 @@ extension AppState {
         Log.debug("Agent changed: \(currentSessionAgent) → \(agent)")
         currentSessionAgent = agent
         configManager.currentAgent = agent == "build" ? "agent" : agent
+        updatePlanPreviewPolling()
     }
 
     private func resetEventState() {

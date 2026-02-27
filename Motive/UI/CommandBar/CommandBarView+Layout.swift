@@ -95,7 +95,20 @@ extension CommandBarView {
 
     /// Current command bar height
     var currentHeight: CGFloat {
-        mode.isChat ? mode.dynamicHeight : (isFileCompletionActive ? fileCompletionHeight : mode.dynamicHeight)
+        if mode.isChat {
+            return mode.dynamicHeight
+        }
+        if isFileCompletionActive {
+            return fileCompletionHeight
+        }
+        if mode == .running,
+           appState.currentSessionAgent == "plan",
+           let preview = appState.currentPlanPreviewText,
+           !preview.isEmpty
+        {
+            return 230
+        }
+        return mode.dynamicHeight
     }
 
     // MARK: - Above Input Content (Session Status)

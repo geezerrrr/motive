@@ -483,3 +483,12 @@
 // Common
 "onboarding.skip" = "スキップ";
 "onboarding.continue" = "続ける";
+
+"drawer.copy_result" = "結果をコピー";
+"drawer.edit_last_message" = "最後のメッセージを編集";
+"drawer.preview_plan" = "計画をプレビュー";
+"drawer.preview_plan_hint" = "生成された計画のMarkdownプレビューを開く";
+"drawer.plan_preview" = "計画プレビュー";
+"drawer.reload_plan_preview" = "再読み込み";
+"drawer.plan_preview_load_failed" = "計画の読み込みに失敗しました: %@";
+"drawer.plan_draft_streaming" = "計画ドラフト（ライブ）";

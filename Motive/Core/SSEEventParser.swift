@@ -110,6 +110,12 @@ extension SSEClient {
         let delta = properties["delta"] as? String ?? ""
 
         guard !delta.isEmpty else { return nil }
+
+        // Skip deltas belonging to user messages (prevents prompt echo).
+        if !messageID.isEmpty, userMessageIDs.contains(messageID) {
+            return nil
+        }
+
         let inferredPartType = partTypeByPartID[partID]?.lowercased()
 
         switch (field, inferredPartType) {
@@ -152,6 +158,11 @@ extension SSEClient {
 
         logger.debug("parseMessagePartUpdated: partType=\(partType) hasDelta=\(delta != nil) deltaLen=\(delta?.count ?? 0) sessionID=\(sessionID.prefix(8))")
 
+        // Skip text/reasoning parts belonging to user messages (prevents prompt echo).
+        if partType == "text" || partType == "reasoning", !messageID.isEmpty, userMessageIDs.contains(messageID) {
+            return nil
+        }
+
         switch partType {
         case "step-finish":
             if let usage = parseTokenUsage(from: part), usage.total > 0 {
@@ -169,14 +180,45 @@ extension SSEClient {
 
         case "text":
             if let delta, !delta.isEmpty {
+                let trackingKey = !partID.isEmpty ? partID : messageID
+                if !trackingKey.isEmpty {
+                    let previous = textByPartID[trackingKey] ?? ""
+                    textByPartID[trackingKey] = previous + delta
+                }
                 return .textDelta(TextDeltaInfo(
                     sessionID: sessionID,
                     messageID: messageID,
                     delta: delta
                 ))
             }
+            if let text = part["text"] as? String, !text.isEmpty {
+                let trackingKey = !partID.isEmpty ? partID : messageID
+                if !trackingKey.isEmpty {
+                    let previous = textByPartID[trackingKey] ?? ""
+                    if text.hasPrefix(previous) {
+                        let appended = String(text.dropFirst(previous.count))
+                        textByPartID[trackingKey] = text
+                        if !appended.isEmpty {
+                            return .textDelta(TextDeltaInfo(
+                                sessionID: sessionID,
+                                messageID: messageID,
+                                delta: appended
+                            ))
+                        }
+                    } else {
+                        // Snapshot changed non-monotonically; reset local baseline.
+                        // We avoid emitting a synthetic replacement delta to prevent UI duplication.
+                        textByPartID[trackingKey] = text
+                    }
+                }
+            }
             if let time = part["time"] as? [String: Any], time["end"] != nil {
                 let text = part["text"] as? String ?? ""
+                if !partID.isEmpty {
+                    textByPartID.removeValue(forKey: partID)
+                } else if !messageID.isEmpty {
+                    textByPartID.removeValue(forKey: messageID)
+                }
                 return .textComplete(TextCompleteInfo(
                     sessionID: sessionID,
                     messageID: messageID,
@@ -206,6 +248,12 @@ extension SSEClient {
         let info = properties["info"] as? [String: Any]
         let fallbackSessionID = properties["sessionID"] as? String ?? ""
         let sessionID = parseString(from: info ?? [:], keys: ["sessionID", "sessionId"]) ?? fallbackSessionID
+
+        // Track user message IDs so their text parts can be filtered out.
+        let role = info?["role"] as? String
+        if role == "user", let messageID = parseString(from: info ?? [:], keys: ["id", "messageID", "messageId"]) {
+            userMessageIDs.insert(messageID)
+        }
 
         // Agent switches (plan <-> build) should stay highest priority.
         let agent = info?["agent"] as? String

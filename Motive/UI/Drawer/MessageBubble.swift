@@ -11,6 +11,9 @@ import SwiftUI
 
 struct MessageBubble: View {
     let message: ConversationMessage
+    let isFinalAssistantResult: Bool
+    let isEditableLastUserMessage: Bool
+    let onEditLastUserMessage: ((ConversationMessage) -> Void)?
     @Environment(\.colorScheme) private var colorScheme
     @State private var isHovering = false
     /// Unified expand/collapse for tool output, diff details, and error details.
@@ -32,9 +35,18 @@ struct MessageBubble: View {
                     Group {
                         switch message.type {
                         case .user:
-                            UserBubble(message: message, isDark: isDark)
+                            UserBubble(
+                                message: message,
+                                isDark: isDark,
+                                canEdit: isEditableLastUserMessage,
+                                onEdit: isEditableLastUserMessage ? { onEditLastUserMessage?(message) } : nil
+                            )
                         case .assistant:
-                            AssistantBubble(message: message, isDark: isDark)
+                            AssistantBubble(
+                                message: message,
+                                isDark: isDark,
+                                showCopyAction: isFinalAssistantResult
+                            )
                         case .tool:
                             ToolBubble(message: message, isDark: isDark, isDetailExpanded: $isDetailExpanded)
                         case .system:
@@ -42,7 +54,7 @@ struct MessageBubble: View {
                         case .todo:
                             TodoBubble(message: message, isDark: isDark)
                         case .reasoning:
-                            TransientReasoningBubble(text: message.content)
+                            EmptyView()
                         }
                     }
 

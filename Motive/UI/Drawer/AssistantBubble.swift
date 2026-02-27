@@ -5,12 +5,15 @@
 //  Aurora Design System - Assistant message bubble component
 //
 
+import AppKit
 import MarkdownUI
 import SwiftUI
 
 struct AssistantBubble: View {
     let message: ConversationMessage
     let isDark: Bool
+    let showCopyAction: Bool
+    @State private var didCopy = false
 
     /// Get agent identity for display
     private var agentIdentity: AgentIdentity? {
@@ -32,6 +35,21 @@ struct AssistantBubble: View {
                 Text(agentIdentity?.displayName ?? L10n.Drawer.assistant)
                     .font(.Aurora.micro.weight(.semibold))
                     .foregroundColor(Color.Aurora.textSecondary)
+
+                Spacer()
+
+                if showCopyAction {
+                    Button {
+                        copyToClipboard()
+                    } label: {
+                        Image(systemName: didCopy ? "checkmark" : "doc.on.doc")
+                            .font(.Aurora.micro.weight(.semibold))
+                            .foregroundColor(didCopy ? Color.Aurora.success : Color.Aurora.textMuted)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(L10n.Drawer.copyResult)
+                    .help(L10n.Drawer.copyResult)
+                }
             }
 
             Markdown(message.content)
@@ -54,5 +72,16 @@ struct AssistantBubble: View {
             RoundedRectangle(cornerRadius: AuroraRadius.lg, style: .continuous)
                 .strokeBorder(Color.Aurora.glassOverlay.opacity(isDark ? 0.04 : 0.06), lineWidth: 0.5)
         )
+    }
+
+    private func copyToClipboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(message.content, forType: .string)
+        didCopy = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(1100))
+            didCopy = false
+        }
     }
 }

@@ -406,6 +406,14 @@ enum L10n {
         static let contextHelp = "drawer.context_help".localized
         static let showOutput = "drawer.show_output".localized
         static let hideOutput = "drawer.hide_output".localized
+        static let copyResult = "drawer.copy_result".localized
+        static let editLastMessage = "drawer.edit_last_message".localized
+        static let previewPlan = "drawer.preview_plan".localized
+        static let previewPlanHint = "drawer.preview_plan_hint".localized
+        static let planPreview = "drawer.plan_preview".localized
+        static let reloadPlanPreview = "drawer.reload_plan_preview".localized
+        static let planPreviewLoadFailed = "drawer.plan_preview_load_failed".localized
+        static let planDraftStreaming = "drawer.plan_draft_streaming".localized
     }
 
     // MARK: - Permission Request

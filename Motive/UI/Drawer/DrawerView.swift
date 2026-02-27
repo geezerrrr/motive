@@ -32,6 +32,7 @@ struct DrawerView: View {
     @State private var selectedFileIndex: Int = 0
     @State private var atQueryRange: Range<String.Index>? = nil
     @State private var streamingScrollTask: Task<Void, Never>?
+    @State private var editingUserMessageId: UUID?
 
     private var isDark: Bool {
         colorScheme == .dark
@@ -58,7 +59,12 @@ struct DrawerView: View {
                 if appState.messages.isEmpty {
                     emptyState
                 } else if !appState.messages.isEmpty {
-                    DrawerConversationContent(showContent: showContent, streamingScrollTask: $streamingScrollTask)
+                    DrawerConversationContent(
+                        showContent: showContent,
+                        streamingScrollTask: $streamingScrollTask,
+                        onEditLastUserMessage: beginEditingLastUserMessage,
+                        enablesUserMessageEditing: true
+                    )
                 } else {
                     Spacer()
                 }
@@ -257,10 +263,27 @@ struct DrawerView: View {
         hideFileCompletion()
 
         if appState.messages.isEmpty {
+            editingUserMessageId = nil
             appState.submitIntent(text)
         } else {
-            appState.resumeSession(with: text)
+            if let editingUserMessageId {
+                appState.resumeSessionReplacingLastUserMessage(
+                    id: editingUserMessageId,
+                    with: text
+                )
+                self.editingUserMessageId = nil
+            } else {
+                appState.resumeSession(with: text)
+            }
         }
+    }
+
+    private func beginEditingLastUserMessage(_ message: ConversationMessage) {
+        guard appState.sessionStatus != .running else { return }
+        editingUserMessageId = message.id
+        inputText = message.content
+        hideFileCompletion()
+        isInputFocused = true
     }
 
     // MARK: - @ File Completion

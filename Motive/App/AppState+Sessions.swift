@@ -350,25 +350,31 @@ extension AppState {
         panel.allowsMultipleSelection = false
         panel.message = "Select a project directory"
         panel.prompt = "Select"
-
-        // Hide command bar during picker
+        // NSOpenPanel as a sheet on non-activating KeyablePanel can fail silently.
+        // Use modal presentation for reliable folder picking from /project mode.
         hideCommandBar()
-
-        panel.begin { [weak self] response in
-            guard let self else { return }
-            if response == .OK, let url = panel.url {
-                self.switchProjectDirectory(url.path)
-            }
-            // Reshow command bar after picker closes
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(100))
-                self.showCommandBar()
-            }
+        NSApp.activate(ignoringOtherApps: true)
+        let response = panel.runModal()
+        if response == .OK, let url = panel.url {
+            switchProjectDirectory(url.path)
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(80))
+            showCommandBar()
         }
     }
 
     /// Resume a session with a follow-up message
     func resumeSession(with text: String) {
+        resumeSession(with: text, replacingLastUserMessageID: nil)
+    }
+
+    /// Edit the latest user message in-place and regenerate this turn in the same session.
+    func resumeSessionReplacingLastUserMessage(id: UUID, with text: String) {
+        resumeSession(with: text, replacingLastUserMessageID: id)
+    }
+
+    private func resumeSession(with text: String, replacingLastUserMessageID: UUID?) {
         guard let session = currentSession,
               let openCodeSessionId = session.openCodeSessionId
         else {
@@ -392,12 +398,32 @@ extension AppState {
         transitionSessionStatus(.running, for: session)
         menuBarState = .executing
 
-        // Add user message first — must be in the array before snapshotting
-        let userMessage = ConversationMessage(
-            type: .user,
-            content: trimmed
-        )
-        messages.append(userMessage)
+        if let replacingLastUserMessageID {
+            guard let userIndex = messages.lastIndex(where: { $0.id == replacingLastUserMessageID && $0.type == .user }) else {
+                Log.debug("Edited message target not found, falling back to append mode")
+                let fallback = ConversationMessage(type: .user, content: trimmed)
+                messages.append(fallback)
+                logEvent(OpenCodeEvent(kind: .user, rawJson: "", text: trimmed))
+                runningSessions[openCodeSessionId] = session
+                runningSessionMessages[openCodeSessionId] = messages
+                startSnapshotTimerIfNeeded()
+                awaitingFirstResponseAfterResume = true
+                let cwd = session.projectPath.isEmpty ? configManager.currentProjectURL.path : session.projectPath
+                let agent = configManager.currentAgent
+                bridgeTask?.cancel()
+                bridgeTask = Task { await bridge.resumeSession(sessionId: openCodeSessionId, text: trimmed, cwd: cwd, agent: agent) }
+                return
+            }
+            messages = Array(messages.prefix(userIndex + 1))
+            messages[userIndex] = messages[userIndex].withContent(trimmed)
+        } else {
+            // Add user message first — must be in the array before snapshotting
+            let userMessage = ConversationMessage(
+                type: .user,
+                content: trimmed
+            )
+            messages.append(userMessage)
+        }
         logEvent(OpenCodeEvent(kind: .user, rawJson: "", text: trimmed))
 
         // Re-register in runningSessions for event routing

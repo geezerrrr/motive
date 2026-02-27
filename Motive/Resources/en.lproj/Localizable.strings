@@ -483,3 +483,12 @@
 // Common
 "onboarding.skip" = "Skip";
 "onboarding.continue" = "Continue";
+
+"drawer.copy_result" = "Copy result";
+"drawer.edit_last_message" = "Edit last message";
+"drawer.preview_plan" = "Preview Plan";
+"drawer.preview_plan_hint" = "Open the generated plan markdown in a preview window";
+"drawer.plan_preview" = "Plan Preview";
+"drawer.reload_plan_preview" = "Reload";
+"drawer.plan_preview_load_failed" = "Failed to load plan: %@";
+"drawer.plan_draft_streaming" = "Live plan draft";

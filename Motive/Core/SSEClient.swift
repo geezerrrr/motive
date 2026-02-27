@@ -27,6 +27,12 @@ actor SSEClient {
     /// Tracks message part type by partID so `message.part.delta` can be classified correctly.
     /// OpenCode deltas only include `partID` + `field`, not the part `type`.
     var partTypeByPartID: [String: String] = [:]
+    /// Tracks last full text snapshot for `message.part.updated` events that carry full text
+    /// instead of incremental `delta`.
+    var textByPartID: [String: String] = [:]
+    /// Message IDs whose role is "user". Text parts for these messages must be skipped
+    /// to prevent the user's prompt from being echoed as an assistant bubble.
+    var userMessageIDs: Set<String> = []
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.velvet.motive", category: "SSE")
 
@@ -148,6 +154,8 @@ actor SSEClient {
         streamTask = nil
         isConnected = false
         partTypeByPartID.removeAll()
+        textByPartID.removeAll()
+        userMessageIDs.removeAll()
     }
 
     // MARK: - Stream Consumption

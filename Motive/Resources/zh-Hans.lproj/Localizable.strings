@@ -483,3 +483,12 @@
 // Common
 "onboarding.skip" = "跳过";
 "onboarding.continue" = "继续";
+
+"drawer.copy_result" = "复制结果";
+"drawer.edit_last_message" = "编辑最后一条消息";
+"drawer.preview_plan" = "预览计划";
+"drawer.preview_plan_hint" = "在预览窗口中打开生成的计划 Markdown";
+"drawer.plan_preview" = "计划预览";
+"drawer.reload_plan_preview" = "重新加载";
+"drawer.plan_preview_load_failed" = "加载计划失败：%@";
+"drawer.plan_draft_streaming" = "实时计划草稿";

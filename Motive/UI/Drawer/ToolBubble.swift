@@ -18,9 +18,12 @@ struct ToolBubble: View {
                 // Status-aware icon
                 toolStatusIcon
 
-                Text(message.toolName?.simplifiedToolName ?? L10n.Drawer.tool)
-                    .font(.Aurora.caption.weight(.medium))
-                    .foregroundColor(Color.Aurora.textSecondary)
+                MetallicShimmerText(
+                    text: message.toolName?.simplifiedToolName ?? L10n.Drawer.tool,
+                    font: .Aurora.caption.weight(.medium),
+                    baseColor: Color.Aurora.textSecondary,
+                    isActive: message.status == .running
+                )
 
                 Spacer()
 

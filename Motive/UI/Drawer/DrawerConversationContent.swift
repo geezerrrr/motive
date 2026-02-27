@@ -11,6 +11,8 @@ struct DrawerConversationContent: View {
     @EnvironmentObject private var appState: AppState
     let showContent: Bool
     @Binding var streamingScrollTask: Task<Void, Never>?
+    let onEditLastUserMessage: (ConversationMessage) -> Void
+    let enablesUserMessageEditing: Bool
 
     private struct DisplayEntry: Identifiable {
         let id: UUID
@@ -19,19 +21,35 @@ struct DrawerConversationContent: View {
 
     private var displayEntries: [DisplayEntry] {
         let allMessages = appState.messages
-        return allMessages.enumerated().map { index, message in
+        return allMessages.enumerated().compactMap { index, message in
             if shouldDemoteAssistantToProcessThought(index: index, in: allMessages) {
-                let synthetic = ConversationMessage(
-                    id: message.id,
-                    type: .reasoning,
-                    content: message.content,
-                    timestamp: message.timestamp,
-                    status: .completed
-                )
-                return DisplayEntry(id: message.id, message: synthetic)
+                return nil
             }
             return DisplayEntry(id: message.id, message: message)
         }
+    }
+
+    private var editableLastUserMessageId: UUID? {
+        guard enablesUserMessageEditing else { return nil }
+        return appState.sessionStatus == .running
+            ? nil
+            : appState.messages.last(where: { $0.type == .user })?.id
+    }
+
+    /// True when this assistant bubble is the final assistant output of its turn.
+    /// A turn boundary is the next user message (or end of session).
+    private func isTurnFinalAssistant(at index: Int) -> Bool {
+        guard displayEntries[index].message.type == .assistant else { return false }
+        guard index + 1 < displayEntries.count else { return true }
+        for next in displayEntries[(index + 1)...] {
+            if next.message.type == .assistant {
+                return false
+            }
+            if next.message.type == .user {
+                return true
+            }
+        }
+        return true
     }
 
     private func shouldDemoteAssistantToProcessThought(index: Int, in messages: [ConversationMessage]) -> Bool {
@@ -58,14 +76,19 @@ struct DrawerConversationContent: View {
             ScrollView {
                 LazyVStack(spacing: AuroraSpacing.space3) {
                     ForEach(Array(displayEntries.enumerated()), id: \.element.id) { index, entry in
-                        MessageBubble(message: entry.message)
-                            .id(entry.id)
-                            .opacity(showContent ? 1 : 0)
-                            .offset(y: showContent ? 0 : 8)
-                            .animation(
-                                .auroraSpring.delay(Double(index) * 0.02),
-                                value: showContent
-                            )
+                        MessageBubble(
+                            message: entry.message,
+                            isFinalAssistantResult: isTurnFinalAssistant(at: index),
+                            isEditableLastUserMessage: entry.id == editableLastUserMessageId,
+                            onEditLastUserMessage: onEditLastUserMessage
+                        )
+                        .id(entry.id)
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 8)
+                        .animation(
+                            .auroraSpring.delay(Double(index) * 0.02),
+                            value: showContent
+                        )
                     }
 
                     // Transient reasoning bubble — shows live thinking process,
@@ -98,7 +121,12 @@ struct DrawerConversationContent: View {
                 scrollToBottom(proxy: proxy, animated: false)
             }
             .onChange(of: appState.messages.count) { _, _ in
-                scrollToBottom(proxy: proxy)
+                // During active runs, avoid repeated animated jumps that can look like drifting.
+                if appState.sessionStatus == .running {
+                    scheduleStreamingScroll(proxy: proxy)
+                } else {
+                    scrollToBottom(proxy: proxy)
+                }
             }
             .onChange(of: appState.messages.last?.content) { _, _ in
                 // Scroll when message content updates (streaming)
@@ -125,7 +153,8 @@ struct DrawerConversationContent: View {
         streamingScrollTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(100))
             guard !Task.isCancelled else { return }
-            scrollToBottom(proxy: proxy)
+            // Keep streaming follow stable: no animation to prevent visual "floating".
+            scrollToBottom(proxy: proxy, animated: false)
         }
     }
 

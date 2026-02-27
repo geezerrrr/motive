@@ -189,7 +189,10 @@ final class NativePromptHandler {
                 }
                 self?.appState?.updateStatusBar()
                 self?.showNextFromQueue()
-            }
+            },
+            onPreviewPlan: isPlanExit ? { [weak self] in
+                self?.appState?.showPlanPreview(path: planFilePath)
+            } : nil
         )
     }
 
