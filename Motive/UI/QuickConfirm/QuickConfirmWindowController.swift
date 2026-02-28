@@ -19,7 +19,8 @@ final class QuickConfirmWindowController {
         request: PermissionRequest,
         anchorFrame: NSRect?,
         onResponse: @escaping (String) -> Void,
-        onCancel: @escaping () -> Void
+        onCancel: @escaping () -> Void,
+        onPreviewPlan: (() -> Void)? = nil
     ) {
         // Dismiss any existing panel
         dismiss()
@@ -34,7 +35,8 @@ final class QuickConfirmWindowController {
             onCancel: { [weak self] in
                 onCancel()
                 self?.dismiss()
-            }
+            },
+            onPreviewPlan: onPreviewPlan
         )
 
         // Create hosting view

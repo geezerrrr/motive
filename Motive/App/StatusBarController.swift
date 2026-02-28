@@ -295,10 +295,10 @@ final class StatusBarController {
                 guard let self, let button else { break }
 
                 // Increment phase
-                self.animationDots = (self.animationDots + 1) % 40 // 40 frames, ~1.2s per cycle
+                self.animationDots = (self.animationDots + 1) % MetallicShimmerStyle.cycleFrames
                 self.updateShimmerTitle(cleanText, button: button, phase: self.animationDots)
 
-                try? await Task.sleep(for: .milliseconds(30))
+                try? await Task.sleep(for: .milliseconds(MetallicShimmerStyle.frameIntervalMS))
             }
         }
     }
@@ -314,13 +314,6 @@ final class StatusBarController {
     }
 
     private func updateShimmerTitle(_ text: String, button: NSStatusBarButton, phase: Int) {
-        let baseAlpha: CGFloat = 0.4
-        let highlightAlpha: CGFloat = 1.0
-
-        // Calculate highlight position (0 to 1)
-        let progress = CGFloat(phase) / 40.0
-        let highlightCenter = progress * 1.4 - 0.2 // -0.2 to 1.2 range for smooth entry/exit
-
         let attributedString = NSMutableAttributedString(string: " \(text)")
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         let baseColor = menuBarTextColor(for: button)
@@ -328,8 +321,7 @@ final class StatusBarController {
         // Apply gradient effect per character
         for i in 0 ..< attributedString.length {
             let charProgress = CGFloat(i) / CGFloat(max(1, attributedString.length - 1))
-            let distance = abs(charProgress - highlightCenter)
-            let alpha = max(baseAlpha, highlightAlpha - distance * 2.5)
+            let alpha = MetallicShimmerStyle.alpha(charProgress: charProgress, phase: phase)
 
             let color = baseColor.withAlphaComponent(alpha)
             attributedString.addAttributes([

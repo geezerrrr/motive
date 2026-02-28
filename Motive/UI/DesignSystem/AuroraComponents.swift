@@ -461,3 +461,78 @@ extension View {
         modifier(AuroraShimmer(isDark: isDark))
     }
 }
+
+// MARK: - Metallic Shimmer (shared with menu bar)
+
+enum MetallicShimmerStyle {
+    static let baseAlpha: CGFloat = 0.4
+    static let highlightAlpha: CGFloat = 1.0
+    static let cycleFrames: Int = 40
+    static let frameIntervalMS: UInt64 = 30
+
+    static func alpha(charProgress: CGFloat, phase: Int) -> CGFloat {
+        let progress = CGFloat(phase) / CGFloat(cycleFrames)
+        let highlightCenter = progress * 1.4 - 0.2 // -0.2...1.2
+        let distance = abs(charProgress - highlightCenter)
+        return max(baseAlpha, highlightAlpha - distance * 2.5)
+    }
+}
+
+struct MetallicShimmerText: View {
+    let text: String
+    var font: Font = .Aurora.caption
+    var baseColor: Color = .Aurora.textSecondary
+    var isActive: Bool = true
+
+    @State private var phase = 0
+    @State private var animationTask: Task<Void, Never>?
+
+    var body: some View {
+        Text(attributedText)
+            .onAppear {
+                restartAnimationIfNeeded()
+            }
+            .onDisappear {
+                animationTask?.cancel()
+                animationTask = nil
+            }
+            .onChange(of: isActive) { _, _ in
+                restartAnimationIfNeeded()
+            }
+    }
+
+    private var attributedText: AttributedString {
+        guard !text.isEmpty else { return AttributedString("") }
+        let chars = Array(text)
+        let denominator = max(chars.count - 1, 1)
+        var result = AttributedString()
+        for (idx, ch) in chars.enumerated() {
+            var piece = AttributedString(String(ch))
+            piece.font = font
+            let alpha = if isActive {
+                MetallicShimmerStyle.alpha(
+                    charProgress: CGFloat(idx) / CGFloat(denominator),
+                    phase: phase
+                )
+            } else {
+                0.72
+            }
+            piece.foregroundColor = baseColor.opacity(alpha)
+            result += piece
+        }
+        return result
+    }
+
+    private func restartAnimationIfNeeded() {
+        animationTask?.cancel()
+        animationTask = nil
+        guard isActive else { return }
+        phase = 0
+        animationTask = Task { @MainActor in
+            while !Task.isCancelled {
+                phase = (phase + 1) % MetallicShimmerStyle.cycleFrames
+                try? await Task.sleep(for: .milliseconds(MetallicShimmerStyle.frameIntervalMS))
+            }
+        }
+    }
+}

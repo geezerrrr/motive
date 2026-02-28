@@ -16,6 +16,10 @@ struct DrawerChatInput: View {
     let onTextChange: (String) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
+    @State private var textViewHeight: CGFloat = 26
+
+    private static let maxLines = 5
+
     private var isDark: Bool {
         colorScheme == .dark
     }
@@ -24,7 +28,6 @@ struct DrawerChatInput: View {
         let isRunning = appState.sessionStatus == .running
 
         VStack(spacing: 0) {
-            // Project directory + agent mode (compact top meta row)
             HStack(spacing: AuroraSpacing.space2) {
                 Image(systemName: "folder")
                     .font(.Aurora.micro.weight(.medium))
@@ -42,7 +45,6 @@ struct DrawerChatInput: View {
                         .fixedSize(horizontal: true, vertical: true)
                 }
 
-                // Agent mode toggle
                 AgentModeToggle(
                     currentAgent: configManager.currentAgent,
                     isRunning: isRunning,
@@ -62,26 +64,24 @@ struct DrawerChatInput: View {
                 .fill(Color.Aurora.glassOverlay.opacity(isDark ? 0.06 : 0.12))
                 .frame(height: 0.5)
 
-            HStack(spacing: AuroraSpacing.space3) {
-                HStack(spacing: AuroraSpacing.space2) {
-                    TextField(
-                        "",
+            HStack(alignment: .center, spacing: AuroraSpacing.space3) {
+                HStack(alignment: .center, spacing: AuroraSpacing.space2) {
+                    GrowingTextView(
                         text: $inputText,
-                        prompt: Text(L10n.Drawer.messagePlaceholder)
-                            .foregroundColor(Color.Aurora.textMuted)
+                        placeholder: L10n.Drawer.messagePlaceholder,
+                        font: .systemFont(ofSize: 13),
+                        textColor: NSColor(Color.Aurora.textPrimary),
+                        placeholderColor: NSColor(Color.Aurora.textMuted),
+                        maxLines: Self.maxLines,
+                        isDisabled: isRunning,
+                        onSubmit: onSubmit,
+                        onTextChange: onTextChange,
+                        height: $textViewHeight
                     )
-                    .textFieldStyle(.plain)
-                    .font(.Aurora.body)
-                    .foregroundColor(Color.Aurora.textPrimary)
                     .focused(isInputFocused)
-                    .onSubmit(onSubmit)
-                    .disabled(isRunning)
-                    .onChange(of: inputText) { _, newValue in
-                        onTextChange(newValue)
-                    }
+                    .frame(height: textViewHeight)
 
                     if isRunning {
-                        // Stop button when running
                         Button(action: { appState.interruptSession() }) {
                             Image(systemName: "stop.fill")
                                 .font(.Aurora.micro.weight(.bold))
@@ -93,30 +93,32 @@ struct DrawerChatInput: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel(L10n.Drawer.stop)
                     } else {
-                        // Send button when not running
                         Button(action: onSubmit) {
                             Image(systemName: "arrow.up.circle.fill")
                                 .font(.Aurora.title1.weight(.medium))
-                                .foregroundColor(inputText.isEmpty ? Color.Aurora.textMuted : Color.Aurora.microAccent)
+                                .foregroundColor(
+                                    inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                        ? Color.Aurora.textMuted : Color.Aurora.microAccent
+                                )
                         }
                         .buttonStyle(.plain)
-                        .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityLabel(L10n.CommandBar.submit)
                     }
                 }
                 .padding(.horizontal, AuroraSpacing.space4)
                 .padding(.vertical, 10)
                 .background(
-                    Capsule(style: .continuous)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .fill(
                             isInputFocused.wrappedValue && !isRunning
                                 ? Color.Aurora.microAccentSoft.opacity(isDark ? 0.25 : 0.15)
                                 : (isDark ? Color.Aurora.glassOverlay.opacity(0.04) : Color.white.opacity(0.5))
                         )
                 )
-                .clipShape(Capsule(style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .overlay(
-                    Capsule(style: .continuous)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .strokeBorder(
                             isInputFocused.wrappedValue && !isRunning
                                 ? Color.Aurora.microAccent.opacity(0.4)

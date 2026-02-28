@@ -178,6 +178,10 @@ extension AppState {
                 runningSessionMessages[sid] = buffer
             }
         }
+
+        // Keep menubar status aligned with any globally running session,
+        // including when the active session is idle but background sessions are still running.
+        updateStatusBar()
     }
 
     // MARK: - Unified Event Processor
@@ -403,6 +407,7 @@ extension AppState {
         Log.debug("Agent changed: \(currentSessionAgent) → \(agent)")
         currentSessionAgent = agent
         configManager.currentAgent = agent == "build" ? "agent" : agent
+        updatePlanPreviewPolling()
     }
 
     private func resetEventState() {

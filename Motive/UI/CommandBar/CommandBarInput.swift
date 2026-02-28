@@ -10,26 +10,25 @@ import SwiftUI
 extension CommandBarView {
     // MARK: - Input Area (Always Visible - No icons, status shown above)
 
+    /// Single-line text view height for the command bar font (17pt).
+    static let singleLineInputHeight: CGFloat = 30
+
     var inputAreaView: some View {
-        HStack(spacing: AuroraSpacing.space3) {
-            // Input field with inline autocomplete hint
+        HStack(alignment: .bottom, spacing: AuroraSpacing.space3) {
             ZStack(alignment: .leading) {
-                // Autocomplete hint (gray completion text)
-                if let completion = autocompleteCompletion {
+                // Autocomplete hint (gray completion text) — only for single-line
+                if inputHeight <= Self.singleLineInputHeight + 2, let completion = autocompleteCompletion {
                     HStack(spacing: 0) {
-                        // Invisible spacer for the typed text width
                         Text(inputText)
                             .font(.Aurora.headline.weight(.regular))
                             .opacity(0)
 
-                        // Gray completion hint
                         Text(completion)
                             .font(.Aurora.headline.weight(.regular))
                             .foregroundColor(Color.Aurora.textMuted)
                     }
                 }
 
-                // Actual input field
                 CommandBarTextField(
                     text: $inputText,
                     placeholder: placeholderText,
@@ -42,11 +41,12 @@ extension CommandBarView {
                     },
                     onCmdN: handleCmdN,
                     onCmdReturn: nil,
-                    onEscape: handleEscape
+                    onEscape: handleEscape,
+                    inputHeight: $inputHeight
                 )
                 .focused($isInputFocused)
                 .accessibilityLabel("Command input")
-                .accessibilityHint("Type a command or question, then press Return to submit")
+                .accessibilityHint("Type a command or question. Shift+Return for new line, Return to submit.")
             }
 
             // Tab hint when autocomplete is available
@@ -66,10 +66,9 @@ extension CommandBarView {
                     )
             }
 
-            // Action button
             actionButton
         }
-        .frame(height: 54)
+        .padding(.vertical, 12)
         .padding(.horizontal, AuroraSpacing.space6)
     }
 
@@ -80,7 +79,7 @@ extension CommandBarView {
         case .history:
             "Search sessions..."
         case .running, .completed, .error:
-            "Follow up..." // Status shown above, not in placeholder
+            "Follow up..."
         default:
             L10n.CommandBar.placeholder
         }

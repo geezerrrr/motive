@@ -93,9 +93,27 @@ extension CommandBarView {
             && currentAtToken(in: inputText) != nil
     }
 
+    /// Extra height from multi-line input (beyond the default single-line size).
+    var inputExtraHeight: CGFloat {
+        max(0, inputHeight - CommandBarView.singleLineInputHeight)
+    }
+
     /// Current command bar height
     var currentHeight: CGFloat {
-        mode.isChat ? mode.dynamicHeight : (isFileCompletionActive ? fileCompletionHeight : mode.dynamicHeight)
+        if mode.isChat {
+            return mode.dynamicHeight
+        }
+        if isFileCompletionActive {
+            return fileCompletionHeight + inputExtraHeight
+        }
+        if mode == .running,
+           appState.currentSessionAgent == "plan",
+           let preview = appState.currentPlanPreviewText,
+           !preview.isEmpty
+        {
+            return 230 + inputExtraHeight
+        }
+        return mode.dynamicHeight + inputExtraHeight
     }
 
     // MARK: - Above Input Content (Session Status)

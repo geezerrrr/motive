@@ -11,6 +11,7 @@ struct QuickConfirmView: View {
     let request: PermissionRequest
     let onResponse: (String) -> Void
     let onCancel: () -> Void
+    let onPreviewPlan: (() -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var selectedOptions: Set<String> = []
@@ -102,6 +103,34 @@ struct QuickConfirmView: View {
 
             // Options or text input
             if let options = request.options, !options.isEmpty {
+                if request.isPlanExitConfirmation, let onPreviewPlan {
+                    Button(action: onPreviewPlan) {
+                        HStack(spacing: AuroraSpacing.space2) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.Aurora.micro.weight(.bold))
+                            Text("drawer.preview_plan".localized)
+                                .font(.Aurora.caption.weight(.semibold))
+                            Spacer()
+                            Image(systemName: "arrow.up.forward.app")
+                                .font(.Aurora.micro.weight(.medium))
+                        }
+                        .foregroundColor(Color.Aurora.textSecondary)
+                        .padding(.horizontal, AuroraSpacing.space3)
+                        .padding(.vertical, AuroraSpacing.space2)
+                        .background(
+                            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                                .fill(Color.Aurora.glassOverlay.opacity(isDark ? 0.06 : 0.08))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                                .stroke(AuroraPromptStyle.subtleBorderColor, lineWidth: AuroraPromptStyle.subtleBorderWidth)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("drawer.preview_plan".localized)
+                    .accessibilityHint("drawer.preview_plan_hint".localized)
+                }
+
                 optionsView(options: options)
 
                 if showCustomInput {

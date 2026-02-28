@@ -25,6 +25,8 @@ final class AppState: ObservableObject {
     @Published var currentSessionAgent: String = "agent"
     /// Plan file path for the currently selected session (when available).
     @Published var currentPlanFilePath: String?
+    /// Live markdown tail for the current plan file (used by CommandBar inline preview).
+    @Published var currentPlanPreviewText: String?
     let messageStore = MessageStore()
     var messages: [ConversationMessage] {
         get { messageStore.messages }
@@ -67,6 +69,7 @@ final class AppState: ObservableObject {
     var statusBarController: StatusBarController?
     var drawerWindowController: DrawerWindowController?
     var quickConfirmController: QuickConfirmWindowController?
+    var planPreviewWindowController: PlanPreviewWindowController?
     var hasStarted = false
     private var seenUsageMessageIds = Set<String>()
 
@@ -100,6 +103,8 @@ final class AppState: ObservableObject {
     private static let maxPendingBindSessions = 10
     /// Timer for cleaning up orphaned entries in pendingBindSessions.
     private var bindQueueCleanupTask: Task<Void, Never>?
+    /// Polls plan markdown file updates while a plan session is running.
+    private var planPreviewTask: Task<Void, Never>?
 
     /// When true, the agent will auto-restart as soon as the current task finishes.
     @Published var pendingAgentRestart = false
@@ -202,6 +207,7 @@ final class AppState: ObservableObject {
         currentToolName = nil
         currentToolInput = nil
         lastErrorMessage = nil
+        updatePlanPreviewPolling()
     }
 
     /// Save the current session's live messages for backgrounding.
@@ -242,6 +248,7 @@ final class AppState: ObservableObject {
         sessionPlanFilePaths[openCodeSessionID] = path
         if currentSession?.openCodeSessionId == openCodeSessionID {
             currentPlanFilePath = path
+            updatePlanPreviewPolling()
         }
     }
 
@@ -367,6 +374,7 @@ final class AppState: ObservableObject {
         if session == nil || session?.id == currentSession?.id {
             sessionStatus = newStatus
         }
+        updatePlanPreviewPolling()
     }
 
     /// Attempt to save the SwiftData context. Logs on failure.
@@ -418,6 +426,68 @@ final class AppState: ObservableObject {
 
     func resetUsageDeduplication() {
         seenUsageMessageIds.removeAll()
+    }
+
+    // MARK: - Plan Preview
+
+    /// Opens a centered markdown preview window for the current plan file.
+    func showPlanPreview(path: String?) {
+        guard let resolvedPath = resolvePlanPreviewPath(path), !resolvedPath.isEmpty else { return }
+        if planPreviewWindowController == nil {
+            planPreviewWindowController = PlanPreviewWindowController()
+        }
+        planPreviewWindowController?.show(planFilePath: resolvedPath)
+    }
+
+    /// Starts/stops polling for live plan markdown preview based on session state.
+    func updatePlanPreviewPolling() {
+        let shouldPoll = sessionStatus == .running
+            && currentSessionAgent == "plan"
+            && resolvePlanPreviewPath(currentPlanFilePath) != nil
+
+        if shouldPoll {
+            guard planPreviewTask == nil else { return }
+            planPreviewTask = Task { @MainActor [weak self] in
+                while !Task.isCancelled {
+                    self?.refreshPlanPreviewText()
+                    try? await Task.sleep(for: .milliseconds(350))
+                }
+            }
+            return
+        }
+
+        planPreviewTask?.cancel()
+        planPreviewTask = nil
+        currentPlanPreviewText = nil
+    }
+
+    private func refreshPlanPreviewText() {
+        guard let resolvedPath = resolvePlanPreviewPath(currentPlanFilePath),
+              let content = try? String(contentsOfFile: resolvedPath, encoding: .utf8)
+        else {
+            currentPlanPreviewText = nil
+            return
+        }
+        let tailLimit = 1600
+        currentPlanPreviewText = if content.count > tailLimit {
+            String(content.suffix(tailLimit))
+        } else {
+            content
+        }
+    }
+
+    private func resolvePlanPreviewPath(_ path: String?) -> String? {
+        guard let path, !path.isEmpty else { return nil }
+        if path.hasPrefix("/") {
+            return FileManager.default.fileExists(atPath: path) ? path : nil
+        }
+        let cwd = if let sessionPath = currentSession?.projectPath, !sessionPath.isEmpty {
+            sessionPath
+        } else {
+            configManager.currentProjectURL.path
+        }
+        let absolute = URL(fileURLWithPath: cwd).appendingPathComponent(path).path
+        return FileManager.default.fileExists(atPath: absolute) ? absolute : nil
     }
 
     func recordUsageMessageId(sessionId: String, messageId: String) -> Bool {

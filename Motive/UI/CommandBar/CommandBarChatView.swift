@@ -44,7 +44,9 @@ struct CommandBarChatView: View {
             } else {
                 DrawerConversationContent(
                     showContent: true,
-                    streamingScrollTask: $streamingScrollTask
+                    streamingScrollTask: $streamingScrollTask,
+                    onEditLastUserMessage: { _ in },
+                    enablesUserMessageEditing: false
                 )
             }
 

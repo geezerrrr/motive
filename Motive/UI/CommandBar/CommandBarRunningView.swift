@@ -14,12 +14,7 @@ struct CommandBarRunningView: View {
     let onOpenDrawer: () -> Void
 
     @EnvironmentObject private var appState: AppState
-    @Environment(\.colorScheme) private var colorScheme
     @State private var progressPhase: CGFloat = 0
-
-    private var isDark: Bool {
-        colorScheme == .dark
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,17 +47,21 @@ struct CommandBarRunningView: View {
             }
 
             VStack(alignment: .leading, spacing: AuroraSpacing.space1) {
-                Text(statusTitle)
-                    .font(.Aurora.bodySmall.weight(.semibold))
-                    .foregroundColor(Color.Aurora.textPrimary)
-                    .auroraShimmer(isDark: isDark)
+                MetallicShimmerText(
+                    text: statusTitle,
+                    font: .Aurora.bodySmall.weight(.semibold),
+                    baseColor: Color.Aurora.textSecondary,
+                    isActive: true
+                )
 
-                Text(statusDetail)
-                    .font(.Aurora.caption)
-                    .foregroundColor(Color.Aurora.textSecondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .auroraShimmer(isDark: isDark)
+                MetallicShimmerText(
+                    text: statusDetail,
+                    font: .Aurora.caption,
+                    baseColor: Color.Aurora.textSecondary,
+                    isActive: true
+                )
+                .lineLimit(1)
+                .truncationMode(.middle)
             }
 
             Spacer()

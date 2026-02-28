@@ -103,6 +103,19 @@
 "settings.general.theme.system" = "跟随系统";
 "settings.general.theme.light" = "浅色";
 "settings.general.theme.dark" = "深色";
+"settings.general.command_bar_position" = "位置";
+"settings.general.command_bar_position.desc" = "选择命令栏在屏幕上的显示位置";
+"settings.general.glass_effect" = "玻璃效果";
+"settings.general.glass_effect.desc" = "选择透明或着色玻璃效果";
+"settings.general.glass_effect.clear" = "透明";
+"settings.general.glass_effect.tinted" = "着色";
+"settings.general.position.center" = "居中";
+"settings.general.position.top_leading" = "左上";
+"settings.general.position.top_middle" = "上方居中";
+"settings.general.position.top_trailing" = "右上";
+"settings.general.position.bottom_leading" = "左下";
+"settings.general.position.bottom_middle" = "下方居中";
+"settings.general.position.bottom_trailing" = "右下";
 
 // Language Settings
 "settings.general.language" = "语言";
@@ -470,3 +483,12 @@
 // Common
 "onboarding.skip" = "跳过";
 "onboarding.continue" = "继续";
+
+"drawer.copy_result" = "复制结果";
+"drawer.edit_last_message" = "编辑最后一条消息";
+"drawer.preview_plan" = "预览计划";
+"drawer.preview_plan_hint" = "在预览窗口中打开生成的计划 Markdown";
+"drawer.plan_preview" = "计划预览";
+"drawer.reload_plan_preview" = "重新加载";
+"drawer.plan_preview_load_failed" = "加载计划失败：%@";
+"drawer.plan_draft_streaming" = "实时计划草稿";

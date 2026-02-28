@@ -48,7 +48,7 @@ struct GeneralSettingsView: View {
                     )
                 }
 
-                SettingRow("Glass Effect", description: "Choose between clear or tinted glass") {
+                SettingRow(L10n.Settings.glassEffect, description: L10n.Settings.glassEffectDesc) {
                     menuPicker(
                         selection: Binding(
                             get: { configManager.liquidGlassMode },

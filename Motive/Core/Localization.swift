@@ -121,6 +121,17 @@ enum L10n {
         static let themeDark = "settings.general.theme.dark".localized
         static let commandBarPosition = "settings.general.command_bar_position".localized
         static let commandBarPositionDesc = "settings.general.command_bar_position.desc".localized
+        static let glassEffect = "settings.general.glass_effect".localized
+        static let glassEffectDesc = "settings.general.glass_effect.desc".localized
+        static let liquidGlassClear = "settings.general.glass_effect.clear".localized
+        static let liquidGlassTinted = "settings.general.glass_effect.tinted".localized
+        static let positionCenter = "settings.general.position.center".localized
+        static let positionTopLeading = "settings.general.position.top_leading".localized
+        static let positionTopMiddle = "settings.general.position.top_middle".localized
+        static let positionTopTrailing = "settings.general.position.top_trailing".localized
+        static let positionBottomLeading = "settings.general.position.bottom_leading".localized
+        static let positionBottomMiddle = "settings.general.position.bottom_middle".localized
+        static let positionBottomTrailing = "settings.general.position.bottom_trailing".localized
 
         // Language
         static let language = "settings.general.language".localized
@@ -395,6 +406,14 @@ enum L10n {
         static let contextHelp = "drawer.context_help".localized
         static let showOutput = "drawer.show_output".localized
         static let hideOutput = "drawer.hide_output".localized
+        static let copyResult = "drawer.copy_result".localized
+        static let editLastMessage = "drawer.edit_last_message".localized
+        static let previewPlan = "drawer.preview_plan".localized
+        static let previewPlanHint = "drawer.preview_plan_hint".localized
+        static let planPreview = "drawer.plan_preview".localized
+        static let reloadPlanPreview = "drawer.reload_plan_preview".localized
+        static let planPreviewLoadFailed = "drawer.plan_preview_load_failed".localized
+        static let planDraftStreaming = "drawer.plan_draft_streaming".localized
     }
 
     // MARK: - Permission Request

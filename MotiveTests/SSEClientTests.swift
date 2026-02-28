@@ -495,6 +495,131 @@ struct SSEClientTests {
         #expect(event == nil)
     }
 
+    @Test func parsesTextSnapshotAsIncrementalDelta() async {
+        let client = SSEClient()
+        let first = """
+        {
+            "type": "message.part.updated",
+            "properties": {
+                "part": {
+                    "id": "prt-1",
+                    "sessionID": "session-1",
+                    "messageID": "msg-1",
+                    "type": "text",
+                    "text": "Hello"
+                }
+            }
+        }
+        """
+        let second = """
+        {
+            "type": "message.part.updated",
+            "properties": {
+                "part": {
+                    "id": "prt-1",
+                    "sessionID": "session-1",
+                    "messageID": "msg-1",
+                    "type": "text",
+                    "text": "Hello world"
+                }
+            }
+        }
+        """
+
+        let firstEvent = await client.parseSSEData(first)
+        guard case let .textDelta(firstInfo) = firstEvent else {
+            Issue.record("Expected textDelta for first full-text snapshot")
+            return
+        }
+        #expect(firstInfo.delta == "Hello")
+
+        let secondEvent = await client.parseSSEData(second)
+        guard case let .textDelta(secondInfo) = secondEvent else {
+            Issue.record("Expected textDelta for second full-text snapshot")
+            return
+        }
+        #expect(secondInfo.delta == " world")
+    }
+
+    // MARK: - User Message Filtering
+
+    @Test func skipsTextDeltaForUserMessages() async {
+        let client = SSEClient()
+
+        // First, a message.updated with role "user" registers the message ID
+        let messageUpdated = """
+        {
+            "type": "message.updated",
+            "properties": {
+                "info": {
+                    "id": "msg-user-1",
+                    "sessionID": "session-1",
+                    "role": "user"
+                }
+            }
+        }
+        """
+        let updateEvent = await client.parseSSEData(messageUpdated)
+        #expect(updateEvent == nil)
+
+        // Then, a text part update for this user message should be skipped
+        let textPart = """
+        {
+            "type": "message.part.updated",
+            "properties": {
+                "part": {
+                    "sessionID": "session-1",
+                    "messageID": "msg-user-1",
+                    "type": "text"
+                },
+                "delta": "Hello, do this for me"
+            }
+        }
+        """
+        let textEvent = await client.parseSSEData(textPart)
+        #expect(textEvent == nil)
+    }
+
+    @Test func allowsTextDeltaForAssistantMessages() async {
+        let client = SSEClient()
+
+        // message.updated with role "assistant"
+        let messageUpdated = """
+        {
+            "type": "message.updated",
+            "properties": {
+                "info": {
+                    "id": "msg-asst-1",
+                    "sessionID": "session-1",
+                    "role": "assistant"
+                }
+            }
+        }
+        """
+        _ = await client.parseSSEData(messageUpdated)
+
+        // Text part for assistant message should NOT be skipped
+        let textPart = """
+        {
+            "type": "message.part.updated",
+            "properties": {
+                "part": {
+                    "sessionID": "session-1",
+                    "messageID": "msg-asst-1",
+                    "type": "text"
+                },
+                "delta": "Sure, I can help"
+            }
+        }
+        """
+        let textEvent = await client.parseSSEData(textPart)
+        guard case let .textDelta(info) = textEvent else {
+            Issue.record("Expected textDelta event for assistant message")
+            return
+        }
+        #expect(info.delta == "Sure, I can help")
+    }
+
     @Test func parsesMessageUpdatedUsage() async {
         let client = SSEClient()
         let json = """
