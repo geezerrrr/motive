@@ -481,7 +481,7 @@ enum MetallicShimmerStyle {
 struct MetallicShimmerText: View {
     let text: String
     var font: Font = .Aurora.caption
-    var baseColor: Color = Color.Aurora.textSecondary
+    var baseColor: Color = .Aurora.textSecondary
     var isActive: Bool = true
 
     @State private var phase = 0
