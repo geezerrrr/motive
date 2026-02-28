@@ -64,8 +64,8 @@ struct DrawerChatInput: View {
                 .fill(Color.Aurora.glassOverlay.opacity(isDark ? 0.06 : 0.12))
                 .frame(height: 0.5)
 
-            HStack(alignment: .bottom, spacing: AuroraSpacing.space3) {
-                HStack(alignment: .bottom, spacing: AuroraSpacing.space2) {
+            HStack(alignment: .center, spacing: AuroraSpacing.space3) {
+                HStack(alignment: .center, spacing: AuroraSpacing.space2) {
                     GrowingTextView(
                         text: $inputText,
                         placeholder: L10n.Drawer.messagePlaceholder,

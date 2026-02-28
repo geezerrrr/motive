@@ -217,9 +217,6 @@ class GrowingTextContainer: NSView {
 
     override func layout() {
         super.layout()
-        let visibleHeight = scrollView.contentSize.height
-        guard visibleHeight > 0 else { return }
-        textView.minSize = NSSize(width: 0, height: visibleHeight)
     }
 
     override var acceptsFirstResponder: Bool {
