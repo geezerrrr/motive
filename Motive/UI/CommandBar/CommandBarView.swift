@@ -147,6 +147,9 @@ struct CommandBarView: View {
     @State var deleteCandidateId: UUID? = nil
     @FocusState var isInputFocused: Bool
 
+    /// Multi-line input height (reported by GrowingTextView)
+    @State var inputHeight: CGFloat = CommandBarView.singleLineInputHeight
+
     // @ file completion state
     @StateObject var fileCompletion = FileCompletionManager()
     @State var showFileCompletion: Bool = false
