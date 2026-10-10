@@ -97,6 +97,8 @@
 "settings.general.keyboard" = "Keyboard";
 "settings.general.global_hotkey" = "Global Hotkey";
 "settings.general.global_hotkey.desc" = "Summon the Command Bar";
+"settings.general.drawer_hotkey" = "Drawer Hotkey";
+"settings.general.drawer_hotkey.desc" = "Toggle the Drawer (optional)";
 "settings.general.appearance" = "Appearance";
 "settings.general.theme" = "Theme";
 "settings.general.theme.desc" = "Choose light, dark, or follow system";
@@ -261,6 +263,7 @@
 // Hotkey Recorder
 "settings.hotkey.press_keys" = "Press keys...";
 "settings.hotkey.click_to_record" = "Click to record";
+"settings.hotkey.clear" = "Clear";
 
 // Trust Level
 "settings.permissions.trust.careful" = "Careful";

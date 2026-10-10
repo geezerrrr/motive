@@ -314,6 +314,8 @@ final class ConfigManager: ObservableObject, SkillConfigProvider {
     }
 
     @AppStorage("hotkey") var hotkey: String = "⌥Space"
+    /// Optional hotkey that toggles the Drawer (empty = disabled)
+    @AppStorage("drawerHotkey") var drawerHotkey: String = ""
     @AppStorage("appearanceMode") var appearanceModeRawValue: String = AppearanceMode.system.rawValue
     @AppStorage("liquidGlassMode") var liquidGlassModeRaw: String = LiquidGlassMode.clear.rawValue
     @AppStorage("drawerPinned") var drawerPinned: Bool = false
