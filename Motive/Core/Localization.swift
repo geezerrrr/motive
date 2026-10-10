@@ -392,6 +392,8 @@ enum L10n {
         static let running = "drawer.running".localized
         static let stop = "drawer.stop".localized
         static let close = "drawer.close".localized
+        static let pin = "drawer.pin".localized
+        static let unpin = "drawer.unpin".localized
         static let inputPlaceholder = "drawer.input.placeholder".localized
         static let messagePlaceholder = "drawer.message.placeholder".localized
         static let startConversation = "drawer.start_conversation".localized
