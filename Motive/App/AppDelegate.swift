@@ -10,7 +10,8 @@ import AppKit
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     weak var appState: AppState?
-    private let hotkeyManager = CarbonHotkeyManager()
+    private let hotkeyManager = CarbonHotkeyManager(id: 1)
+    private let drawerHotkeyManager = CarbonHotkeyManager(id: 2)
     private var permissionCheckTask: Task<Void, Never>?
     private var hotkeyObserver: NSObjectProtocol?
     private var onboardingController: OnboardingWindowController?
@@ -252,10 +253,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             Log.error("Failed to register hotkey \(configManager.hotkey)")
         }
+
+        registerDrawerHotkey(configManager.drawerHotkey)
+    }
+
+    /// Optional second hotkey that toggles the Drawer directly
+    private func registerDrawerHotkey(_ hotkey: String) {
+        guard !hotkey.isEmpty else {
+            drawerHotkeyManager.unregister()
+            return
+        }
+        let (modifiers, keyCode) = HotkeyParser.parseToKeyCode(hotkey)
+
+        drawerHotkeyManager.onKeyDown = { [weak self] in
+            self?.appState?.toggleDrawer()
+        }
+
+        if drawerHotkeyManager.register(modifiers: modifiers, keyCode: keyCode) {
+            Log.debug("Drawer hotkey \(hotkey) registered successfully via Carbon")
+        } else {
+            Log.error("Failed to register drawer hotkey \(hotkey)")
+        }
     }
 
     private func unregisterHotkey() {
         hotkeyManager.unregister()
+        drawerHotkeyManager.unregister()
     }
 
     private func toggleCommandBar() {

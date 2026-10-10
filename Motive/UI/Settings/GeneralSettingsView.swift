@@ -79,9 +79,26 @@ struct GeneralSettingsView: View {
 
             // Keyboard Section
             SettingSection(L10n.Settings.keyboard) {
-                SettingRow(L10n.Settings.globalHotkey, description: L10n.Settings.globalHotkeyDesc, showDivider: false) {
+                SettingRow(L10n.Settings.globalHotkey, description: L10n.Settings.globalHotkeyDesc) {
                     HotkeyRecorderView(hotkey: $configManager.hotkey)
                         .frame(width: 140, height: 32)
+                }
+
+                SettingRow(L10n.Settings.drawerHotkey, description: L10n.Settings.drawerHotkeyDesc, showDivider: false) {
+                    HStack(spacing: 6) {
+                        if !configManager.drawerHotkey.isEmpty {
+                            Button(action: { configManager.drawerHotkey = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.Aurora.bodySmall)
+                                    .foregroundColor(Color.Aurora.textMuted)
+                            }
+                            .buttonStyle(.plain)
+                            .help(L10n.Settings.clearHotkey)
+                            .accessibilityLabel(L10n.Settings.clearHotkey)
+                        }
+                        HotkeyRecorderView(hotkey: $configManager.drawerHotkey)
+                            .frame(width: 140, height: 32)
+                    }
                 }
             }
 
