@@ -12,11 +12,15 @@ extension ConfigManager {
         // Ensure directory exists
         try? FileManager.default.createDirectory(at: authDir, withIntermediateDirectories: true)
 
-        // Read existing auth.json or create new
-        var auth: [String: [String: String]] = [:]
-        if let data = try? Data(contentsOf: authPath),
-           let existing = try? JSONSerialization.jsonObject(with: data) as? [String: [String: String]]
-        {
+        // Read existing auth.json or create new.
+        // Entries are kept as untyped JSON: OAuth entries contain non-string values
+        // (e.g. numeric `expires`) and must be preserved as-is.
+        var auth: [String: Any] = [:]
+        if let data = try? Data(contentsOf: authPath), !data.isEmpty {
+            guard let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                Log.config(" Skipped auth.json sync: existing file at \(authPath.path) could not be parsed")
+                return
+            }
             auth = existing
         }
 
