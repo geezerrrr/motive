@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DrawerHeader: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var configManager: ConfigManager
     @Binding var showSessionPicker: Bool
     let onLoadSessions: () -> Void
 
@@ -90,6 +91,23 @@ struct DrawerHeader: View {
                 .buttonStyle(.plain)
                 .help(L10n.Drawer.newChat)
                 .accessibilityLabel(L10n.Drawer.newChat)
+
+                // Pin button
+                Button(action: { appState.setDrawerPinned(!configManager.drawerPinned) }) {
+                    Image(systemName: configManager.drawerPinned ? "pin.fill" : "pin")
+                        .font(.Aurora.micro.weight(.bold))
+                        .foregroundColor(configManager.drawerPinned ? Color.Aurora.primary : Color.Aurora.textMuted)
+                        .frame(width: 28, height: 28)
+                        .background(Color.Aurora.glassOverlay.opacity(isDark ? 0.08 : 0.10))
+                        .clipShape(RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AuroraRadius.sm, style: .continuous)
+                                .strokeBorder(Color.Aurora.glassOverlay.opacity(0.1), lineWidth: 0.5)
+                        )
+                }
+                .buttonStyle(.plain)
+                .help(configManager.drawerPinned ? L10n.Drawer.unpin : L10n.Drawer.pin)
+                .accessibilityLabel(configManager.drawerPinned ? L10n.Drawer.unpin : L10n.Drawer.pin)
 
                 // Close button
                 Button(action: { appState.hideDrawer() }) {

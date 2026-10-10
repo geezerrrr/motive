@@ -59,6 +59,7 @@ extension AppState {
                 .environmentObject(self)
                 .environmentObject(configManager)
         )
+        drawerWindowController?.isPinned = configManager.drawerPinned
         // Configure settings window controller
         SettingsWindowController.shared.configure(configManager: configManager, appState: self)
         startScheduledTaskSystemIfNeeded()

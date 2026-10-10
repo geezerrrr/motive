@@ -375,6 +375,8 @@
 "drawer.running" = "実行中";
 "drawer.stop" = "停止";
 "drawer.close" = "閉じる";
+"drawer.pin" = "固定";
+"drawer.unpin" = "固定を解除";
 "drawer.input.placeholder" = "フォローアップを送信...";
 "drawer.message.placeholder" = "メッセージ...";
 "drawer.start_conversation" = "会話を始める";
