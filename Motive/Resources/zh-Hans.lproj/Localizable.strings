@@ -97,6 +97,8 @@
 "settings.general.keyboard" = "键盘";
 "settings.general.global_hotkey" = "全局快捷键";
 "settings.general.global_hotkey.desc" = "唤起命令栏";
+"settings.general.drawer_hotkey" = "详情快捷键";
+"settings.general.drawer_hotkey.desc" = "切换详情面板（可选）";
 "settings.general.appearance" = "外观";
 "settings.general.theme" = "主题";
 "settings.general.theme.desc" = "选择浅色、深色或跟随系统";
@@ -261,6 +263,7 @@
 // Hotkey Recorder
 "settings.hotkey.press_keys" = "请按键...";
 "settings.hotkey.click_to_record" = "点击录制";
+"settings.hotkey.clear" = "清除";
 
 // Trust Level
 "settings.permissions.trust.careful" = "谨慎";

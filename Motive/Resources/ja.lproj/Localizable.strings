@@ -97,6 +97,8 @@
 "settings.general.keyboard" = "キーボード";
 "settings.general.global_hotkey" = "グローバルホットキー";
 "settings.general.global_hotkey.desc" = "コマンドバーを呼び出す";
+"settings.general.drawer_hotkey" = "詳細パネルのホットキー";
+"settings.general.drawer_hotkey.desc" = "詳細パネルを切り替える（任意）";
 "settings.general.appearance" = "外観";
 "settings.general.theme" = "テーマ";
 "settings.general.theme.desc" = "ライト、ダーク、またはシステムに従う";
@@ -261,6 +263,7 @@
 // Hotkey Recorder
 "settings.hotkey.press_keys" = "キーを押してください...";
 "settings.hotkey.click_to_record" = "クリックして録音";
+"settings.hotkey.clear" = "クリア";
 
 // Trust Level
 "settings.permissions.trust.careful" = "慎重";

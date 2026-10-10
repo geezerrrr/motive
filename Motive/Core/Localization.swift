@@ -113,6 +113,8 @@ enum L10n {
         static let keyboard = "settings.general.keyboard".localized
         static let globalHotkey = "settings.general.global_hotkey".localized
         static let globalHotkeyDesc = "settings.general.global_hotkey.desc".localized
+        static let drawerHotkey = "settings.general.drawer_hotkey".localized
+        static let drawerHotkeyDesc = "settings.general.drawer_hotkey.desc".localized
         static let appearance = "settings.general.appearance".localized
         static let theme = "settings.general.theme".localized
         static let themeDesc = "settings.general.theme.desc".localized
@@ -277,6 +279,7 @@ enum L10n {
         // Hotkey Recorder
         static let pressKeys = "settings.hotkey.press_keys".localized
         static let clickToRecord = "settings.hotkey.click_to_record".localized
+        static let clearHotkey = "settings.hotkey.clear".localized
 
         // Trust Level
         static let trustCareful = "settings.permissions.trust.careful".localized
