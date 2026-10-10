@@ -316,6 +316,7 @@ final class ConfigManager: ObservableObject, SkillConfigProvider {
     @AppStorage("hotkey") var hotkey: String = "⌥Space"
     @AppStorage("appearanceMode") var appearanceModeRawValue: String = AppearanceMode.system.rawValue
     @AppStorage("liquidGlassMode") var liquidGlassModeRaw: String = LiquidGlassMode.clear.rawValue
+    @AppStorage("drawerPinned") var drawerPinned: Bool = false
 
     var liquidGlassMode: LiquidGlassMode {
         get { LiquidGlassMode(rawValue: liquidGlassModeRaw) ?? .clear }

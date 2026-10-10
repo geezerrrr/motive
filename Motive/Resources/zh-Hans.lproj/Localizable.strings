@@ -375,6 +375,8 @@
 "drawer.running" = "运行中";
 "drawer.stop" = "停止";
 "drawer.close" = "关闭";
+"drawer.pin" = "固定";
+"drawer.unpin" = "取消固定";
 "drawer.input.placeholder" = "发送后续消息...";
 "drawer.message.placeholder" = "输入消息...";
 "drawer.start_conversation" = "开始对话";

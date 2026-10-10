@@ -375,6 +375,8 @@
 "drawer.running" = "Running";
 "drawer.stop" = "Stop";
 "drawer.close" = "Close";
+"drawer.pin" = "Pin";
+"drawer.unpin" = "Unpin";
 "drawer.input.placeholder" = "Send a follow-up...";
 "drawer.message.placeholder" = "Message...";
 "drawer.start_conversation" = "Start a Conversation";

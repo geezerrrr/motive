@@ -28,6 +28,9 @@ final class DrawerWindowController {
     /// When true, the window will not hide on resign key (used during delete confirmation)
     var suppressAutoHide: Bool = false
 
+    /// When true, the window stays open when clicking outside
+    var isPinned: Bool = false
+
     init(rootView: some View) {
         let hostingView = NSHostingView(rootView: AnyView(rootView))
         hostingView.safeAreaRegions = []
@@ -54,7 +57,7 @@ final class DrawerWindowController {
         ) { [weak self] _ in
             guard let self else { return }
             // Guard: don't auto-hide if we just showed (prevents focus-race glitches)
-            if !self.suppressAutoHide, Date().timeIntervalSince(self.lastShowTime) > 0.3 {
+            if !self.suppressAutoHide, !self.isPinned, Date().timeIntervalSince(self.lastShowTime) > 0.3 {
                 self.hide()
             }
         }

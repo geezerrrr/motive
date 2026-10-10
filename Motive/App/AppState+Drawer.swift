@@ -41,6 +41,12 @@ extension AppState {
         drawerWindowController?.getWindow()
     }
 
+    /// Pin the Drawer so it stays open when clicking outside
+    func setDrawerPinned(_ pinned: Bool) {
+        configManager.drawerPinned = pinned
+        drawerWindowController?.isPinned = pinned
+    }
+
     /// Temporarily suppress auto-hide for Drawer (e.g., during alert display)
     func setDrawerAutoHideSuppressed(_ suppressed: Bool) {
         drawerWindowController?.suppressAutoHide = suppressed
